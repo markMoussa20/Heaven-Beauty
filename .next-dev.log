@@ -1,0 +1,47 @@
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.20.10.3:3000
+- Environments: .env.local
+✓ Ready in 844ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+ GET / 200 in 10.6s (next.js: 2.6s, proxy.ts: 312ms, application-code: 7.8s)
+ GET / 200 in 2.6s (next.js: 9ms, proxy.ts: 18ms, application-code: 2.6s)
+ GET / 200 in 1209ms (next.js: 8ms, proxy.ts: 11ms, application-code: 1190ms)
+ GET / 200 in 1152ms (next.js: 5ms, proxy.ts: 9ms, application-code: 1138ms)
+ GET / 200 in 711ms (next.js: 8ms, proxy.ts: 11ms, application-code: 692ms)
+ GET / 200 in 1436ms (next.js: 6ms, proxy.ts: 11ms, application-code: 1419ms)
+ GET /products 404 in 655ms (next.js: 573ms, proxy.ts: 12ms, application-code: 70ms)
+ GET /products 404 in 1527ms (next.js: 16ms, proxy.ts: 9ms, application-code: 1503ms)
+ GET /products 404 in 689ms (next.js: 14ms, proxy.ts: 10ms, application-code: 665ms)
+✓ Compiled in 79ms
+✓ Compiled in 74ms
+✓ Compiled in 280ms
+ GET /products 404 in 462ms (next.js: 103ms, proxy.ts: 110ms, application-code: 248ms)
+ GET /products 404 in 238ms (next.js: 13ms, proxy.ts: 20ms, application-code: 205ms)
+ GET /products 404 in 101ms (next.js: 34ms, proxy.ts: 13ms, application-code: 54ms)
+ GET /products 404 in 104ms (next.js: 12ms, proxy.ts: 12ms, application-code: 80ms)
+ GET /products 404 in 711ms (next.js: 39ms, proxy.ts: 21ms, application-code: 651ms)
+ GET /products 500 in 2.0s (next.js: 1731ms, proxy.ts: 112ms, application-code: 166ms)
+ GET /products 500 in 154ms (next.js: 44ms, proxy.ts: 96ms, application-code: 13ms)
+ GET /products 500 in 72ms (next.js: 48ms, proxy.ts: 12ms, application-code: 12ms)
+✓ Compiled in 96ms
+ GET /products 500 in 35ms (next.js: 15ms, proxy.ts: 9ms, application-code: 12ms)
+✓ Compiled in 86ms
+ GET /products 500 in 120ms (next.js: 18ms, proxy.ts: 93ms, application-code: 9ms)
+ GET /products 500 in 142ms (next.js: 20ms, proxy.ts: 107ms, application-code: 15ms)
+ GET /products 500 in 152ms (next.js: 19ms, proxy.ts: 117ms, application-code: 16ms)
+✓ Compiled in 108ms
+ GET /products 404 in 1113ms (next.js: 137ms, proxy.ts: 8ms, application-code: 968ms)
+ GET /products 500 in 178ms (next.js: 31ms, proxy.ts: 131ms, application-code: 16ms)
+ GET /products 500 in 47ms (next.js: 21ms, proxy.ts: 10ms, application-code: 16ms)
+ GET /products 500 in 89ms (next.js: 31ms, proxy.ts: 26ms, application-code: 32ms)
+✓ Compiled in 96ms
+ GET /products 404 in 1199ms (next.js: 134ms, proxy.ts: 96ms, application-code: 969ms)
+ GET / 200 in 26ms (next.js: 6ms, proxy.ts: 9ms, application-code: 11ms)
+ GET / 200 in 1503ms (next.js: 170ms, proxy.ts: 10ms, application-code: 1323ms)
+ GET / 200 in 752ms (next.js: 7ms, proxy.ts: 9ms, application-code: 736ms)
