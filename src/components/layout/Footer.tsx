@@ -1,50 +1,83 @@
 import Link from "next/link";
 
 import { shell } from "@/lib/design";
+import { getFooterContent } from "@/lib/site-content";
 
-export function Footer() {
+const footerGroups = [
+  { key: "about", label: "About" },
+  { key: "shop", label: "Shop" },
+  { key: "care", label: "Care" },
+];
+
+export async function Footer() {
+  const { settings, links } = await getFooterContent();
+  const socialLinks = links.social ?? [];
+
   return (
-    <footer className="border-t border-[#eadbd4] bg-[#2b2523] text-[#f8ede8]">
+    <footer className="border-t border-[#171412] bg-[#171412] text-[#f8ede8]">
       <div
-        className={`${shell} grid gap-8 py-10 md:grid-cols-[1.1fr_0.8fr_0.8fr]`}
+        className={`${shell} grid gap-9 py-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_0.7fr_0.7fr_0.8fr]`}
       >
         <div className="space-y-4">
           <div>
             <p className="text-2xl font-semibold tracking-wide">
-              Heaven Beauty
+              {settings.title}
             </p>
             <p className="mt-1 text-xs font-semibold uppercase tracking-[0.28em] text-[#d8b7a9]">
-              Beauty Store
+              {settings.subtitle}
             </p>
           </div>
           <p className="max-w-sm text-sm leading-7 text-[#d8ccc6]">
-            Country-aware beauty shopping with local pricing, currency, and
-            delivery options for every supported market.
+            {settings.body}
           </p>
-        </div>
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#d8b7a9]">
-            Shop
-          </p>
-          <div className="mt-4 grid gap-3 text-sm text-[#f8ede8]">
-            <Link href="/">Home</Link>
-            <Link href="/products">Products</Link>
-            <Link href="/contact">Contact</Link>
+          <div className="space-y-2 text-sm text-[#d8ccc6]">
+            {settings.cta_label ? <p>{settings.cta_label}</p> : null}
+            {settings.cta_href ? <p>{settings.cta_href}</p> : null}
           </div>
         </div>
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#d8b7a9]">
-            Delivery
-          </p>
-          <p className="mt-4 text-sm leading-7 text-[#d8ccc6]">
-            Prices and delivery fees update based on the selected country.
-            Area-based shipping zones will be available in checkout.
-          </p>
-        </div>
+        {footerGroups.map((group) => (
+          <div key={group.key}>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#d8b7a9]">
+              {group.label}
+            </p>
+            <div className="mt-4 grid gap-3 text-sm text-[#f8ede8]">
+              {(links[group.key] ?? []).map((link) =>
+                link.is_external ? (
+                  <a
+                    href={link.href}
+                    key={link.id}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link href={link.href} key={link.id}>
+                    {link.label}
+                  </Link>
+                ),
+              )}
+            </div>
+          </div>
+        ))}
       </div>
       <div className="border-t border-white/10">
-        <div className={`${shell} py-5 text-xs text-[#bdaea7]`}>
-          (c) Heaven Beauty. All rights reserved.
+        <div
+          className={`${shell} flex flex-col gap-3 py-5 text-xs text-[#bdaea7] sm:flex-row sm:items-center sm:justify-between`}
+        >
+          <p>{settings.marquee_text}</p>
+          <div className="flex gap-4">
+            {socialLinks.map((link) => (
+              <a
+                href={link.href}
+                key={link.id}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

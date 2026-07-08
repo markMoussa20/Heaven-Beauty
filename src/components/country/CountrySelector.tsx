@@ -12,12 +12,13 @@ export function CountrySelector() {
   }
 
   return (
-    <label className="inline-flex items-center gap-2 text-sm font-medium text-[#5f514c]">
+    <label className="inline-flex items-center gap-2 text-sm font-medium text-[#6c93c4]">
       <span className="sr-only">Country</span>
       <select
-        className={`${focusRing} h-10 rounded-full border border-[#eadbd4] bg-white px-4 text-sm font-semibold text-[#2b2523] shadow-sm hover:border-[#d7b9ad]`}
-        value={selectedCountryCode}
+        className={`${focusRing} h-9 border border-[#6c93c4]/25 bg-white px-3 text-xs font-medium uppercase tracking-wide text-[#6c93c4] hover:border-[#6c93c4]`}
         onChange={(event) => setSelectedCountryCode(event.target.value)}
+        suppressHydrationWarning
+        value={selectedCountryCode}
       >
         {countries.map((country) => (
           <option key={country.id} value={country.code}>

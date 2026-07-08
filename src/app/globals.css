@@ -1,26 +1,181 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #e6ecf4;
+  --foreground: #6c93c4;
+  --hb-blue: #6c93c4;
+  --hb-blue-soft: #e6ecf4;
+  --hb-white: #ffffff;
+  --hb-black: #050505;
+  --hb-muted: #7891ad;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: Kanit, Arial, Helvetica, sans-serif;
   --font-mono: "Courier New", Courier, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Kanit, Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (pointer: fine) {
+  html.hb-custom-cursor,
+  html.hb-custom-cursor * {
+    cursor: none !important;
+  }
+
+  html.hb-custom-cursor input,
+  html.hb-custom-cursor textarea,
+  html.hb-custom-cursor select,
+  html.hb-custom-cursor [contenteditable="true"],
+  html.hb-custom-cursor [role="textbox"] {
+    cursor: auto !important;
+  }
+}
+
+.hb-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  display: none;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  opacity: 0;
+  transition:
+    opacity 140ms ease,
+    width 150ms ease,
+    height 150ms ease,
+    border-color 150ms ease,
+    background-color 150ms ease;
+  will-change: transform, opacity;
+}
+
+.hb-cursor span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  background: rgba(108, 147, 196, 0.46);
+  border-radius: inherit;
+  transform: translate(-50%, -50%);
+  transition:
+    width 150ms ease,
+    height 150ms ease,
+    background-color 150ms ease;
+}
+
+html.hb-custom-cursor .hb-cursor {
+  display: block;
+}
+
+html.hb-cursor-visible .hb-cursor {
+  opacity: 1;
+}
+
+html.hb-cursor-moving .hb-cursor {
+  width: 74px;
+  height: 74px;
+  border-color: rgba(108, 147, 196, 0.42);
+}
+
+html.hb-cursor-down .hb-cursor {
+  width: 64px;
+  height: 64px;
+  background: rgba(108, 147, 196, 0.06);
+  border-color: rgba(108, 147, 196, 0.58);
+}
+
+html.hb-cursor-down .hb-cursor span {
+  width: 11px;
+  height: 11px;
+  background: rgba(108, 147, 196, 0.58);
+}
+
+html.hb-cursor-text .hb-cursor {
+  opacity: 0;
+}
+
+@keyframes hb-ken-burns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes hb-hero-fade {
+  0%,
+  27% {
+    opacity: 1;
+  }
+  34%,
+  93% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes hb-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hb-page-drift {
+  0% {
+    transform: translateY(-10px) scale(1.04);
+  }
+  100% {
+    transform: translateY(14px) scale(1.08);
+  }
+}
+
+.hb-fade-up {
+  animation: hb-fade-up 900ms ease both;
+}
+
+.hb-page-drift {
+  animation: hb-page-drift 12s ease-in-out infinite alternate;
+}
+
+.hb-hero-image {
+  animation:
+    hb-ken-burns 12s ease-in-out infinite alternate,
+    hb-hero-fade 15s ease-in-out infinite;
+  opacity: 0;
+}
+
+.hb-hero-image:nth-child(1) {
+  animation-delay: 0s, 0s;
+}
+
+.hb-hero-image:nth-child(2) {
+  animation-delay: 0s, 5s;
+}
+
+.hb-hero-image:nth-child(3) {
+  animation-delay: 0s, 10s;
 }

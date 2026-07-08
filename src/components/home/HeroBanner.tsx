@@ -1,79 +1,78 @@
-import { ProductCard } from "@/components/products/ProductCard";
-import { sectionEyebrow, shell } from "@/lib/design";
-import type { Country, CountryItemWithProduct } from "@/types/database";
+import { shell } from "@/lib/design";
+import type { Country } from "@/types/database";
 
 type HeroBannerProps = {
   country: Country | null;
   deliveryText: string;
-  featuredItem?: CountryItemWithProduct;
 };
 
 export function HeroBanner({
   country,
   deliveryText,
-  featuredItem,
 }: HeroBannerProps) {
   return (
-    <section className="overflow-hidden bg-[#fbf6f3]">
-      <div className={`${shell} grid gap-10 py-10 md:grid-cols-[1fr_0.86fr] md:items-center lg:py-14`}>
-        <div className="max-w-2xl space-y-7">
-          <p className={sectionEyebrow}>Heaven Beauty UAE</p>
-          <div className="space-y-5">
-            <h1 className="text-4xl font-semibold leading-tight text-[#2b2523] sm:text-5xl lg:text-6xl">
-              Beauty essentials for a soft, polished routine.
-            </h1>
-            <p className="max-w-xl text-base leading-8 text-[#6f625d] sm:text-lg">
-              Discover Heaven Beauty favorites available in{" "}
-              <span className="font-semibold text-[#2b2523]">
-                {country?.name ?? "your country"}
-              </span>
-              , with local pricing, currency, and delivery rules already
-              applied.
+    <>
+      <section className="relative h-[430px] overflow-hidden bg-white sm:h-[550px]">
+        <div
+          className="hb-hero-image absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://myheavenbeauty.com/wp-content/uploads/2026/04/IMG_2385.JPG-scaled.jpeg')",
+          }}
+        />
+        <div
+          className="hb-hero-image absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://myheavenbeauty.com/wp-content/uploads/2026/04/IMG_2386.JPG-scaled.jpeg')",
+          }}
+        />
+        <div
+          className="hb-hero-image absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://myheavenbeauty.com/wp-content/uploads/2026/06/IMG_5185.JPG-1-1-1-1-1-1-1-scaled.webp')",
+          }}
+        />
+        <div className="absolute inset-0 bg-white/5" />
+        <div className={`${shell} relative z-10 flex h-full items-end pb-12 sm:pb-16`}>
+          <div className="hb-fade-up flex flex-col items-start gap-4">
+            <p className="text-2xl font-medium text-white drop-shadow-sm sm:text-4xl">
+              Effortless Glow
             </p>
-          </div>
-          <div className="flex flex-col gap-3 text-sm sm:flex-row">
             <a
-              className="inline-flex h-12 items-center justify-center rounded-full bg-[#2b2523] px-7 font-semibold text-white shadow-sm transition hover:bg-[#463b36]"
+              className="inline-flex border border-white bg-white px-7 py-3 text-xs font-medium uppercase tracking-[0.18em] text-[#6c93c4] transition duration-300 hover:bg-transparent hover:text-white"
               href="#featured-products"
             >
-              Shop featured
+              Shop All
             </a>
-            <span className="inline-flex h-12 items-center justify-center rounded-full border border-[#e5d6cf] bg-white/70 px-5 font-medium text-[#6f625d]">
-              {deliveryText}
-            </span>
-          </div>
-          <div className="grid max-w-xl grid-cols-3 gap-3 pt-2 text-center text-xs font-semibold uppercase tracking-wide text-[#8b7167]">
-            <span className="rounded-lg border border-[#eadbd4] bg-white/60 px-3 py-3">
-              Authentic care
-            </span>
-            <span className="rounded-lg border border-[#eadbd4] bg-white/60 px-3 py-3">
-              Local prices
-            </span>
-            <span className="rounded-lg border border-[#eadbd4] bg-white/60 px-3 py-3">
-              Fast delivery
-            </span>
           </div>
         </div>
+      </section>
 
-        <div className="relative mx-auto w-full max-w-md">
-          <div className="absolute -left-5 top-8 h-28 w-28 rounded-full bg-[#e9c7bd]/55 blur-2xl" />
-          <div className="absolute -right-6 bottom-10 h-36 w-36 rounded-full bg-[#d7c5aa]/40 blur-2xl" />
-          <div className="relative rounded-[2rem] border border-white/80 bg-white/55 p-4 shadow-[0_24px_80px_rgba(86,64,52,0.16)]">
-            {featuredItem ? (
-              <ProductCard item={featuredItem} featured />
-            ) : (
-              <div className="flex aspect-[4/5] flex-col justify-end rounded-[1.5rem] bg-[linear-gradient(145deg,#fff,#f0ded8)] p-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#b48a7b]">
-                  New arrivals
-                </p>
-                <p className="mt-3 text-3xl font-semibold text-[#2b2523]">
-                  Curated beauty, ready for your country.
-                </p>
-              </div>
-            )}
+      <section className="bg-[#e6ecf4]">
+        <div className={`${shell} grid min-h-[360px] gap-10 py-16 md:grid-cols-2 md:items-center`}>
+          <h1 className="hb-fade-up text-5xl font-medium leading-[1.14] text-[#6c93c4] sm:text-6xl lg:text-7xl">
+            Where Tint Meets Radiance
+          </h1>
+          <div className="hb-fade-up space-y-7 md:pl-12">
+            <p className="max-w-lg text-xl font-light leading-10 text-[#6c93c4]">
+              A touch of color designed to enhance your natural glow - soft,
+              radiant, and effortlessly you.
+            </p>
+            <a
+              className="inline-block border-b border-[#6c93c4] pb-1 text-lg font-medium uppercase tracking-wide text-[#6c93c4] transition hover:opacity-70"
+              href="#our-story"
+            >
+              Our Story
+            </a>
+            <p className="max-w-md text-sm font-light leading-7 text-[#6c93c4]">
+              Now shopping in {country?.name ?? "your country"} - Prices in{" "}
+              {country?.currency_code ?? "AED"}. {deliveryText}
+            </p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

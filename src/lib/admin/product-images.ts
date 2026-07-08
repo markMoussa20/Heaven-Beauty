@@ -7,10 +7,12 @@ export async function uploadProductImage({
   file,
   productSlug,
   kind,
+  index,
 }: {
   file: File;
   productSlug: string;
   kind: "main" | "gallery";
+  index?: number;
 }) {
   const supabase = createAdminClient();
   const extension = getImageExtension(file);
@@ -18,6 +20,7 @@ export async function uploadProductImage({
     productSlug,
     kind,
     extension,
+    index,
   });
 
   const { error } = await supabase.storage

@@ -48,7 +48,6 @@ export function CountryProvider({
       return storedCode;
     }
 
-    persistCountryCode(fallbackCode);
     return fallbackCode;
   });
 
