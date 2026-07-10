@@ -76,9 +76,9 @@ The Beginning
 We started with tints for lips and cheeks. Since then, we have crafted each formula to enhance your natural radiance effortlessly.',
     'Shop now',
     '/shop',
-    '/images/our-story-founder.jpeg',
+    null,
     'Heaven Beauty founder',
-    '/images/our-story-products.jpg',
+    null,
     'Heaven Beauty tint products',
     10,
     true

@@ -173,7 +173,12 @@ function readStoredCart() {
   try {
     const parsed = JSON.parse(storedCart) as CartItem[];
     return parsed.filter(
-      (item) => item.countryItemId && item.productId && item.quantity > 0,
+      (item) =>
+        item.countryItemId &&
+        item.productId &&
+        item.quantity > 0 &&
+        Number.isFinite(Number(item.unitPrice)) &&
+        Number(item.unitPrice) > 0,
     );
   } catch {
     window.localStorage.removeItem(CART_STORAGE_KEY);

@@ -8,6 +8,8 @@ import { saveCountry } from "@/lib/admin/actions";
 import { listRows } from "@/lib/admin/data";
 import type { Country } from "@/types/database";
 
+export const metadata = { title: "Countries" };
+
 export default async function AdminCountriesPage() {
   const { data, error } = await listRows("countries", { order: "name" });
   const countries = data as Country[];

@@ -7,6 +7,8 @@ import { deleteRow } from "@/lib/admin/actions";
 import { listRows } from "@/lib/admin/data";
 import type { ExchangeRate } from "@/types/database";
 
+export const metadata = { title: "Exchange Rates" };
+
 export default async function AdminExchangeRatesPage() {
   const { data, error } = await listRows("exchange_rates", {
     order: "rate_date",

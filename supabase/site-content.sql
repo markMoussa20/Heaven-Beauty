@@ -86,6 +86,21 @@ insert into public.site_content (
 )
 values
   (
+    'home_hero',
+    'Effortless Glow',
+    null,
+    null,
+    'Shop All',
+    '#featured-products',
+    null,
+    'Heaven Beauty hero image',
+    null,
+    'Heaven Beauty hero image',
+    null,
+    5,
+    true
+  ),
+  (
     'home_tint_radiance',
     'Where Tint Meets Radiance',
     null,
@@ -107,9 +122,9 @@ values
     null,
     null,
     null,
-    'https://myheavenbeauty.com/wp-content/uploads/2026/04/IMG_2398.JPG-scaled.jpeg',
+    null,
     'Heaven Beauty product glow image',
-    'https://myheavenbeauty.com/wp-content/uploads/2026/03/heavenbeauty.lb_1762448458_3760012651565741825_65902285909.jpg',
+    null,
     'Heaven Beauty skin tint image',
     null,
     20,

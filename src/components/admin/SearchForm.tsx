@@ -1,3 +1,5 @@
+import { SubmitButton } from "@/components/ui/SubmitButton";
+
 export function SearchForm({
   placeholder = "Search...",
   filters,
@@ -14,12 +16,12 @@ export function SearchForm({
         placeholder={placeholder}
       />
       {filters}
-      <button
+      <SubmitButton
         className="h-10 rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white"
-        type="submit"
+        pendingLabel="Searching..."
       >
         Search
-      </button>
+      </SubmitButton>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { updateOrderStatus } from "@/lib/admin/actions";
 import { getRow, listRows, type AdminRow } from "@/lib/admin/data";
 import type { Order, OrderItem } from "@/types/database";
+import type { Metadata } from "next";
 
 const statuses = [
   "pending",
@@ -13,6 +14,20 @@ const statuses = [
   "delivered",
   "cancelled",
 ];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { data } = await getRow("orders", id, "order_number");
+  const order = data as Pick<Order, "order_number"> | null;
+
+  return {
+    title: order?.order_number ? `Order ${order.order_number}` : "Order Detail",
+  };
+}
 
 export default async function AdminOrderDetailPage({
   params,

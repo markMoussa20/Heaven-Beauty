@@ -8,8 +8,12 @@ import {
 import { getDefaultCountryCode } from "@/lib/country/constants";
 import { getPublicPage } from "@/lib/public-pages";
 import { getVisibleCountryItems } from "@/lib/products";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Shop",
+};
 
 export default async function ShopPage() {
   const selectedCountryCode = await getSelectedCountryCode();

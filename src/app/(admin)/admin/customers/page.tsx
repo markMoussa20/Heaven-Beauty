@@ -5,6 +5,8 @@ import { SearchForm } from "@/components/admin/SearchForm";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
 import type { Customer } from "@/types/database";
 
+export const metadata = { title: "Customers" };
+
 export default async function AdminCustomersPage({
   searchParams,
 }: {

@@ -12,6 +12,7 @@ const items = [
   { href: "/admin/content", label: "Content" },
   { href: "/admin/shipping", label: "Shipping" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/exchange-rates", label: "Exchange Rates" },
 ];

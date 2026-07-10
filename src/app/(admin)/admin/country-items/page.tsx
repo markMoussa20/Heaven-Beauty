@@ -7,7 +7,10 @@ import { SearchForm } from "@/components/admin/SearchForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { deleteRow } from "@/lib/admin/actions";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
+import { resolveItemPrice } from "@/lib/pricing";
 import type { CountryItem } from "@/types/database";
+
+export const metadata = { title: "Country Items" };
 
 export default async function AdminCountryItemsPage({
   searchParams,
@@ -60,7 +63,7 @@ export default async function AdminCountryItemsPage({
             key: "price",
             header: "Price",
             render: (row) =>
-              `${String(row.countries?.currency_symbol ?? "")}${row.sale_price ?? row.price}`,
+              `${String(row.countries?.currency_symbol ?? "")}${resolveItemPrice(row as CountryItem)}`,
           },
           { key: "stock", header: "Stock", render: (row) => row.stock_quantity ?? 0 },
           {

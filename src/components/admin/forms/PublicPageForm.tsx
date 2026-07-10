@@ -1,5 +1,7 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { savePublicPage } from "@/lib/admin/actions";
 import type { PublicPage } from "@/types/database";
 
@@ -61,6 +63,12 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
             name="image_url"
           />
         </AdminFormField>
+        <AdminFormField
+          hint="Upload replaces the URL above after saving."
+          label="Primary image upload"
+        >
+          <ImageUploader name="primary_image" />
+        </AdminFormField>
         <AdminFormField label="Image alt text">
           <input
             className="h-10 rounded-md border border-zinc-300 px-3"
@@ -74,6 +82,12 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
             defaultValue={page?.secondary_image_url ?? ""}
             name="secondary_image_url"
           />
+        </AdminFormField>
+        <AdminFormField
+          hint="Upload replaces the second image URL after saving."
+          label="Second image upload"
+        >
+          <ImageUploader name="secondary_image" />
         </AdminFormField>
         <AdminFormField label="Second image alt text">
           <input
@@ -105,12 +119,11 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
         />
       </div>
       <div className="md:col-span-2">
-        <button
+        <SubmitButton
           className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white"
-          type="submit"
         >
           Save page
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

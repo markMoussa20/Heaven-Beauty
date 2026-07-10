@@ -1,5 +1,6 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { savePublicPageFaqItem } from "@/lib/admin/actions";
 import type { PublicPageFaqItem } from "@/types/database";
 
@@ -63,12 +64,11 @@ export function PublicPageFaqItemForm({
         />
       </div>
       <div className="md:col-span-2">
-        <button
+        <SubmitButton
           className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white"
-          type="submit"
         >
           Save FAQ item
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

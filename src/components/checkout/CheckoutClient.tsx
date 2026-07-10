@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
 import type { Country, ShippingZone } from "@/types/database";
 
@@ -41,6 +42,7 @@ export function CheckoutClient({ country, shippingZones }: CheckoutClientProps) 
         items.map((item) => ({
           countryItemId: item.countryItemId,
           quantity: item.quantity,
+          unitPrice: item.unitPrice,
         })),
       ),
     [items],
@@ -252,10 +254,13 @@ export function CheckoutClient({ country, shippingZones }: CheckoutClientProps) 
           </section>
 
           <button
-            className="w-full bg-[#6c93c4] px-7 py-4 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-[#547cae] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 bg-[#6c93c4] px-7 py-4 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-[#547cae] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={submitDisabled}
             type="submit"
           >
+            {pending ? (
+              <LoadingSpinner className="size-4" label="Placing order" />
+            ) : null}
             {pending ? "Placing order..." : `Place order - ${money(total)}`}
           </button>
         </form>

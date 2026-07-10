@@ -27,7 +27,7 @@ export function ProductCard({ item }: ProductCardProps) {
     supabase,
     getPrimaryProductImagePath(product),
   );
-  const hasSalePrice = item.sale_price !== null && item.sale_price !== undefined;
+  const hasSalePrice = Number(item.sale_price ?? 0) > 0;
 
   const handleAddToCart = () => {
     addItem({

@@ -9,6 +9,8 @@ import { deleteRow } from "@/lib/admin/actions";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
 import type { ShippingZone } from "@/types/database";
 
+export const metadata = { title: "Shipping" };
+
 export default async function AdminShippingPage({
   searchParams,
 }: {

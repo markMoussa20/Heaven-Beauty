@@ -84,6 +84,26 @@ export type Database = {
         Insert: Partial<PublicPageFaqItem>;
         Update: Partial<PublicPageFaqItem>;
       };
+      order_notification_settings: {
+        Row: OrderNotificationSettings;
+        Insert: Partial<OrderNotificationSettings>;
+        Update: Partial<OrderNotificationSettings>;
+      };
+      order_notification_recipients: {
+        Row: OrderNotificationRecipient;
+        Insert: Partial<OrderNotificationRecipient>;
+        Update: Partial<OrderNotificationRecipient>;
+      };
+      order_notification_templates: {
+        Row: OrderNotificationTemplate;
+        Insert: Partial<OrderNotificationTemplate>;
+        Update: Partial<OrderNotificationTemplate>;
+      };
+      order_notification_logs: {
+        Row: OrderNotificationLog;
+        Insert: Partial<OrderNotificationLog>;
+        Update: Partial<OrderNotificationLog>;
+      };
       exchange_rates: {
         Row: ExchangeRate;
         Insert: Partial<ExchangeRate>;
@@ -299,6 +319,59 @@ export type PublicPageFaqItem = {
   is_active?: boolean | null;
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+export type OrderNotificationSettings = {
+  id: string;
+  key: string;
+  is_active?: boolean | null;
+  customer_email_enabled?: boolean | null;
+  internal_email_enabled?: boolean | null;
+  sms_enabled?: boolean | null;
+  sender_name?: string | null;
+  sender_email?: string | null;
+  reply_to_email?: string | null;
+  gmail_user?: string | null;
+  gmail_app_password?: string | null;
+  smtp_host?: string | null;
+  smtp_port?: number | string | null;
+  smtp_secure?: boolean | null;
+  callmebot_api_key?: string | null;
+  callmebot_phone?: string | null;
+  callmebot_endpoint_template?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type OrderNotificationRecipient = {
+  id: string;
+  name?: string | null;
+  email: string;
+  is_active?: boolean | null;
+  receive_order_email?: boolean | null;
+  sort_order?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type OrderNotificationTemplate = {
+  id: string;
+  key: string;
+  subject?: string | null;
+  body?: string | null;
+  is_active?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type OrderNotificationLog = {
+  id: string;
+  order_id?: string | null;
+  channel: string;
+  recipient?: string | null;
+  status: string;
+  message?: string | null;
+  created_at?: string | null;
 };
 
 export type ExchangeRate = {

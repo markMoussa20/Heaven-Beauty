@@ -1,5 +1,10 @@
 "use client";
 
+import { useFormStatus } from "react-dom";
+
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { cn } from "@/lib/utils";
+
 export function ConfirmSubmitButton({
   children,
   message,
@@ -9,9 +14,12 @@ export function ConfirmSubmitButton({
   message: string;
   className?: string;
 }) {
+  const { pending } = useFormStatus();
+
   return (
     <button
-      className={className}
+      className={cn("inline-flex items-center justify-center gap-2", className)}
+      disabled={pending}
       onClick={(event) => {
         if (!window.confirm(message)) {
           event.preventDefault();
@@ -19,7 +27,8 @@ export function ConfirmSubmitButton({
       }}
       type="submit"
     >
-      {children}
+      {pending ? <LoadingSpinner className="size-3.5" label="Deleting" /> : null}
+      {pending ? "Working..." : children}
     </button>
   );
 }

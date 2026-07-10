@@ -2,6 +2,8 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { ProductForm } from "@/components/admin/forms/ProductForm";
 import { getOptions } from "@/lib/admin/data";
 
+export const metadata = { title: "New Product" };
+
 export default async function NewProductPage() {
   const categories = await getOptions("categories");
 

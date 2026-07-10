@@ -1,6 +1,7 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveShippingZone } from "@/lib/admin/actions";
 import type { ShippingZone } from "@/types/database";
 
@@ -34,9 +35,9 @@ export function ShippingZoneForm({
         <InlineCheckbox defaultChecked={zone?.is_active ?? true} label="Active" name="is_active" />
       </div>
       <div className="md:col-span-3">
-        <button className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white" type="submit">
+        <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
           Save zone
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

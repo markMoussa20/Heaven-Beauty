@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { getAdminSession } from "@/lib/admin/auth";
 
+export const metadata = { title: "Admin Login" };
+
 export default async function AdminLoginPage() {
   const session = await getAdminSession();
 

@@ -12,7 +12,10 @@ import { getActiveCountries, getSelectedCountryCode } from "@/lib/country";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Heaven Beauty",
+  title: {
+    default: "Heaven Beauty",
+    template: "%s - Heaven Beauty",
+  },
   description: "Country-aware beauty shopping for Heaven Beauty customers.",
 };
 

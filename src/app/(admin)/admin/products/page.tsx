@@ -8,6 +8,8 @@ import { deactivateProduct } from "@/lib/admin/actions";
 import { listRows } from "@/lib/admin/data";
 import type { Product } from "@/types/database";
 
+export const metadata = { title: "Products" };
+
 export default async function AdminProductsPage({
   searchParams,
 }: {

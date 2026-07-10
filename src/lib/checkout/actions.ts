@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
+import { notifyOrderCreated } from "@/lib/order-notifications";
+import { resolveItemPrice } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type CheckoutCartItem = {
   countryItemId: string;
   quantity: number;
+  unitPrice?: number;
 };
 
 export type CheckoutState =
@@ -92,6 +95,7 @@ export async function submitCheckout(
     .map((item) => ({
       countryItemId: String(item.countryItemId ?? ""),
       quantity: Math.max(1, Number(item.quantity ?? 0)),
+      unitPrice: Number(item.unitPrice ?? 0),
     }))
     .filter((item) => item.countryItemId && Number.isFinite(item.quantity));
 
@@ -154,7 +158,7 @@ export async function submitCheckout(
     const item = availableItems.find(
       (availableItem) => availableItem.id === cartItem.countryItemId,
     );
-    const unitPrice = Number(item?.sale_price ?? item?.price ?? 0);
+    const unitPrice = resolveCheckoutPrice(item, cartItem.unitPrice);
     return sum + unitPrice * cartItem.quantity;
   }, 0);
   const shippingFee = country.use_shipping_zones
@@ -201,6 +205,7 @@ export async function submitCheckout(
       customer_name: customerName,
       customer_phone: phone,
       customer_email: email,
+      currency_code: country.currency_code,
       shipping_zone_id: country.use_shipping_zones ? shippingZone?.id : null,
       shipping_area_name: country.use_shipping_zones
         ? (shippingZone?.name ?? city)
@@ -226,15 +231,16 @@ export async function submitCheckout(
         : "Could not create order. Please try again.",
     };
   }
+  const orderId = order.id;
 
   const orderItems = normalizedCart.map((cartItem) => {
     const item = availableItems.find(
       (availableItem) => availableItem.id === cartItem.countryItemId,
     );
-    const unitPrice = Number(item?.sale_price ?? item?.price ?? 0);
+    const unitPrice = resolveCheckoutPrice(item, cartItem.unitPrice);
 
     return {
-      order_id: order.id,
+      order_id: orderId,
       country_item_id: cartItem.countryItemId,
       product_id: item?.product_id,
       product_name: item?.products?.name ?? "Product",
@@ -255,6 +261,45 @@ export async function submitCheckout(
     };
   }
 
+  await notifyOrderCreated({
+    items: orderItems.map((item) => ({
+      id: `${orderId}-${item.country_item_id}`,
+      order_id: orderId,
+      country_item_id: item.country_item_id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total: item.total,
+    })),
+    order: {
+      address_line: fullAddress,
+      countries: {
+        currency_code: country.currency_code,
+        currency_symbol: country.currency_symbol,
+      },
+      country_id: countryId,
+      currency_code: country.currency_code,
+      customer_email: email,
+      customer_id: customer.id,
+      customer_name: customerName,
+      customer_phone: phone,
+      id: orderId,
+      notes,
+      order_number: orderNumber,
+      payment_method: "COD",
+      shipping_area_name: country.use_shipping_zones
+        ? (shippingZone?.name ?? city)
+        : city,
+      shipping_fee: shippingFee,
+      status: "pending",
+      subtotal,
+      total,
+    },
+  }).catch((error) => {
+    console.error("Order notification failed", error);
+  });
+
   revalidatePath("/admin/orders");
   return { ok: true, orderNumber };
 }
@@ -266,6 +311,19 @@ function requiredText(formData: FormData, key: string) {
 function optionalText(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
   return value || null;
+}
+
+function resolveCheckoutPrice(
+  item: CheckoutCountryItem | undefined,
+  fallbackPrice: number,
+) {
+  const databasePrice = resolveItemPrice(item);
+
+  if (databasePrice > 0) {
+    return databasePrice;
+  }
+
+  return Number.isFinite(fallbackPrice) && fallbackPrice > 0 ? fallbackPrice : 0;
 }
 
 function makeOrderNumber() {

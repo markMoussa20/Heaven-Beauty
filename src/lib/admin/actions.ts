@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
 import { uploadProductImage } from "@/lib/admin/product-images";
+import { uploadPublicPageImage } from "@/lib/admin/public-page-images";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { asBoolean, asNumber, slugify } from "@/lib/utils";
@@ -257,6 +258,7 @@ export async function saveExchangeRate(id: string | null, formData: FormData) {
 }
 
 export async function saveSiteContent(id: string | null, formData: FormData) {
+  const key = text(formData, "key") ?? "content";
   const payload = payloadFrom(formData, [
     "key",
     "title",
@@ -275,6 +277,24 @@ export async function saveSiteContent(id: string | null, formData: FormData) {
 
   await requireAdmin();
   const supabase = adminDb();
+  const primaryImage = formData.get("content_primary_image");
+  const secondaryImage = formData.get("content_secondary_image");
+
+  if (primaryImage instanceof File && primaryImage.size > 0) {
+    payload.image_url = await uploadPublicPageImage({
+      file: primaryImage,
+      kind: "primary",
+      slug: key,
+    });
+  }
+
+  if (secondaryImage instanceof File && secondaryImage.size > 0) {
+    payload.secondary_image_url = await uploadPublicPageImage({
+      file: secondaryImage,
+      kind: "secondary",
+      slug: key,
+    });
+  }
 
   if (id) {
     await supabase.from("site_content").update(payload).eq("id", id);
@@ -384,8 +404,85 @@ export async function deletePublicPageFaqItem(id: string) {
   revalidatePath("/admin/content");
 }
 
+export async function saveOrderNotificationSettings(id: string | null, formData: FormData) {
+  const payload = {
+    ...payloadFrom(formData, [
+      "is_active",
+      "customer_email_enabled",
+      "internal_email_enabled",
+      "sms_enabled",
+      "sender_name",
+      "sender_email",
+      "reply_to_email",
+      "gmail_user",
+      "gmail_app_password",
+      "smtp_host",
+      "smtp_port",
+      "smtp_secure",
+      "callmebot_api_key",
+      "callmebot_phone",
+      "callmebot_endpoint_template",
+    ]),
+    key: "default",
+  };
+
+  await upsertRecord({
+    table: "order_notification_settings",
+    id,
+    payload,
+    path: "/admin/notifications",
+  });
+}
+
+export async function saveOrderNotificationRecipient(
+  id: string | null,
+  formData: FormData,
+) {
+  const payload = payloadFrom(formData, [
+    "name",
+    "email",
+    "sort_order",
+    "is_active",
+    "receive_order_email",
+  ]);
+
+  await upsertRecord({
+    table: "order_notification_recipients",
+    id,
+    payload,
+    path: "/admin/notifications",
+  });
+}
+
+export async function deleteOrderNotificationRecipient(id: string) {
+  await requireAdmin();
+  const supabase = adminDb();
+  await supabase.from("order_notification_recipients").delete().eq("id", id);
+  revalidatePath("/admin/notifications");
+}
+
+export async function saveOrderNotificationTemplate(
+  id: string | null,
+  formData: FormData,
+) {
+  const payload = payloadFrom(formData, [
+    "key",
+    "subject",
+    "body",
+    "is_active",
+  ]);
+
+  await upsertRecord({
+    table: "order_notification_templates",
+    id,
+    payload,
+    path: "/admin/notifications",
+  });
+}
+
 export async function savePublicPage(id: string | null, formData: FormData) {
   const title = String(formData.get("title") ?? "");
+  const slug = text(formData, "slug") ?? slugify(title);
   const payload = {
     ...payloadFrom(formData, [
       "slug",
@@ -401,11 +498,29 @@ export async function savePublicPage(id: string | null, formData: FormData) {
       "sort_order",
       "is_active",
     ]),
-    slug: text(formData, "slug") ?? slugify(title),
+    slug,
   };
 
   await requireAdmin();
   const supabase = adminDb();
+  const primaryImage = formData.get("primary_image");
+  const secondaryImage = formData.get("secondary_image");
+
+  if (primaryImage instanceof File && primaryImage.size > 0) {
+    payload.image_url = await uploadPublicPageImage({
+      file: primaryImage,
+      kind: "primary",
+      slug,
+    });
+  }
+
+  if (secondaryImage instanceof File && secondaryImage.size > 0) {
+    payload.secondary_image_url = await uploadPublicPageImage({
+      file: secondaryImage,
+      kind: "secondary",
+      slug,
+    });
+  }
 
   if (id) {
     await supabase.from("public_pages").update(payload).eq("id", id);

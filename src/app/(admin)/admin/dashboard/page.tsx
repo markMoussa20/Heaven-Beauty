@@ -3,6 +3,8 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { listRows } from "@/lib/admin/data";
 
+export const metadata = { title: "Dashboard" };
+
 const cards = [
   { label: "Countries", table: "countries", href: "/admin/countries" },
   { label: "Products", table: "products", href: "/admin/products" },

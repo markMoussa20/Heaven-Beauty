@@ -8,6 +8,8 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
 import type { Order } from "@/types/database";
 
+export const metadata = { title: "Orders" };
+
 function statusTone(status?: string | null) {
   if (status === "delivered") return "green";
   if (status === "cancelled") return "red";

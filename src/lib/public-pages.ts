@@ -19,9 +19,9 @@ export const defaultPages: PublicPage[] = [
       "Founded by Lebanese beauty influencer Sarah Hammoud, the brand was born from years of testing, reviewing, and understanding what truly works. Each product is designed as a one-step essential: simple, effective, and refined.",
     cta_label: "Shop now",
     cta_href: "/shop",
-    image_url: "/images/our-story-founder.jpeg",
+    image_url: null,
     image_alt: "Heaven Beauty founder",
-    secondary_image_url: "/images/our-story-products.jpg",
+    secondary_image_url: null,
     secondary_image_alt: "Heaven Beauty tint products",
     sort_order: 10,
     is_active: true,
@@ -116,10 +116,6 @@ export async function getPublicPage(slug: string): Promise<PublicPage> {
   }
 
   const page = data as PublicPage;
-  const imageUrl =
-    normalizedSlug === "our-story"
-      ? storyImageWithFallback(page.image_url, fallback.image_url)
-      : withFallback(page.image_url, fallback.image_url);
   const body =
     normalizedSlug === "return-cancellations"
       ? returnBodyWithFallback(page.body, fallback.body)
@@ -134,12 +130,10 @@ export async function getPublicPage(slug: string): Promise<PublicPage> {
     body,
     cta_label: withFallback(page.cta_label, fallback.cta_label),
     cta_href: withFallback(page.cta_href, fallback.cta_href),
-    image_url: imageUrl,
+    image_url: page.image_url || fallback.image_url,
     image_alt: withFallback(page.image_alt, fallback.image_alt),
-    secondary_image_url: withFallback(
-      page.secondary_image_url,
-      fallback.secondary_image_url,
-    ),
+    secondary_image_url:
+      page.secondary_image_url || fallback.secondary_image_url,
     secondary_image_alt: withFallback(
       page.secondary_image_alt,
       fallback.secondary_image_alt,
@@ -154,17 +148,6 @@ function withFallback<T extends string | null | undefined>(
   return typeof value === "string" && value.trim().length === 0
     ? fallback
     : value || fallback;
-}
-
-function storyImageWithFallback(
-  value: string | null | undefined,
-  fallback: string | null | undefined,
-) {
-  if (value?.includes("IMG_2398.JPG-scaled.jpeg")) {
-    return fallback;
-  }
-
-  return withFallback(value, fallback);
 }
 
 function returnBodyWithFallback(

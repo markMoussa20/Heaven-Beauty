@@ -1,5 +1,7 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveSiteContent } from "@/lib/admin/actions";
 import type { SiteContent } from "@/types/database";
 
@@ -80,6 +82,12 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="image_url"
         />
       </AdminFormField>
+      <AdminFormField
+        hint="Upload replaces the image URL after saving."
+        label="Image upload"
+      >
+        <ImageUploader name="content_primary_image" />
+      </AdminFormField>
       <AdminFormField label="Image alt text">
         <input
           className="h-10 rounded-md border border-zinc-300 px-3"
@@ -93,6 +101,12 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           defaultValue={block?.secondary_image_url ?? ""}
           name="secondary_image_url"
         />
+      </AdminFormField>
+      <AdminFormField
+        hint="Upload replaces the second image URL after saving."
+        label="Second image upload"
+      >
+        <ImageUploader name="content_secondary_image" />
       </AdminFormField>
       <AdminFormField label="Second image alt text">
         <input
@@ -109,12 +123,11 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
         />
       </div>
       <div className="md:col-span-2">
-        <button
+        <SubmitButton
           className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white"
-          type="submit"
         >
           Save content
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

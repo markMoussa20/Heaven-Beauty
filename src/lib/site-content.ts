@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { FooterLink, SiteContent } from "@/types/database";
 
 export type HomeContent = {
+  hero: SiteContent;
   tintRadiance: SiteContent;
   imageShowcase: SiteContent;
   pureIntro: SiteContent;
@@ -18,6 +19,19 @@ export type FooterContent = {
 };
 
 const homeDefaults: HomeContent = {
+  hero: {
+    id: "default-home-hero",
+    key: "home_hero",
+    title: "Effortless Glow",
+    cta_label: "Shop All",
+    cta_href: "#featured-products",
+    image_url: null,
+    image_alt: "Heaven Beauty hero image",
+    secondary_image_url: null,
+    secondary_image_alt: "Heaven Beauty hero image",
+    is_active: true,
+    sort_order: 5,
+  },
   tintRadiance: {
     id: "default-home-tint-radiance",
     key: "home_tint_radiance",
@@ -32,11 +46,9 @@ const homeDefaults: HomeContent = {
     id: "default-home-image-showcase",
     key: "home_image_showcase",
     title: "Your glow speaks for itself we simply enhance it",
-    image_url:
-      "https://myheavenbeauty.com/wp-content/uploads/2026/04/IMG_2398.JPG-scaled.jpeg",
+    image_url: null,
     image_alt: "Heaven Beauty product glow image",
-    secondary_image_url:
-      "https://myheavenbeauty.com/wp-content/uploads/2026/03/heavenbeauty.lb_1762448458_3760012651565741825_65902285909.jpg",
+    secondary_image_url: null,
     secondary_image_alt: "Heaven Beauty skin tint image",
     is_active: true,
     sort_order: 20,

@@ -9,8 +9,12 @@ import {
 import { getDefaultCountryCode } from "@/lib/country/constants";
 import { getFeaturedCountryItems } from "@/lib/products";
 import { getHomeContent } from "@/lib/site-content";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Home",
+};
 
 export default async function Page() {
   const selectedCountryCode = await getSelectedCountryCode();
@@ -30,18 +34,15 @@ export default async function Page() {
       ? "Delivery fee is calculated by area at checkout."
       : `Delivery ${country.currency_symbol}${country.global_delivery_fee ?? 0}`
     : "Select a country to see local delivery.";
-  const showcaseImageUrl =
-    homeContent.imageShowcase.image_url ??
-    "https://myheavenbeauty.com/wp-content/uploads/2026/04/IMG_2398.JPG-scaled.jpeg";
-  const showcaseSecondImageUrl =
-    homeContent.imageShowcase.secondary_image_url ??
-    "https://myheavenbeauty.com/wp-content/uploads/2026/03/heavenbeauty.lb_1762448458_3760012651565741825_65902285909.jpg";
+  const showcaseImageUrl = homeContent.imageShowcase.image_url;
+  const showcaseSecondImageUrl = homeContent.imageShowcase.secondary_image_url;
 
   return (
     <div className="bg-[#e6ecf4] text-[#6c93c4]">
       <HeroBanner
         country={country}
         deliveryText={deliveryText}
+        hero={homeContent.hero}
       />
 
       <section id="featured-products" className={`${shell} py-8 lg:py-12`}>

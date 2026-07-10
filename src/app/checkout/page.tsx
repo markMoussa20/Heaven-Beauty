@@ -7,8 +7,12 @@ import {
 import { getDefaultCountryCode } from "@/lib/country/constants";
 import { createClient } from "@/lib/supabase/server";
 import type { ShippingZone } from "@/types/database";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Checkout",
+};
 
 export default async function CheckoutPage() {
   const selectedCountryCode = await getSelectedCountryCode();

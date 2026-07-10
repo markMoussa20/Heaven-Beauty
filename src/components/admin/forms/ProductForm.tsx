@@ -1,6 +1,7 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveProduct } from "@/lib/admin/actions";
 import type { AdminRow } from "@/lib/admin/data";
 import type { Product } from "@/types/database";
@@ -66,9 +67,9 @@ export function ProductForm({
       </AdminFormField>
       <InlineCheckbox defaultChecked={product?.is_active ?? true} label="Active" name="is_active" />
       <div>
-        <button className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white" type="submit">
+        <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
           Save product
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

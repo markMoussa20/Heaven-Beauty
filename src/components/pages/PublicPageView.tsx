@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AnimatedQaAccordion } from "@/components/pages/AnimatedQaAccordion";
 import { shell } from "@/lib/design";
 import type { PublicPage, PublicPageFaqItem } from "@/types/database";
 
@@ -24,7 +25,7 @@ export function PublicPageView({
   }
 
   if (page.slug === "faq") {
-    return <FaqPageView faqItems={faqItems} page={page} />;
+    return <FaqPageView faqItems={faqItems} />;
   }
 
   if (page.slug === "return-cancellations") {
@@ -98,45 +99,36 @@ function PolicyPageView({
   bodyBlocks: string[];
 }) {
   const sections = toPolicySections(bodyBlocks);
+  const titleLines =
+    page.slug === "return-cancellations"
+      ? ["Return", "& Cancelation"]
+      : splitPageTitle(page.title);
 
   return (
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
-      <section className={`${shell} pb-16 pt-40 lg:pb-24 lg:pt-52`}>
-        <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9eb9d9]">
-              {page.subtitle ?? "Policy"}
-            </p>
-            <h1 className="mt-6 text-[3.7rem] font-medium leading-[0.92] text-[#86a3d3] sm:text-[6.2rem] lg:text-[7rem]">
-              Return
-              <span className="block sm:pl-[10vw] lg:pl-20">& Cancellations</span>
-            </h1>
-          </div>
-          <div className="space-y-4">
-            {sections.map((section, index) => (
-              <section
-                className="group relative overflow-hidden border border-[#9eb9d9]/20 bg-white/45 px-5 py-7 transition duration-500 hover:-translate-y-1 hover:bg-white/75 hover:shadow-[0_24px_70px_rgba(108,147,196,0.14)] sm:px-8"
-                key={section.heading}
-              >
-                <div className="absolute inset-y-0 left-0 w-1 bg-[#9eb9d9]/45 opacity-0 transition duration-500 group-hover:opacity-100" />
-                <div className="grid gap-5 sm:grid-cols-[auto_1fr]">
-                  <span className="grid h-12 w-12 place-items-center rounded-full border border-[#9eb9d9]/45 text-sm font-semibold text-[#86a3d3] transition duration-500 group-hover:border-[#86a3d3] group-hover:bg-[#86a3d3] group-hover:text-white">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <h2 className="text-3xl font-medium leading-tight text-[#171412]">
-                      {section.heading}
-                    </h2>
-                    <div className="mt-5 space-y-5 text-lg font-light leading-9 text-[#6c93c4]">
-                      {section.paragraphs.map((paragraph) => (
-                        <p key={paragraph}>{paragraph}</p>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            ))}
-          </div>
+      <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
+        <div className="hb-fade-up max-w-[980px]">
+          <h1 className="text-[2.7rem] font-normal leading-[1.1] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
+            {titleLines[0]}
+            {titleLines[1] ? (
+              <span className="mt-2 block sm:mt-4">{titleLines[1]}</span>
+            ) : null}
+          </h1>
+        </div>
+
+        <div className="mt-12 max-w-[1120px] space-y-20 sm:mt-16 lg:mt-20 lg:space-y-24">
+          {sections.map((section) => (
+            <section className="max-w-[860px] hb-fade-up" key={section.heading}>
+              <h2 className="text-xl font-normal leading-snug text-[#6c93c4] sm:text-2xl">
+                {section.heading}
+              </h2>
+              <div className="mt-7 space-y-6 text-base font-light leading-[1.65] text-[#6c93c4] sm:text-lg">
+                {section.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{renderTextWithLinks(paragraph)}</p>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       </section>
     </main>
@@ -145,49 +137,28 @@ function PolicyPageView({
 
 function FaqPageView({
   faqItems,
-  page,
 }: {
   faqItems: PublicPageFaqItem[];
-  page: PublicPage;
 }) {
   const groups = groupFaqItems(faqItems);
 
   return (
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
-      <section className={`${shell} pb-12 pt-36 lg:pb-16 lg:pt-48`}>
-        <div className="relative overflow-hidden border-b border-[#9eb9d9]/35 pb-12">
-          <div className="grid gap-10 lg:grid-cols-[1fr_0.56fr] lg:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#9eb9d9]">
-                Help center
-              </p>
-              <h1 className="mt-5 text-[5.8rem] font-medium leading-[0.86] text-[#86a3d3] sm:text-[7.5rem] lg:text-[9rem]">
-                Questions
-                <span className="block pl-[12vw] lg:pl-32">& Answers</span>
-              </h1>
-            </div>
-            <div className="translate-y-0 bg-white/55 p-6 shadow-[0_22px_70px_rgba(108,147,196,0.12)] transition duration-500 hover:-translate-y-1 hover:bg-white/75">
-              <p className="text-xl font-light leading-9">
-                If you have other questions we weren&apos;t able to address here,
-                feel free to email.
-              </p>
-              <a
-                className="mt-6 inline-flex border-b border-[#6c93c4] pb-1 text-sm font-semibold uppercase tracking-[0.2em] transition hover:opacity-65"
-                href="mailto:info@myheavenbeauty.com"
-              >
-                info@myheavenbeauty.com
-              </a>
-            </div>
-          </div>
+      <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
+        <div className="hb-fade-up max-w-[980px]">
+          <h1 className="text-[2.7rem] font-normal leading-[1.1] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
+            Frequently
+            <span className="mt-2 block sm:mt-4">Asked Questions</span>
+          </h1>
+          <a
+            className="mt-10 inline-flex text-base font-light leading-relaxed text-[#6c93c4] transition duration-300 hover:text-black"
+            href="mailto:info@myheavenbeauty.com"
+          >
+            info@myheavenbeauty.com
+          </a>
         </div>
-      </section>
 
-      <QaCollection groups={groups} />
-
-      <section className={`${shell} pb-24`}>
-        <div className="border-t border-[#9eb9d9]/35 pt-8 text-center">
-          <h2 className="text-4xl font-medium text-[#86a3d3]">{page.title}</h2>
-        </div>
+        <QaCollection groups={groups} />
       </section>
     </main>
   );
@@ -207,106 +178,22 @@ function QaCollection({
   groups: { title: string; items: PublicPageFaqItem[] }[];
 }) {
   return (
-    <section className={`${shell} ${compact ? "pb-20" : "pb-24"}`}>
-      <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
-        <aside className="lg:sticky lg:top-28 lg:self-start">
-          <div className="border border-[#9eb9d9]/25 bg-white/45 p-5 shadow-[0_22px_70px_rgba(108,147,196,0.09)] backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9eb9d9]">
-              Browse by topic
-            </p>
-            <div className="mt-6 grid gap-3">
-              {groups.map((group, index) => (
-                <a
-                  className="group flex items-center justify-between border-b border-[#9eb9d9]/25 pb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#171412] transition duration-300 hover:translate-x-1 hover:text-[#86a3d3]"
-                  href={`#qa-${slugifyId(group.title)}`}
-                  key={group.title}
-                >
-                  <span>{group.title}</span>
-                  <span className="text-[#9eb9d9]">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </a>
-              ))}
-            </div>
+    <div
+      className={`${compact ? "mt-10" : "mt-14 sm:mt-16 lg:mt-20"} max-w-[980px] space-y-14 sm:space-y-16`}
+    >
+      {groups.map((group) => (
+        <section className="hb-fade-up" key={group.title}>
+          <h2 className="text-xl font-normal leading-snug text-[#6c93c4] sm:text-2xl">
+            {group.title}
+          </h2>
+          <div className="mt-6 divide-y divide-[#6c93c4]/18 border-y border-[#6c93c4]/18">
+            {group.items.map((item) => (
+              <AnimatedQaAccordion item={item} key={item.id} />
+            ))}
           </div>
-        </aside>
-
-        <div className="space-y-14">
-          {groups.map((group, groupIndex) => (
-            <section
-              className="scroll-mt-32"
-              id={`qa-${slugifyId(group.title)}`}
-              key={group.title}
-            >
-              <div className="mb-6 grid gap-3 border-b border-[#9eb9d9]/35 pb-5 sm:grid-cols-[auto_1fr] sm:items-end">
-                <span className="text-sm font-semibold tracking-[0.32em] text-[#9eb9d9]">
-                  {String(groupIndex + 1).padStart(2, "0")}
-                </span>
-                <h2 className="text-4xl font-medium leading-tight text-[#171412] sm:text-5xl">
-                  {group.title}
-                </h2>
-              </div>
-
-              <div className="grid gap-4">
-                {group.items.map((item, index) => (
-                  <QaAccordionItem
-                    index={index + 1}
-                    item={item}
-                    key={item.id}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function QaAccordionItem({
-  index,
-  item,
-}: {
-  index: number;
-  item: PublicPageFaqItem;
-}) {
-  return (
-    <details className="group overflow-hidden border border-transparent bg-white/45 transition duration-500 hover:-translate-y-1 hover:border-[#9eb9d9]/30 hover:bg-white/65 hover:shadow-[0_22px_70px_rgba(108,147,196,0.12)] open:border-[#9eb9d9]/30 open:bg-white open:shadow-[0_30px_90px_rgba(108,147,196,0.17)]">
-      <summary className="grid cursor-pointer list-none gap-5 px-5 py-6 outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-[#86a3d3] focus-visible:ring-offset-2 focus-visible:ring-offset-[#e6ecf4] group-open:pb-4 sm:grid-cols-[88px_1fr_auto] sm:items-center sm:px-8 [&::-webkit-details-marker]:hidden">
-        <span className="grid h-12 w-12 place-items-center border border-[#9eb9d9]/40 text-sm font-semibold text-[#86a3d3] transition duration-500 group-open:border-[#86a3d3] group-open:bg-[#86a3d3] group-open:text-white">
-          {String(index).padStart(2, "0")}
-        </span>
-        <span className="pr-4 text-xl font-medium leading-8 text-[#171412] transition duration-300 group-hover:text-[#86a3d3] sm:text-2xl">
-          {item.question}
-        </span>
-        <span className="relative w-fit overflow-hidden pb-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#86a3d3]">
-          <span className="transition duration-300 group-open:-translate-y-5 group-open:opacity-0">
-            Read answer
-          </span>
-          <span className="absolute inset-x-0 top-0 translate-y-5 opacity-0 transition duration-300 group-open:translate-y-0 group-open:opacity-100">
-            Hide answer
-          </span>
-          <span className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-100 bg-[#86a3d3] transition duration-500 group-hover:scale-x-75" />
-        </span>
-      </summary>
-
-      <div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-700 ease-out group-open:grid-rows-[1fr]">
-        <div className="overflow-hidden">
-          <div className="mx-5 mb-6 border-t border-[#9eb9d9]/25 px-5 py-6 sm:mx-8 sm:ml-[8.5rem] sm:px-0">
-            <div className="relative max-w-4xl bg-[#e6ecf4]/75 px-5 py-6 sm:px-7">
-              <span className="absolute -left-3 top-6 hidden h-px w-10 bg-[#86a3d3]/50 sm:block" />
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#9eb9d9]">
-                Answer
-              </p>
-              <p className="mt-4 text-lg font-light leading-9 text-[#6c93c4]">
-                {item.answer}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </details>
+        </section>
+      ))}
+    </div>
   );
 }
 
@@ -549,15 +436,20 @@ function groupFaqItems(items: PublicPageFaqItem[]) {
   return groups;
 }
 
-function slugifyId(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 function isStoryHeading(value: string) {
   return storyHeadings.has(value);
+}
+
+function splitPageTitle(title: string) {
+  const words = title.split(" ");
+
+  if (words.length < 2) {
+    return [title, ""];
+  }
+
+  const midpoint = Math.ceil(words.length / 2);
+
+  return [words.slice(0, midpoint).join(" "), words.slice(midpoint).join(" ")];
 }
 
 function isLegalHeading(value: string) {

@@ -17,6 +17,8 @@ import type {
   SiteContent,
 } from "@/types/database";
 
+export const metadata = { title: "Content" };
+
 export default async function AdminContentPage() {
   const [
     pagesResult,

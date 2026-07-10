@@ -9,6 +9,8 @@ import { deleteRow } from "@/lib/admin/actions";
 import { getOptions, listRows } from "@/lib/admin/data";
 import type { Category } from "@/types/database";
 
+export const metadata = { title: "Categories" };
+
 export default async function AdminCategoriesPage({
   searchParams,
 }: {

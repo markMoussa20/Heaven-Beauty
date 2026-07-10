@@ -1,5 +1,6 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveCountry } from "@/lib/admin/actions";
 import type { Country } from "@/types/database";
 
@@ -44,9 +45,9 @@ export function CountryForm({ country }: { country?: Partial<Country> }) {
         <InlineCheckbox defaultChecked={country?.price_conversion_enabled ?? false} label="Price conversion enabled" name="price_conversion_enabled" />
       </div>
       <div className="md:col-span-2">
-        <button className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white" type="submit">
+        <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
           Save country
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

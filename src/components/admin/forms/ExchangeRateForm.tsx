@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveExchangeRate } from "@/lib/admin/actions";
 import type { ExchangeRate } from "@/types/database";
 
@@ -23,9 +24,9 @@ export function ExchangeRateForm({ rate }: { rate?: Partial<ExchangeRate> }) {
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={rate?.rate_date ?? ""} name="rate_date" type="date" />
       </AdminFormField>
       <div className="flex items-end">
-        <button className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white" type="submit">
+        <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
           Save rate
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );

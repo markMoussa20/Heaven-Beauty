@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { loginAdmin } from "@/lib/admin/actions";
 
 const schema = z.object({
@@ -50,10 +51,11 @@ export function LoginForm() {
         ) : null}
       </label>
       <button
-        className="h-11 rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white disabled:opacity-60"
+        className="flex h-11 items-center justify-center gap-2 rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white disabled:opacity-60"
         disabled={pending}
         type="submit"
       >
+        {pending ? <LoadingSpinner className="size-4" label="Signing in" /> : null}
         {pending ? "Signing in..." : "Login"}
       </button>
     </form>

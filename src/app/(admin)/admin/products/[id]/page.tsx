@@ -7,6 +7,21 @@ import { getOptions, getRow, listRows, type AdminRow } from "@/lib/admin/data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProductImageUrl } from "@/lib/storage/product-images";
 import type { Product } from "@/types/database";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { data } = await getRow("products", id, "name");
+  const product = data as Pick<Product, "name"> | null;
+
+  return {
+    title: product?.name ? `Edit ${product.name}` : "Edit Product",
+  };
+}
 
 export default async function EditProductPage({
   params,
