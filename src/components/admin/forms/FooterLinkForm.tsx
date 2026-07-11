@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -16,7 +17,7 @@ export function FooterLinkForm({ link }: { link?: Partial<FooterLink> }) {
   const action = saveFooterLink.bind(null, link?.id ?? null);
 
   return (
-    <form
+    <AdminActionForm
       action={action}
       className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3"
     >
@@ -73,6 +74,6 @@ export function FooterLinkForm({ link }: { link?: Partial<FooterLink> }) {
           Save footer link
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

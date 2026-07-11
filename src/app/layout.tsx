@@ -32,8 +32,8 @@ export default async function RootLayout({
   const isAdminRoute = pathname.startsWith("/admin");
 
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-950">
+    <html lang="en" className="h-full overflow-x-clip antialiased">
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-zinc-50 text-zinc-950">
         <CountryProvider
           countries={countries}
           initialCountryCode={selectedCountryCode}

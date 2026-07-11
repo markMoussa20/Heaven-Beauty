@@ -14,7 +14,7 @@ export async function getFeaturedCountryItems(
     .select(
       `
         *,
-        products!inner(*, product_images(storage_path, sort_order)),
+        products!inner(*, product_images(storage_path, sort_order), product_categories(categories(*))),
         countries!inner(*)
       `,
     )
@@ -23,7 +23,8 @@ export async function getFeaturedCountryItems(
     .eq("products.is_active", true)
     .eq("countries.is_active", true)
     .eq("countries.code", countryCode)
-    .limit(8);
+    .order("sort_order", { ascending: true })
+    .limit(50);
 
   if (error) {
     console.error("Failed to fetch featured products", error);
@@ -43,7 +44,7 @@ export async function getVisibleCountryItems(
     .select(
       `
         *,
-        products!inner(*, product_images(storage_path, sort_order)),
+        products!inner(*, product_images(storage_path, sort_order), product_categories(categories(*))),
         countries!inner(*)
       `,
     )

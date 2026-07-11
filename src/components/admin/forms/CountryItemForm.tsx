@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -17,7 +18,7 @@ export function CountryItemForm({
   const action = saveCountryItem.bind(null, item?.id ?? null);
 
   return (
-    <form action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3">
+    <AdminActionForm action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3">
       <AdminFormField label="Country">
         <AdminSelect defaultValue={item?.country_id ?? ""} name="country_id" options={countries} required />
       </AdminFormField>
@@ -48,6 +49,6 @@ export function CountryItemForm({
           Save item
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

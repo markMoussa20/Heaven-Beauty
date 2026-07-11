@@ -1,7 +1,14 @@
-const whatsappUrl =
-  "https://api.whatsapp.com/send/?phone=96178835078&text&type=phone_number&app_absent=0";
+"use client";
+
+import { useCountry } from "@/components/country/CountryProvider";
 
 export function FloatingWhatsApp() {
+  const { selectedCountry } = useCountry();
+  const phone = selectedCountry?.whatsapp?.replace(/\D/g, "") ?? "";
+
+  if (!phone) return null;
+
+  const whatsappUrl = `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phone)}&text=&type=phone_number&app_absent=0`;
   return (
     <a
       aria-label="Contact Heaven Beauty on WhatsApp"

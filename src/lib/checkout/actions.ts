@@ -1,338 +1,145 @@
 "use server";
 
+import "server-only";
+import { createHash } from "node:crypto";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { notifyOrderCreated } from "@/lib/order-notifications";
-import { resolveItemPrice } from "@/lib/pricing";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-type CheckoutCartItem = {
-  countryItemId: string;
-  quantity: number;
-  unitPrice?: number;
-};
 
 export type CheckoutState =
   | { ok: true; orderNumber: string }
-  | { ok: false; error: string }
+  | { ok: false; error: string; fieldErrors?: Record<string, string[]> }
   | null;
 
-type CheckoutCountryItem = {
-  id: string;
-  country_id: string;
-  product_id: string;
-  price: number | string;
-  sale_price: number | string | null;
-  is_visible: boolean;
-  products?: { name?: string | null; is_active?: boolean | null } | null;
-};
+const cartLineSchema = z.object({
+  countryItemId: z.string().uuid(),
+  quantity: z.number().int().min(1).max(10),
+});
 
-type CheckoutCountry = {
-  id: string;
-  name: string;
-  currency_code: string;
-  currency_symbol: string;
-  use_shipping_zones: boolean;
-  global_delivery_fee: number | string | null;
-};
-
-type CheckoutShippingZone = {
-  id: string;
-  country_id: string;
-  name: string;
-  fee: number | string;
-  is_active?: boolean | null;
-};
-
-type CheckoutResult = {
-  data: unknown;
-  error: { message: string } | null;
-};
-
-type CheckoutQuery = PromiseLike<CheckoutResult> & {
-  eq: (column: string, value: unknown) => CheckoutQuery;
-  in: (column: string, values: unknown[]) => CheckoutQuery;
-  insert: (payload: unknown) => CheckoutQuery;
-  maybeSingle: () => Promise<CheckoutResult>;
-  upsert: (payload: unknown, options?: { onConflict?: string }) => CheckoutQuery;
-  select: (columns?: string) => CheckoutQuery;
-  single: () => Promise<CheckoutResult>;
-};
-
-type CheckoutSupabase = {
-  from: (table: string) => CheckoutQuery;
-};
+const checkoutSchema = z.object({
+  countryId: z.string().uuid(),
+  shippingZoneId: z.string().uuid().nullable(),
+  idempotencyKey: z.string().uuid(),
+  phone: z.string().trim().min(5).max(30),
+  email: z.union([z.literal(""), z.string().trim().email().max(254)]),
+  firstName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().min(1).max(80),
+  address: z.string().trim().min(3).max(250),
+  apartment: z.string().trim().max(100),
+  city: z.string().trim().min(1).max(100),
+  postalCode: z.string().trim().max(30),
+  notes: z.string().trim().max(1000),
+  items: z.array(cartLineSchema).min(1).max(50),
+});
 
 export async function submitCheckout(
   _: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
-  const countryId = String(formData.get("country_id") ?? "");
-  const rawCart = String(formData.get("cart_items") ?? "[]");
-  const shippingZoneId = String(formData.get("shipping_zone_id") ?? "");
-  const phone = requiredText(formData, "phone");
-  const email = optionalText(formData, "email");
-  const firstName = requiredText(formData, "first_name");
-  const lastName = requiredText(formData, "last_name");
-  const address = requiredText(formData, "address");
-  const city = requiredText(formData, "city");
-  const apartment = optionalText(formData, "apartment");
-  const postalCode = optionalText(formData, "postal_code");
-  const notes = optionalText(formData, "notes");
-
-  if (!countryId || !phone || !firstName || !lastName || !address || !city) {
-    return { ok: false, error: "Please fill in all required checkout fields." };
-  }
-
-  let cartItems: CheckoutCartItem[];
+  let rawItems: unknown;
   try {
-    cartItems = JSON.parse(rawCart) as CheckoutCartItem[];
+    rawItems = JSON.parse(String(formData.get("cart_items") ?? "[]"));
   } catch {
     return { ok: false, error: "Your cart could not be read. Please refresh and try again." };
   }
 
-  const normalizedCart = cartItems
-    .map((item) => ({
-      countryItemId: String(item.countryItemId ?? ""),
-      quantity: Math.max(1, Number(item.quantity ?? 0)),
-      unitPrice: Number(item.unitPrice ?? 0),
-    }))
-    .filter((item) => item.countryItemId && Number.isFinite(item.quantity));
-
-  if (normalizedCart.length === 0) {
-    return { ok: false, error: "Your cart is empty." };
-  }
-
-  const supabase = createAdminClient() as unknown as CheckoutSupabase;
-  const { data: countryData, error: countryError } = await supabase
-    .from("countries")
-    .select("*")
-    .eq("id", countryId)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (countryError || !countryData) {
-    return { ok: false, error: "Selected country is not available." };
-  }
-
-  const country = countryData as CheckoutCountry;
-  const itemIds = normalizedCart.map((item) => item.countryItemId);
-  const { data: itemData, error: itemError } = await supabase
-    .from("country_items")
-    .select("*, products!inner(name,is_active)")
-    .in("id", itemIds)
-    .eq("country_id", countryId)
-    .eq("is_visible", true)
-    .eq("products.is_active", true);
-  const availableItems = (itemData ?? []) as CheckoutCountryItem[];
-
-  if (itemError || availableItems.length !== normalizedCart.length) {
-    return {
-      ok: false,
-      error: "One or more cart items are no longer available for this country.",
-    };
-  }
-
-  let shippingZone: CheckoutShippingZone | null = null;
-  if (country.use_shipping_zones) {
-    if (!shippingZoneId) {
-      return { ok: false, error: "Please select a governorate." };
-    }
-
-    const { data: zoneData, error: zoneError } = await supabase
-      .from("shipping_zones")
-      .select("*")
-      .eq("id", shippingZoneId)
-      .eq("country_id", countryId)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (zoneError || !zoneData) {
-      return { ok: false, error: "Selected governorate is not available." };
-    }
-
-    shippingZone = zoneData as CheckoutShippingZone;
-  }
-
-  const subtotal = normalizedCart.reduce((sum, cartItem) => {
-    const item = availableItems.find(
-      (availableItem) => availableItem.id === cartItem.countryItemId,
-    );
-    const unitPrice = resolveCheckoutPrice(item, cartItem.unitPrice);
-    return sum + unitPrice * cartItem.quantity;
-  }, 0);
-  const shippingFee = country.use_shipping_zones
-    ? Number(shippingZone?.fee ?? 0)
-    : Number(country.global_delivery_fee ?? 0);
-  const total = subtotal + shippingFee;
-  const customerName = `${firstName} ${lastName}`.trim();
-  const fullAddress = [address, apartment, city, postalCode]
-    .filter(Boolean)
-    .join(", ");
-  const orderNumber = makeOrderNumber();
-
-  const { data: customerData, error: customerError } = await supabase
-    .from("customers")
-    .upsert(
-      {
-        country_id: countryId,
-        full_name: customerName,
-        phone,
-        email,
-      },
-      { onConflict: "country_id,phone" },
-    )
-    .select("id")
-    .single();
-
-  const customer = customerData as { id?: string } | null;
-
-  if (customerError || !customer?.id) {
-    return {
-      ok: false,
-      error: customerError?.message
-        ? `Could not save customer details: ${customerError.message}`
-        : "Could not save customer details. Please check the phone number and try again.",
-    };
-  }
-
-  const { data: orderData, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      order_number: orderNumber,
-      country_id: countryId,
-      customer_id: customer.id,
-      customer_name: customerName,
-      customer_phone: phone,
-      customer_email: email,
-      currency_code: country.currency_code,
-      shipping_zone_id: country.use_shipping_zones ? shippingZone?.id : null,
-      shipping_area_name: country.use_shipping_zones
-        ? (shippingZone?.name ?? city)
-        : city,
-      address_line: fullAddress,
-      notes,
-      subtotal,
-      shipping_fee: shippingFee,
-      total,
-      payment_method: "COD",
-      status: "pending",
-    })
-    .select("id")
-    .single();
-
-  const order = orderData as { id?: string } | null;
-
-  if (orderError || !order?.id) {
-    return {
-      ok: false,
-      error: orderError?.message
-        ? `Could not create order: ${orderError.message}`
-        : "Could not create order. Please try again.",
-    };
-  }
-  const orderId = order.id;
-
-  const orderItems = normalizedCart.map((cartItem) => {
-    const item = availableItems.find(
-      (availableItem) => availableItem.id === cartItem.countryItemId,
-    );
-    const unitPrice = resolveCheckoutPrice(item, cartItem.unitPrice);
-
-    return {
-      order_id: orderId,
-      country_item_id: cartItem.countryItemId,
-      product_id: item?.product_id,
-      product_name: item?.products?.name ?? "Product",
-      quantity: cartItem.quantity,
-      unit_price: unitPrice,
-      total: unitPrice * cartItem.quantity,
-    };
+  const parsed = checkoutSchema.safeParse({
+    countryId: formData.get("country_id"),
+    shippingZoneId: String(formData.get("shipping_zone_id") ?? "") || null,
+    idempotencyKey: formData.get("idempotency_key"),
+    phone: formData.get("phone"),
+    email: formData.get("email") ?? "",
+    firstName: formData.get("first_name"),
+    lastName: formData.get("last_name"),
+    address: formData.get("address"),
+    apartment: formData.get("apartment") ?? "",
+    city: formData.get("city"),
+    postalCode: formData.get("postal_code") ?? "",
+    notes: formData.get("notes") ?? "",
+    items: rawItems,
   });
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-
-  if (itemsError) {
+  if (!parsed.success) {
     return {
       ok: false,
-      error: itemsError.message
-        ? `Order was created but items could not be saved: ${itemsError.message}`
-        : "Order was created but items could not be saved. Please contact support.",
+      error: "Please review the highlighted order details and try again.",
+      fieldErrors: z.flattenError(parsed.error).fieldErrors,
     };
   }
 
-  await notifyOrderCreated({
-    items: orderItems.map((item) => ({
-      id: `${orderId}-${item.country_item_id}`,
-      order_id: orderId,
-      country_item_id: item.country_item_id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      total: item.total,
-    })),
-    order: {
-      address_line: fullAddress,
-      countries: {
-        currency_code: country.currency_code,
-        currency_symbol: country.currency_symbol,
-      },
-      country_id: countryId,
-      currency_code: country.currency_code,
-      customer_email: email,
-      customer_id: customer.id,
-      customer_name: customerName,
-      customer_phone: phone,
-      id: orderId,
-      notes,
-      order_number: orderNumber,
-      payment_method: "COD",
-      shipping_area_name: country.use_shipping_zones
-        ? (shippingZone?.name ?? city)
-        : city,
-      shipping_fee: shippingFee,
-      status: "pending",
-      subtotal,
-      total,
-    },
-  }).catch((error) => {
-    console.error("Order notification failed", error);
+  const uniqueItems = new Map<string, number>();
+  for (const item of parsed.data.items) {
+    uniqueItems.set(item.countryItemId, (uniqueItems.get(item.countryItemId) ?? 0) + item.quantity);
+  }
+  const items = [...uniqueItems].map(([countryItemId, quantity]) => ({ countryItemId, quantity }));
+  if (items.some((item) => item.quantity > 10)) {
+    return { ok: false, error: "A product quantity cannot exceed 10." };
+  }
+
+  const requestHeaders = await headers();
+  const source = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    requestHeaders.get("cf-connecting-ip") || "unknown";
+  const secret = process.env.CHECKOUT_RATE_LIMIT_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "checkout";
+  const fingerprint = createHash("sha256").update(`${secret}:${source}`).digest("hex");
+  const supabase = createAdminClient();
+  const rpcClient = supabase as unknown as {
+    rpc: (name: "place_order", args: Record<string, unknown>) => Promise<{
+      data: Array<{ order_id: string; order_number: string; subtotal: number; shipping_fee: number; total: number }> | null;
+      error: { code?: string; details?: string; message: string } | null;
+    }>;
+  };
+  const { data, error } = await rpcClient.rpc("place_order", {
+    p_country_id: parsed.data.countryId,
+    p_items: items,
+    p_shipping_zone_id: parsed.data.shippingZoneId,
+    p_phone: parsed.data.phone,
+    p_email: parsed.data.email || "",
+    p_first_name: parsed.data.firstName,
+    p_last_name: parsed.data.lastName,
+    p_address: parsed.data.address,
+    p_apartment: parsed.data.apartment,
+    p_city: parsed.data.city,
+    p_postal_code: parsed.data.postalCode,
+    p_notes: parsed.data.notes,
+    p_idempotency_key: parsed.data.idempotencyKey,
+    p_rate_limit_fingerprint: fingerprint,
   });
+
+  const result = data?.[0];
+  if (error || !result) {
+    console.error("place_order RPC failed", {
+      code: error?.code,
+      details: error?.details,
+      message: error?.message,
+    });
+    return { ok: false, error: checkoutErrorMessage(error?.message) };
+  }
+
+  const [{ data: order }, { data: orderItems }] = await Promise.all([
+    supabase.from("orders").select("*, countries(currency_code,currency_symbol)").eq("id", result.order_id).single(),
+    supabase.from("order_items").select("*").eq("order_id", result.order_id),
+  ]);
+
+  if (order && orderItems) {
+    notifyOrderCreated({ order, items: orderItems }).catch((notificationError) => {
+      console.error("Post-commit order notification failed", notificationError);
+    });
+  } else {
+    console.error("Order committed but notification payload could not be loaded", { orderId: result.order_id });
+  }
 
   revalidatePath("/admin/orders");
-  return { ok: true, orderNumber };
+  return { ok: true, orderNumber: result.order_number };
 }
 
-function requiredText(formData: FormData, key: string) {
-  return String(formData.get(key) ?? "").trim();
-}
-
-function optionalText(formData: FormData, key: string) {
-  const value = String(formData.get(key) ?? "").trim();
-  return value || null;
-}
-
-function resolveCheckoutPrice(
-  item: CheckoutCountryItem | undefined,
-  fallbackPrice: number,
-) {
-  const databasePrice = resolveItemPrice(item);
-
-  if (databasePrice > 0) {
-    return databasePrice;
-  }
-
-  return Number.isFinite(fallbackPrice) && fallbackPrice > 0 ? fallbackPrice : 0;
-}
-
-function makeOrderNumber() {
-  const date = new Date();
-  const stamp = [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("");
-  const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
-  return `HB-${stamp}-${suffix}`;
+function checkoutErrorMessage(message?: string) {
+  if (message?.includes("RATE_LIMITED")) return "Too many checkout attempts. Please wait a minute and try again.";
+  if (message?.includes("INSUFFICIENT_STOCK")) return "One of your items no longer has enough stock. Please update your cart.";
+  if (message?.includes("ITEM_UNAVAILABLE")) return "One or more cart items are no longer available.";
+  if (message?.includes("INVALID_SHIPPING_ZONE")) return "The selected delivery area is not available for this country.";
+  if (message?.includes("COUNTRY_UNAVAILABLE")) return "The selected country is not currently available.";
+  return "We could not place your order. No payment was taken. Please review your cart and try again.";
 }

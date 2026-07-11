@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveExchangeRate } from "@/lib/admin/actions";
 import type { ExchangeRate } from "@/types/database";
@@ -7,7 +8,7 @@ export function ExchangeRateForm({ rate }: { rate?: Partial<ExchangeRate> }) {
   const action = saveExchangeRate.bind(null, rate?.id ?? null);
 
   return (
-    <form action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3">
+    <AdminActionForm action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3">
       <AdminFormField label="Base currency">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={rate?.base_currency_code ?? rate?.base_currency ?? ""} name="base_currency_code" required />
       </AdminFormField>
@@ -28,6 +29,6 @@ export function ExchangeRateForm({ rate }: { rate?: Partial<ExchangeRate> }) {
           Save rate
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

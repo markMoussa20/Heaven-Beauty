@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -9,7 +10,7 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
   const action = savePublicPage.bind(null, page?.id ?? null);
 
   return (
-    <form
+    <AdminActionForm
       action={action}
       className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-2"
     >
@@ -125,6 +126,6 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
           Save page
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

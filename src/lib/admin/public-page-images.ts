@@ -15,6 +15,7 @@ export async function uploadPublicPageImage({
   kind: "primary" | "secondary";
   slug: string;
 }) {
+  validateImage(file);
   const supabase = createAdminClient();
   const extension = getImageExtension(file);
   const path = getSafePublicPageImagePath({ extension, kind, slug });
@@ -32,6 +33,12 @@ export async function uploadPublicPageImage({
   }
 
   return getProductImageUrl(supabase, path);
+}
+
+function validateImage(file: File) {
+  const allowed = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"]);
+  if (!allowed.has(file.type)) throw new Error("Only AVIF, JPEG, PNG, and WebP images are allowed.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
 }
 
 function getSafePublicPageImagePath({

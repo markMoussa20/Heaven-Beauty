@@ -14,6 +14,7 @@ export async function uploadProductImage({
   kind: "main" | "gallery";
   index?: number;
 }) {
+  validateImage(file);
   const supabase = createAdminClient();
   const extension = getImageExtension(file);
   const path = getSafeProductImagePath({
@@ -36,6 +37,12 @@ export async function uploadProductImage({
   }
 
   return path;
+}
+
+function validateImage(file: File) {
+  const allowed = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"]);
+  if (!allowed.has(file.type)) throw new Error("Only AVIF, JPEG, PNG, and WebP images are allowed.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
 }
 
 function getImageExtension(file: File) {

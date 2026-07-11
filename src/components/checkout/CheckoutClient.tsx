@@ -12,10 +12,11 @@ import type { Country, ShippingZone } from "@/types/database";
 
 type CheckoutClientProps = {
   country: Country;
+  idempotencyKey: string;
   shippingZones: ShippingZone[];
 };
 
-export function CheckoutClient({ country, shippingZones }: CheckoutClientProps) {
+export function CheckoutClient({ country, idempotencyKey, shippingZones }: CheckoutClientProps) {
   const { hydrated, items, subtotal, updateQuantity, removeItem, clearCart } =
     useCart();
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,7 +43,6 @@ export function CheckoutClient({ country, shippingZones }: CheckoutClientProps) 
         items.map((item) => ({
           countryItemId: item.countryItemId,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
         })),
       ),
     [items],
@@ -115,6 +115,7 @@ export function CheckoutClient({ country, shippingZones }: CheckoutClientProps) 
         >
           <input name="country_id" type="hidden" value={country.id} />
           <input name="cart_items" type="hidden" value={cartItemsPayload} />
+          <input name="idempotency_key" type="hidden" value={idempotencyKey} />
           {!country.use_shipping_zones ? (
             <input name="shipping_zone_id" type="hidden" value="" />
           ) : null}

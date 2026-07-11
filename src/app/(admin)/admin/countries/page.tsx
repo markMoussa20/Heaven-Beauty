@@ -52,7 +52,7 @@ export default async function AdminCountriesPage() {
             key: "action",
             header: "Action",
             render: (row) => (
-              <form action={saveCountry.bind(null, row.id)}>
+              <form action={async (formData) => { "use server"; await saveCountry(row.id, null, formData); }}>
                 <input name="name" type="hidden" value={row.name} />
                 <input name="code" type="hidden" value={row.code} />
                 <input name="currency_code" type="hidden" value={row.currency_code} />

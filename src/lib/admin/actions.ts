@@ -18,6 +18,7 @@ type LooseQuery = {
   select: (columns?: string) => LooseQuery;
   single: () => Promise<{ data: unknown; error: { message: string } | null }>;
   update: (payload: unknown) => LooseQuery;
+  then: PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>["then"];
 };
 
 type LooseSupabase = {
@@ -37,6 +38,28 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+export type AdminActionState =
+  | { ok: true; message: string }
+  | { ok: false; message: string; fieldErrors?: Record<string, string[]> }
+  | null;
+
+const uuidSchema = z.string().uuid();
+const orderStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
+const deleteTables = new Set(["categories", "shipping_zones", "exchange_rates", "country_items"]);
+
+function failed(message = "The change could not be saved. Please try again."): AdminActionState {
+  return { ok: false, message };
+}
+
+async function runMutation(query: LooseQuery, context: string) {
+  const { error } = await query;
+  if (error) {
+    console.error(`Admin mutation failed: ${context}`, { code: error.code, message: error.message });
+    return false;
+  }
+  return true;
+}
 
 export async function loginAdmin(_: unknown, formData: FormData) {
   const parsed = loginSchema.safeParse({
@@ -83,27 +106,27 @@ export async function updateOrderStatus(orderId: string, formData: FormData) {
   await requireAdmin();
   const status = String(formData.get("status") ?? "");
 
-  if (!status) {
-    return;
-  }
+  if (!uuidSchema.safeParse(orderId).success || !z.enum(orderStatuses).safeParse(status).success) return;
 
   const supabase = adminDb();
-  await supabase.from("orders").update({ status }).eq("id", orderId);
+  if (!(await runMutation(supabase.from("orders").update({ status }).eq("id", orderId), "update order status"))) return;
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
 }
 
 export async function deleteRow(table: string, id: string, path: string) {
   await requireAdmin();
+  if (!deleteTables.has(table) || !uuidSchema.safeParse(id).success) return;
   const supabase = adminDb();
-  await supabase.from(table).delete().eq("id", id);
+  if (!(await runMutation(supabase.from(table).delete().eq("id", id), `delete ${table}`))) return;
   revalidatePath(path);
 }
 
 export async function deactivateProduct(id: string) {
   await requireAdmin();
   const supabase = adminDb();
-  await supabase.from("products").update({ is_active: false }).eq("id", id);
+  if (!uuidSchema.safeParse(id).success) return;
+  if (!(await runMutation(supabase.from("products").update({ is_active: false }).eq("id", id), "deactivate product"))) return;
   revalidatePath("/admin/products");
 }
 
@@ -150,21 +173,22 @@ async function upsertRecord({
   id?: string | null;
   payload: Record<string, unknown>;
   path: string;
-}) {
+}): Promise<AdminActionState> {
   await requireAdmin();
   const supabase = adminDb();
 
   if (id) {
-    await supabase.from(table).update(payload).eq("id", id);
+    if (!uuidSchema.safeParse(id).success) return failed("The record identifier is invalid.");
+    if (!(await runMutation(supabase.from(table).update(payload).eq("id", id), `update ${table}`))) return failed();
   } else {
-    await supabase.from(table).insert(payload);
+    if (!(await runMutation(supabase.from(table).insert(payload), `insert ${table}`))) return failed();
   }
 
   revalidatePath(path);
   redirect(path);
 }
 
-export async function saveCountry(id: string | null, formData: FormData) {
+export async function saveCountry(id: string | null, _: AdminActionState, formData: FormData) {
   const payload = payloadFrom(formData, [
     "name",
     "code",
@@ -180,10 +204,10 @@ export async function saveCountry(id: string | null, formData: FormData) {
     "price_conversion_enabled",
     "price_conversion_base_currency",
   ]);
-  await upsertRecord({ table: "countries", id, payload, path: "/admin/countries" });
+  return upsertRecord({ table: "countries", id, payload, path: "/admin/countries" });
 }
 
-export async function saveCategory(id: string | null, formData: FormData) {
+export async function saveCategory(id: string | null, _: AdminActionState, formData: FormData) {
   const name = String(formData.get("name") ?? "");
   const payload = {
     ...payloadFrom(formData, [
@@ -198,10 +222,10 @@ export async function saveCategory(id: string | null, formData: FormData) {
     slug: text(formData, "slug") ?? slugify(name),
   };
 
-  await upsertRecord({ table: "categories", id, payload, path: "/admin/categories" });
+  return upsertRecord({ table: "categories", id, payload, path: "/admin/categories" });
 }
 
-export async function saveShippingZone(id: string | null, formData: FormData) {
+export async function saveShippingZone(id: string | null, _: AdminActionState, formData: FormData) {
   const payload = payloadFrom(formData, [
     "country_id",
     "name",
@@ -210,10 +234,10 @@ export async function saveShippingZone(id: string | null, formData: FormData) {
     "is_active",
     "sort_order",
   ]);
-  await upsertRecord({ table: "shipping_zones", id, payload, path: "/admin/shipping" });
+  return upsertRecord({ table: "shipping_zones", id, payload, path: "/admin/shipping" });
 }
 
-export async function saveCountryItem(id: string | null, formData: FormData) {
+export async function saveCountryItem(id: string | null, _: AdminActionState, formData: FormData) {
   const schema = z.object({
     country_id: z.string().min(1),
     product_id: z.string().min(1),
@@ -232,8 +256,9 @@ export async function saveCountryItem(id: string | null, formData: FormData) {
     "is_featured",
     "sort_order",
   ]);
-  schema.parse(payload);
-  await upsertRecord({
+  const parsed = schema.safeParse(payload);
+  if (!parsed.success) return { ok: false as const, message: "Check the country, product, price, and stock values.", fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  return upsertRecord({
     table: "country_items",
     id,
     payload,
@@ -241,7 +266,7 @@ export async function saveCountryItem(id: string | null, formData: FormData) {
   });
 }
 
-export async function saveExchangeRate(id: string | null, formData: FormData) {
+export async function saveExchangeRate(id: string | null, _: AdminActionState, formData: FormData) {
   const payload = payloadFrom(formData, [
     "base_currency_code",
     "target_currency_code",
@@ -249,7 +274,7 @@ export async function saveExchangeRate(id: string | null, formData: FormData) {
     "source",
     "rate_date",
   ]);
-  await upsertRecord({
+  return upsertRecord({
     table: "exchange_rates",
     id,
     payload,
@@ -257,7 +282,7 @@ export async function saveExchangeRate(id: string | null, formData: FormData) {
   });
 }
 
-export async function saveSiteContent(id: string | null, formData: FormData) {
+export async function saveSiteContent(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const key = text(formData, "key") ?? "content";
   const payload = payloadFrom(formData, [
     "key",
@@ -297,9 +322,9 @@ export async function saveSiteContent(id: string | null, formData: FormData) {
   }
 
   if (id) {
-    await supabase.from("site_content").update(payload).eq("id", id);
+    if (!(await runMutation(supabase.from("site_content").update(payload).eq("id", id), "update site content"))) return failed();
   } else {
-    await supabase.from("site_content").insert(payload);
+    if (!(await runMutation(supabase.from("site_content").insert(payload), "insert site content"))) return failed();
   }
 
   revalidatePath("/");
@@ -309,7 +334,7 @@ export async function saveSiteContent(id: string | null, formData: FormData) {
   redirect("/admin/content");
 }
 
-export async function saveFooterSettings(id: string | null, formData: FormData) {
+export async function saveFooterSettings(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const payload = {
     ...payloadFrom(formData, [
       "title",
@@ -327,9 +352,9 @@ export async function saveFooterSettings(id: string | null, formData: FormData) 
   const supabase = adminDb();
 
   if (id) {
-    await supabase.from("site_content").update(payload).eq("id", id);
+    if (!(await runMutation(supabase.from("site_content").update(payload).eq("id", id), "update footer settings"))) return failed();
   } else {
-    await supabase.from("site_content").insert(payload);
+    if (!(await runMutation(supabase.from("site_content").insert(payload), "insert footer settings"))) return failed();
   }
 
   revalidatePath("/");
@@ -338,7 +363,7 @@ export async function saveFooterSettings(id: string | null, formData: FormData) 
   redirect("/admin/content");
 }
 
-export async function saveFooterLink(id: string | null, formData: FormData) {
+export async function saveFooterLink(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const payload = payloadFrom(formData, [
     "group_key",
     "label",
@@ -352,9 +377,9 @@ export async function saveFooterLink(id: string | null, formData: FormData) {
   const supabase = adminDb();
 
   if (id) {
-    await supabase.from("footer_links").update(payload).eq("id", id);
+    if (!(await runMutation(supabase.from("footer_links").update(payload).eq("id", id), "update footer link"))) return failed();
   } else {
-    await supabase.from("footer_links").insert(payload);
+    if (!(await runMutation(supabase.from("footer_links").insert(payload), "insert footer link"))) return failed();
   }
 
   revalidatePath("/");
@@ -366,13 +391,13 @@ export async function saveFooterLink(id: string | null, formData: FormData) {
 export async function deleteFooterLink(id: string) {
   await requireAdmin();
   const supabase = adminDb();
-  await supabase.from("footer_links").delete().eq("id", id);
+  if (!(await runMutation(supabase.from("footer_links").delete().eq("id", id), "delete footer link"))) return;
   revalidatePath("/");
   revalidatePath("/admin/footer");
   revalidatePath("/admin/content");
 }
 
-export async function savePublicPageFaqItem(id: string | null, formData: FormData) {
+export async function savePublicPageFaqItem(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const payload = payloadFrom(formData, [
     "page_slug",
     "group_title",
@@ -386,9 +411,9 @@ export async function savePublicPageFaqItem(id: string | null, formData: FormDat
   const supabase = adminDb();
 
   if (id) {
-    await supabase.from("public_page_faq_items").update(payload).eq("id", id);
+    if (!(await runMutation(supabase.from("public_page_faq_items").update(payload).eq("id", id), "update FAQ"))) return failed();
   } else {
-    await supabase.from("public_page_faq_items").insert(payload);
+    if (!(await runMutation(supabase.from("public_page_faq_items").insert(payload), "insert FAQ"))) return failed();
   }
 
   revalidatePath("/faq");
@@ -399,12 +424,12 @@ export async function savePublicPageFaqItem(id: string | null, formData: FormDat
 export async function deletePublicPageFaqItem(id: string) {
   await requireAdmin();
   const supabase = adminDb();
-  await supabase.from("public_page_faq_items").delete().eq("id", id);
+  if (!(await runMutation(supabase.from("public_page_faq_items").delete().eq("id", id), "delete FAQ"))) return;
   revalidatePath("/faq");
   revalidatePath("/admin/content");
 }
 
-export async function saveOrderNotificationSettings(id: string | null, formData: FormData) {
+export async function saveOrderNotificationSettings(id: string | null, _: AdminActionState, formData: FormData) {
   const payload = {
     ...payloadFrom(formData, [
       "is_active",
@@ -426,7 +451,7 @@ export async function saveOrderNotificationSettings(id: string | null, formData:
     key: "default",
   };
 
-  await upsertRecord({
+  return upsertRecord({
     table: "order_notification_settings",
     id,
     payload,
@@ -436,6 +461,7 @@ export async function saveOrderNotificationSettings(id: string | null, formData:
 
 export async function saveOrderNotificationRecipient(
   id: string | null,
+  _: AdminActionState,
   formData: FormData,
 ) {
   const payload = payloadFrom(formData, [
@@ -446,7 +472,7 @@ export async function saveOrderNotificationRecipient(
     "receive_order_email",
   ]);
 
-  await upsertRecord({
+  return upsertRecord({
     table: "order_notification_recipients",
     id,
     payload,
@@ -457,12 +483,13 @@ export async function saveOrderNotificationRecipient(
 export async function deleteOrderNotificationRecipient(id: string) {
   await requireAdmin();
   const supabase = adminDb();
-  await supabase.from("order_notification_recipients").delete().eq("id", id);
+  if (!(await runMutation(supabase.from("order_notification_recipients").delete().eq("id", id), "delete notification recipient"))) return;
   revalidatePath("/admin/notifications");
 }
 
 export async function saveOrderNotificationTemplate(
   id: string | null,
+  _: AdminActionState,
   formData: FormData,
 ) {
   const payload = payloadFrom(formData, [
@@ -472,7 +499,7 @@ export async function saveOrderNotificationTemplate(
     "is_active",
   ]);
 
-  await upsertRecord({
+  return upsertRecord({
     table: "order_notification_templates",
     id,
     payload,
@@ -480,7 +507,7 @@ export async function saveOrderNotificationTemplate(
   });
 }
 
-export async function savePublicPage(id: string | null, formData: FormData) {
+export async function savePublicPage(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const title = String(formData.get("title") ?? "");
   const slug = text(formData, "slug") ?? slugify(title);
   const payload = {
@@ -523,9 +550,9 @@ export async function savePublicPage(id: string | null, formData: FormData) {
   }
 
   if (id) {
-    await supabase.from("public_pages").update(payload).eq("id", id);
+    if (!(await runMutation(supabase.from("public_pages").update(payload).eq("id", id), "update public page"))) return failed();
   } else {
-    await supabase.from("public_pages").insert(payload);
+    if (!(await runMutation(supabase.from("public_pages").insert(payload), "insert public page"))) return failed();
   }
 
   revalidatePath("/");
@@ -536,7 +563,7 @@ export async function savePublicPage(id: string | null, formData: FormData) {
   redirect("/admin/content");
 }
 
-export async function saveProduct(id: string | null, formData: FormData) {
+export async function saveProduct(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   await requireAdmin();
   const supabase = adminDb();
   const name = String(formData.get("name") ?? "");
@@ -571,31 +598,29 @@ export async function saveProduct(id: string | null, formData: FormData) {
 
   let productId = id;
   if (productId) {
-    await supabase.from("products").update(payload).eq("id", productId);
+    if (!(await runMutation(supabase.from("products").update(payload).eq("id", productId), "update product"))) return failed();
   } else {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .insert(payload)
       .select("id")
       .single();
     const createdProductId = (data as { id?: string } | null)?.id;
 
-    if (!createdProductId) {
-      throw new Error("Product was created but Supabase did not return an id.");
-    }
+    if (error || !createdProductId) { console.error("Product insert failed", error); return failed(); }
 
     productId = createdProductId;
   }
 
   if (productId) {
-    await supabase.from("product_categories").delete().eq("product_id", productId);
+    if (!(await runMutation(supabase.from("product_categories").delete().eq("product_id", productId), "replace product categories"))) return failed();
     if (selectedCategories.length) {
-      await supabase.from("product_categories").insert(
+      if (!(await runMutation(supabase.from("product_categories").insert(
         selectedCategories.map((categoryId) => ({
           product_id: productId,
           category_id: categoryId,
         })),
-      );
+      ), "insert product categories"))) return failed();
     }
 
     for (const [index, file] of gallery.entries()) {
@@ -606,12 +631,12 @@ export async function saveProduct(id: string | null, formData: FormData) {
           kind: "gallery",
           index,
         });
-        await supabase.from("product_images").insert({
+        if (!(await runMutation(supabase.from("product_images").insert({
           product_id: productId,
           storage_path: storagePath,
           sort_order: index,
           is_primary: false,
-        });
+        }), "insert product image"))) return failed();
       }
     }
   }
@@ -623,7 +648,8 @@ export async function saveProduct(id: string | null, formData: FormData) {
 export async function deleteProductImage(id: string, storagePath: string, productId: string) {
   await requireAdmin();
   const supabase = adminDb();
-  await supabase.storage.from("product-images").remove([storagePath]);
-  await supabase.from("product_images").delete().eq("id", id);
+  const storageResult = await supabase.storage.from("product-images").remove([storagePath]) as { error?: { message: string } | null };
+  if (storageResult.error) { console.error("Product image storage deletion failed", storageResult.error); return; }
+  if (!(await runMutation(supabase.from("product_images").delete().eq("id", id), "delete product image"))) return;
   revalidatePath(`/admin/products/${productId}`);
 }

@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveOrderNotificationSettings } from "@/lib/admin/actions";
@@ -12,7 +13,7 @@ export function OrderNotificationSettingsForm({
   const action = saveOrderNotificationSettings.bind(null, settings?.id ?? null);
 
   return (
-    <form
+    <AdminActionForm
       action={action}
       className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-2"
     >
@@ -144,6 +145,6 @@ export function OrderNotificationSettingsForm({
           Save notification settings
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

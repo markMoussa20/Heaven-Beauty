@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -18,7 +19,7 @@ export function ProductForm({
   const action = saveProduct.bind(null, product?.id ?? null);
 
   return (
-    <form action={action} className="grid gap-5 rounded-lg border border-zinc-200 bg-white p-4">
+    <AdminActionForm action={action} className="grid gap-5 rounded-lg border border-zinc-200 bg-white p-4">
       <div className="grid gap-4 md:grid-cols-2">
         <AdminFormField label="Name">
           <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={product?.name ?? ""} name="name" required />
@@ -71,7 +72,7 @@ export function ProductForm({
           Save product
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }
 

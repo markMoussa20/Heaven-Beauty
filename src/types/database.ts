@@ -111,7 +111,33 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      place_order: {
+        Args: {
+          p_country_id: string;
+          p_items: Json;
+          p_shipping_zone_id: string | null;
+          p_phone: string;
+          p_email: string;
+          p_first_name: string;
+          p_last_name: string;
+          p_address: string;
+          p_apartment: string;
+          p_city: string;
+          p_postal_code: string;
+          p_notes: string;
+          p_idempotency_key: string;
+          p_rate_limit_fingerprint: string;
+        };
+        Returns: Array<{
+          order_id: string;
+          order_number: string;
+          subtotal: number;
+          shipping_fee: number;
+          total: number;
+        }>;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
@@ -167,6 +193,9 @@ export type Product = {
 
 export type ProductWithImages = Product & {
   product_images?: ProductImage[] | null;
+  product_categories?: Array<{
+    categories: Category | null;
+  }> | null;
 };
 
 export type ProductCategory = {
@@ -222,6 +251,7 @@ export type Customer = {
 
 export type Order = {
   id: string;
+  idempotency_key?: string | null;
   order_number?: string | null;
   customer_id?: string | null;
   country_id: string;
@@ -240,6 +270,7 @@ export type Order = {
   payment_method?: string | null;
   notes?: string | null;
   created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type OrderItem = {

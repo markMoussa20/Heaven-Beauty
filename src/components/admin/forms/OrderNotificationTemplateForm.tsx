@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveOrderNotificationTemplate } from "@/lib/admin/actions";
@@ -28,7 +29,7 @@ export function OrderNotificationTemplateForm({
   const action = saveOrderNotificationTemplate.bind(null, template?.id ?? null);
 
   return (
-    <form
+    <AdminActionForm
       action={action}
       className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4"
     >
@@ -74,6 +75,6 @@ export function OrderNotificationTemplateForm({
           Save template
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }

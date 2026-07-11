@@ -1,4 +1,5 @@
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
+import { randomUUID } from "node:crypto";
 import {
   getActiveCountries,
   getCountryByCode,
@@ -39,7 +40,7 @@ export default async function CheckoutPage() {
     ? await getShippingZones(country.id)
     : [];
 
-  return <CheckoutClient country={country} shippingZones={shippingZones} />;
+  return <CheckoutClient country={country} idempotencyKey={randomUUID()} shippingZones={shippingZones} />;
 }
 
 async function getShippingZones(countryId: string): Promise<ShippingZone[]> {

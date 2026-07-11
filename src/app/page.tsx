@@ -29,21 +29,12 @@ export default async function Page() {
     countries.find((item) => item.code === getDefaultCountryCode()) ??
     countries[0] ??
     null;
-  const deliveryText = country
-    ? country.use_shipping_zones
-      ? "Delivery fee is calculated by area at checkout."
-      : `Delivery ${country.currency_symbol}${country.global_delivery_fee ?? 0}`
-    : "Select a country to see local delivery.";
   const showcaseImageUrl = homeContent.imageShowcase.image_url;
   const showcaseSecondImageUrl = homeContent.imageShowcase.secondary_image_url;
 
   return (
     <div className="bg-[#e6ecf4] text-[#6c93c4]">
-      <HeroBanner
-        country={country}
-        deliveryText={deliveryText}
-        hero={homeContent.hero}
-      />
+      <HeroBanner hero={homeContent.hero} />
 
       <section id="featured-products" className={`${shell} py-8 lg:py-12`}>
         <ProductGrid
@@ -80,12 +71,14 @@ export default async function Page() {
         </section>
       ) : null}
 
+      {showcaseImageUrl || showcaseSecondImageUrl ? (
       <section className="bg-[#e6ecf4]">
         <div className={`${shell} py-14 lg:py-20`}>
           <h2 className="mx-auto max-w-5xl text-center text-5xl font-medium leading-tight text-[#6c93c4] sm:text-6xl">
             {homeContent.imageShowcase.title}
           </h2>
-          <div className="mt-12 grid gap-10 md:grid-cols-2">
+          <div className={`mt-12 grid gap-10 ${showcaseImageUrl && showcaseSecondImageUrl ? "md:grid-cols-2" : "mx-auto max-w-3xl"}`}>
+            {showcaseImageUrl ? (
             <div
               className="min-h-[420px] rotate-[-4deg] bg-cover bg-center shadow-none"
               aria-label={homeContent.imageShowcase.image_alt ?? undefined}
@@ -93,6 +86,8 @@ export default async function Page() {
                 backgroundImage: `url('${showcaseImageUrl}')`,
               }}
             />
+            ) : null}
+            {showcaseSecondImageUrl ? (
             <div
               className="min-h-[420px] rotate-[5deg] bg-cover bg-center shadow-none"
               aria-label={
@@ -102,13 +97,17 @@ export default async function Page() {
                 backgroundImage: `url('${showcaseSecondImageUrl}')`,
               }}
             />
+            ) : null}
           </div>
         </div>
       </section>
+      ) : null}
 
       <section className="bg-[#e6ecf4]">
-        <div className={`${shell} grid min-h-[680px] gap-8 py-12 md:grid-cols-2 md:items-start`}>
-          <div className="hidden md:block" />
+        <div className={`${shell} grid min-h-[680px] gap-8 py-12 ${homeContent.pureIntro.image_url ? "md:grid-cols-2" : "place-items-center"} md:items-start`}>
+          {homeContent.pureIntro.image_url ? (
+            <div className="min-h-[560px] w-full bg-cover bg-center" style={{ backgroundImage: `url('${homeContent.pureIntro.image_url}')` }} />
+          ) : null}
           <div className="max-w-lg space-y-10 md:pt-8">
             <div>
               <h2 className="text-4xl font-medium text-[#6c93c4]">

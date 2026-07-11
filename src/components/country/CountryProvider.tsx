@@ -36,26 +36,28 @@ export function CountryProvider({
   initialCountryCode,
 }: CountryProviderProps) {
   const fallbackCode = initialCountryCode || getDefaultCountryCode();
-  const [selectedCountryCode, setCountryCode] = useState(() => {
-    if (typeof window === "undefined") {
-      return fallbackCode;
-    }
-
-    const storedCode =
-      window.localStorage.getItem(COUNTRY_STORAGE_KEY) || readCountryCookie();
-
-    if (storedCode) {
-      return storedCode;
-    }
-
-    return fallbackCode;
-  });
+  const [selectedCountryCode, setCountryCode] = useState(fallbackCode);
 
   const setSelectedCountryCode = useCallback((code: string) => {
+    const country = countries.find((item) => item.code === code && item.is_active);
+    if (!country) return;
+
+    const isLocal = ["localhost", "127.0.0.1", "::1"].includes(
+      window.location.hostname,
+    );
+    const domain = normalizeClientDomain(country.domain);
+
+    if (process.env.NODE_ENV === "production" && !isLocal && domain) {
+      window.location.assign(
+        `https://${domain}${window.location.pathname}${window.location.search}`,
+      );
+      return;
+    }
+
     setCountryCode(code);
     persistCountryCode(code);
     window.location.reload();
-  }, []);
+  }, [countries]);
 
   const selectedCountry = useMemo(() => {
     return (
@@ -96,9 +98,13 @@ function persistCountryCode(code: string) {
   document.cookie = `${COUNTRY_COOKIE_KEY}=${code}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
-function readCountryCookie() {
-  return document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith(`${COUNTRY_COOKIE_KEY}=`))
-    ?.split("=")[1];
+function normalizeClientDomain(value: string | null | undefined) {
+  if (!value) return "";
+  try {
+    return new URL(value.includes("://") ? value : `https://${value}`).hostname
+      .replace(/^www\./, "")
+      .toLowerCase();
+  } catch {
+    return "";
+  }
 }

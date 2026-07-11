@@ -25,7 +25,7 @@ export function CartDrawer() {
 
   return (
     <div
-      className={`fixed inset-0 z-[70] transition ${
+      className={`fixed inset-0 z-[70] overflow-hidden transition ${
         isCartOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
     >

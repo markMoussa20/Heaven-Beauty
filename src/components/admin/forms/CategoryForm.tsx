@@ -1,4 +1,5 @@
 import { AdminFormField } from "@/components/admin/AdminFormField";
+import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
@@ -16,7 +17,7 @@ export function CategoryForm({
   const action = saveCategory.bind(null, category?.id ?? null);
 
   return (
-    <form action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-2">
+    <AdminActionForm action={action} className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-2">
       <AdminFormField label="Name">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={category?.name ?? ""} name="name" required />
       </AdminFormField>
@@ -46,6 +47,6 @@ export function CategoryForm({
           Save category
         </SubmitButton>
       </div>
-    </form>
+    </AdminActionForm>
   );
 }
