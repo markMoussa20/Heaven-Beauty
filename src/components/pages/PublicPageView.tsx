@@ -295,10 +295,10 @@ function OurStoryPageView({
             <div className="flex h-16 flex-col items-center" key={value}>
               <span
                 aria-hidden="true"
-                className="block size-[29px] rounded-full border border-[#9eb9d9]/55"
+                className="block size-[29px]"
               />
-              <h3 className="mt-[11px] text-[16px] font-normal leading-6 text-[#6c93c4]">
-                {value.toLowerCase()}
+              <h3 className="mt-[11px] w-full text-[16px] font-normal uppercase leading-6 text-[#6c93c4]">
+                {value}
               </h3>
             </div>
           ))}
