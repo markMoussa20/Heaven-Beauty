@@ -337,7 +337,10 @@ async function sendCallMeBotMessage({
     return;
   }
 
-  const message = renderTemplate(template.body ?? "", context);
+  const message = normalizeCallMeBotCurrency(
+    renderTemplate(template.body ?? "", context),
+    context.currencyCode,
+  );
   const url = endpointTemplate
     .replaceAll("{apiKey}", encodeURIComponent(apiKey))
     .replaceAll("{phone}", encodeURIComponent(phone))
@@ -383,8 +386,7 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
   const formatMoney = (value: number | string | null | undefined) =>
     `${currencySymbol}${Number(value ?? 0).toFixed(2)}${currencySymbol ? "" : ` ${currencyCode}`}`.trim();
   const computedSubtotal = items.reduce(
-    (sum, item) =>
-      sum + Number(item.total ?? Number(item.unit_price) * Number(item.quantity)),
+    (sum, item) => sum + getItemLineTotal(item),
     0,
   );
   const shippingFeeValue = Number(order.shipping_fee ?? 0);
@@ -396,12 +398,12 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
   const itemsText = items
     .map(
       (item) =>
-        `${item.product_name ?? "Product"}\n${formatMoney(item.unit_price)} x ${item.quantity}\n${formatMoney(item.total ?? Number(item.unit_price) * item.quantity)}`,
+        `${item.product_name ?? "Product"}\n${formatMoney(item.unit_price)} x ${item.quantity}\n${formatMoney(getItemLineTotal(item))}`,
     )
     .join("\n\n");
   const itemsCompactText = items
     .map((item) => {
-      const lineTotal = item.total ?? Number(item.unit_price) * Number(item.quantity);
+      const lineTotal = getItemLineTotal(item);
       return `${item.quantity}x ${item.product_name ?? "Product"} (${formatMoney(lineTotal)})`;
     })
     .join("; ");
@@ -411,6 +413,7 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
     customerEmail: order.customer_email ?? "",
     customerName: order.customer_name ?? "",
     customerPhone: order.customer_phone ?? "",
+    currencyCode,
     itemsCompactText,
     itemsText,
     notes: order.notes ?? "-",
@@ -420,6 +423,25 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
     subtotal: formatMoney(subtotalValue),
     total: formatMoney(totalValue),
   };
+}
+
+function getItemLineTotal(item: OrderItem) {
+  return preferredMoneyValue(
+    item.total,
+    Number(item.unit_price) * Number(item.quantity),
+  );
+}
+
+function normalizeCallMeBotCurrency(message: string, currencyCode: string) {
+  if (!message.includes("$")) {
+    return message;
+  }
+
+  const code = currencyCode || "USD";
+  return message.replace(
+    /\$(\d+(?:\.\d+)?)/g,
+    (_match, amount: string) => `${amount} ${code}`,
+  );
 }
 
 function preferredMoneyValue(

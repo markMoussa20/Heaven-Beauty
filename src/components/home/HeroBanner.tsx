@@ -1,7 +1,10 @@
 "use client";
 
 import type { SiteContent } from "@/types/database";
-import type { TransitionEvent } from "react";
+import type {
+  PointerEvent as ReactPointerEvent,
+  TransitionEvent,
+} from "react";
 import { useEffect, useRef, useState } from "react";
 
 type HeroBannerProps = {
@@ -37,56 +40,131 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   const ctaHref = hero.cta_href || "#featured-products";
   const slideCount = heroImages.length;
   const renderedSlides =
-    slideCount > 1 ? [...heroImages, heroImages[0]] : heroImages;
+    slideCount > 1
+      ? [
+          { imageUrl: heroImages[slideCount - 1], sourceIndex: slideCount - 1 },
+          ...heroImages.map((imageUrl, sourceIndex) => ({
+            imageUrl,
+            sourceIndex,
+          })),
+          { imageUrl: heroImages[0], sourceIndex: 0 },
+        ]
+      : heroImages.map((imageUrl, sourceIndex) => ({ imageUrl, sourceIndex }));
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(slideCount > 1 ? 1 : 0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const dragOffsetRef = useRef(0);
+  const dragOriginX = useRef(0);
+  const dragStartedAt = useRef(0);
+  const dragStartIndex = useRef(activeIndex);
+  const slideWidth = useRef(0);
 
   useEffect(() => {
-    if (isPaused || slideCount <= 1) return;
+    if (isPaused || isDragging || slideCount <= 1) return;
     intervalRef.current = setInterval(() => {
-      setActiveIndex((prev) => (prev < slideCount ? prev + 1 : prev));
+      setActiveIndex((prev) => (prev <= slideCount ? prev + 1 : prev));
     }, AUTOPLAY_DELAY_MS);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPaused, slideCount]);
+  }, [isDragging, isPaused, slideCount]);
 
   const handleTransitionEnd = (event: TransitionEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || event.propertyName !== "transform") {
       return;
     }
 
-    if (activeIndex !== slideCount) return;
+    if (activeIndex !== 0 && activeIndex !== slideCount + 1) return;
 
     setTransitionEnabled(false);
-    setActiveIndex(0);
+    setActiveIndex(activeIndex === 0 ? slideCount : 1);
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => setTransitionEnabled(true));
     });
   };
 
+  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (
+      slideCount <= 1 ||
+      (event.pointerType === "mouse" && event.button !== 0) ||
+      (event.target as HTMLElement).closest("a, button")
+    ) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragOriginX.current = event.clientX;
+    dragStartedAt.current = performance.now();
+    dragStartIndex.current = activeIndex;
+    slideWidth.current = event.currentTarget.getBoundingClientRect().width;
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
+    setIsDragging(true);
+    setIsPaused(true);
+    setTransitionEnabled(false);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!isDragging) return;
+
+    const nextOffset = event.clientX - dragOriginX.current;
+    dragOffsetRef.current = nextOffset;
+    setDragOffset(nextOffset);
+  };
+
+  const finishDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!isDragging) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    const elapsed = Math.max(performance.now() - dragStartedAt.current, 1);
+    const velocity = dragOffsetRef.current / elapsed;
+    const threshold = Math.min(slideWidth.current * 0.12, 80);
+    let nextIndex = dragStartIndex.current;
+
+    if (dragOffsetRef.current <= -threshold || velocity <= -0.45) {
+      nextIndex = Math.min(dragStartIndex.current + 1, slideCount + 1);
+    } else if (dragOffsetRef.current >= threshold || velocity >= 0.45) {
+      nextIndex = Math.max(dragStartIndex.current - 1, 0);
+    }
+
+    dragOffsetRef.current = 0;
+    setIsDragging(false);
+    setTransitionEnabled(true);
+    setDragOffset(0);
+    setActiveIndex(nextIndex);
+  };
+
   return (
     <section
-      className="relative h-[550px] overflow-hidden bg-[#e6ecf4]"
+      className={`relative h-[550px] touch-pan-y select-none overflow-hidden bg-[#e6ecf4] ${
+        isDragging ? "cursor-grabbing" : "cursor-grab"
+      }`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onPointerCancel={finishDrag}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={finishDrag}
     >
       <div
         className="hb-hero-track flex h-full"
         onTransitionEnd={handleTransitionEnd}
         style={{
           width: `${renderedSlides.length * 100}%`,
-          transform: `translateX(-${(activeIndex * 100) / renderedSlides.length}%)`,
+          transform: `translate3d(calc(-${(activeIndex * 100) / renderedSlides.length}% + ${dragOffset}px), 0, 0)`,
           transitionProperty: "transform",
           transitionDuration: transitionEnabled ? `${TRANSITION_MS}ms` : "0ms",
           transitionTimingFunction: "ease",
         }}
       >
-        {renderedSlides.map((imageUrl, index) => {
-          const sourceIndex = index % slideCount;
+        {renderedSlides.map(({ imageUrl, sourceIndex }, index) => {
           const isActive = activeIndex === index;
 
           return (

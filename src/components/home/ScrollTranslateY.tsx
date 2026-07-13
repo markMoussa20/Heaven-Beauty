@@ -23,20 +23,22 @@ export function ScrollTranslateY({
   maxPixels?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const motionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const anchor = ref.current;
+    const motion = motionRef.current;
+    if (!anchor || !motion) return;
 
     let ticking = false;
 
     const update = () => {
       ticking = false;
       if (window.innerWidth < DESKTOP_MIN_WIDTH) {
-        el.style.transform = "";
+        motion.style.transform = "";
         return;
       }
-      const rect = el.getBoundingClientRect();
+      const rect = anchor.getBoundingClientRect();
       const viewportHeight = window.innerHeight || 1;
       const center = rect.top + rect.height / 2;
       // Positive when the element is below the viewport center (section just
@@ -45,7 +47,7 @@ export function ScrollTranslateY({
       // --translateY of +100px on entry, around -95px when scrolled past.
       const progress = (center - viewportHeight / 2) / (viewportHeight / 2);
       const clamped = Math.max(-1, Math.min(1, progress));
-      el.style.transform = `translateY(${(clamped * maxPixels).toFixed(1)}px)`;
+      motion.style.transform = `translateY(${(clamped * maxPixels).toFixed(1)}px)`;
     };
 
     const onScroll = () => {
@@ -65,11 +67,13 @@ export function ScrollTranslateY({
   }, [maxPixels]);
 
   return (
-    <div
-      className={`${className ?? ""} [transition:transform_100ms] motion-reduce:transform-none`}
-      ref={ref}
-    >
-      {children}
+    <div className={className} ref={ref}>
+      <div
+        className="[transition:transform_100ms] motion-reduce:transform-none"
+        ref={motionRef}
+      >
+        {children}
+      </div>
     </div>
   );
 }

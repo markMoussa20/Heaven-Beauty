@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ScrollTranslateY } from "@/components/home/ScrollTranslateY";
 import { AnimatedQaAccordion } from "@/components/pages/AnimatedQaAccordion";
 import { shell } from "@/lib/design";
 import type { PublicPage, PublicPageFaqItem } from "@/types/database";
@@ -214,111 +215,93 @@ function OurStoryPageView({
 
   return (
     <main className="overflow-hidden bg-[#e6ecf4] text-[#6c93c4]">
-      <section className="relative min-h-[92vh] pt-28">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-white/35" />
-        <div className={`${shell} relative grid min-h-[78vh] items-center gap-12 py-14 lg:grid-cols-[1.02fr_0.98fr] lg:py-20`}>
-          <div className="hb-fade-up max-w-4xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-[#8aa7d0]">
-              {page.subtitle ?? "The story"}
-            </p>
-            <h1 className="mt-6 text-[4.5rem] font-medium leading-[0.9] text-[#86a3d3] sm:text-[6.8rem] lg:text-[8.5rem]">
-              Heaven
-              <span className="block pl-[12vw] lg:pl-28">Beauty</span>
+      <section className="relative pb-12 pt-32 lg:pb-0 lg:pt-[150px]">
+        <div className="mx-auto w-full max-w-[618px]">
+          <ScrollTranslateY className="p-[10px]" maxPixels={100}>
+            <h1 className="text-[3rem] font-medium leading-[1.08] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
+              <span className="block text-right">Welcome To</span>
+              <span className="block text-left">Heaven Beauty</span>
             </h1>
-            <p className="mt-10 max-w-2xl text-xl font-light leading-9 text-[#6c93c4]">
-              {intro}
-            </p>
-            {page.cta_label && page.cta_href ? (
-              <Link
-                className="mt-10 inline-flex bg-[#86a3d3] px-8 py-4 text-sm font-medium uppercase tracking-wide text-white transition hover:bg-[#6c93c4]"
-                href={page.cta_href}
-              >
-                {page.cta_label}
-              </Link>
-            ) : null}
-          </div>
-
-          {page.image_url ? (
-            <div className="relative mx-auto w-full max-w-[560px] lg:mr-0">
-              <div className="absolute -left-4 top-8 h-full w-full border border-[#9eb9d9]/45 sm:-left-7 sm:top-10" />
-              <div className="relative overflow-hidden bg-white p-3 shadow-[0_28px_80px_rgba(108,147,196,0.18)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={page.image_alt ?? page.title}
-                  className="h-[520px] w-full object-cover object-center sm:h-[680px] lg:h-[720px]"
-                  src={page.image_url}
-                />
-              </div>
-              <p className="absolute -bottom-7 right-3 bg-[#e6ecf4] px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-[#86a3d3]">
-                Soft glow, made simple
-              </p>
-            </div>
-          ) : null}
+          </ScrollTranslateY>
         </div>
       </section>
 
-      <section className={`${shell} py-16 lg:py-24`}>
-        <div className="grid items-start gap-12 border-y border-[#9eb9d9]/35 py-14 lg:grid-cols-[0.68fr_1fr]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#9eb9d9]">
-              Philosophy
-            </p>
-            <h2 className="mt-5 text-5xl font-medium leading-tight text-[#86a3d3] lg:text-6xl">
-              {sections[1]?.heading ?? "The Heavenly Difference"}
+      <section className="relative mb-20 lg:-mt-[50px] lg:mb-[140px]">
+        <div className="mx-auto w-full max-w-[1260px] px-5 pb-20 pt-16 lg:px-0 lg:pb-[116px] lg:pt-[105px]">
+          <div className="lg:w-[60%]">
+            <h2 className="text-[28px] font-normal leading-[1.3] text-[#6c93c4]">
+              {page.subtitle ?? "The story"}
             </h2>
-          </div>
-          <div className="space-y-7 text-lg font-light leading-9 text-[#6c93c4]">
-            {differenceParagraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+            <p className="mt-5 text-[16px] font-light leading-[1.6] text-[#6c93c4]">
+              {intro}
+            </p>
+
+            {page.image_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                alt={page.image_alt ?? page.title}
+                className="mt-9 aspect-[3/4] w-full object-cover object-center"
+                src={page.image_url}
+              />
+            ) : null}
+
+            <p className="mt-5 text-[16px] font-light leading-[1.6] text-[#6c93c4]">
+              <strong className="font-semibold">
+                {sections[1]?.heading ?? "The Heavenly Difference"}
+              </strong>
+              <br />
+              {differenceParagraphs.join(" ")}
+            </p>
           </div>
         </div>
       </section>
 
       {page.secondary_image_url ? (
-        <section className="pb-16 lg:pb-24">
-          <div className="mx-auto grid max-w-[1440px] gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_0.46fr] lg:px-8">
-            <div className="overflow-hidden">
+        <>
+          <section className="mx-auto w-full max-w-[1050px] px-5 pb-4 pt-16 text-center lg:h-[213px] lg:px-0 lg:pt-[115px]">
+            <ScrollTranslateY maxPixels={100}>
+              <h2 className="text-[28px] font-normal leading-[1.3] text-[#6c93c4]">
+                {sections[2]?.heading ?? "The Beginning"}
+              </h2>
+            </ScrollTranslateY>
+            {beginningParagraphs.map((paragraph) => (
+              <ScrollTranslateY className="pt-5" key={paragraph} maxPixels={100}>
+                <p className="text-[16px] font-light leading-[1.6] text-[#6c93c4]">
+                  {paragraph}
+                </p>
+              </ScrollTranslateY>
+            ))}
+          </section>
+
+          <section>
+            <div className="mx-auto grid w-full max-w-[1260px] px-5 lg:grid-cols-[77fr_23fr] lg:px-0">
+              <div className="lg:mb-[170px] lg:pr-[130px] lg:pt-[100px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt={page.secondary_image_alt ?? "Heaven Beauty products"}
-                className="h-[280px] w-full object-cover object-center sm:h-[430px] lg:h-[560px]"
+                  className="aspect-[5/4] w-full object-cover object-center"
                 src={page.secondary_image_url}
               />
+              </div>
+              <div aria-hidden="true" />
             </div>
-            <div className="flex flex-col justify-end border-l border-[#9eb9d9]/40 pl-6 lg:pb-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#9eb9d9]">
-                First essential
-              </p>
-              <h2 className="mt-5 text-4xl font-medium leading-tight text-[#86a3d3] lg:text-5xl">
-                {sections[2]?.heading ?? "The Beginning"}
-              </h2>
-              {beginningParagraphs.map((paragraph) => (
-                <p className="mt-6 text-lg font-light leading-9" key={paragraph}>
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        </>
       ) : null}
 
-      <section className={`${shell} pb-28`}>
-        <div className="grid gap-8 text-center sm:grid-cols-2 lg:grid-cols-4">
+      <section className="pt-16 lg:pt-[70px]">
+        <div className="mx-auto grid w-full max-w-[770px] grid-cols-2 px-5 text-center lg:grid-cols-4 lg:px-0">
           {storyValues.map((value) => (
-            <div
-              className="border-t border-[#9eb9d9]/45 pt-6 text-sm font-semibold uppercase tracking-[0.22em] text-[#86a3d3]"
-              key={value}
-            >
-              {value}
+            <div className="flex h-16 flex-col items-center" key={value}>
+              <span
+                aria-hidden="true"
+                className="block size-[29px] rounded-full border border-[#9eb9d9]/55"
+              />
+              <h3 className="mt-[11px] text-[16px] font-normal leading-6 text-[#6c93c4]">
+                {value.toLowerCase()}
+              </h3>
             </div>
           ))}
-        </div>
-        <div className="mx-auto mt-16 max-w-3xl text-center">
-          <h2 className="text-5xl font-medium text-[#86a3d3]">{page.title}</h2>
-          <p className="mx-auto mt-7 max-w-2xl text-lg font-light leading-9">
-            Effortless beauty essentials made to enhance your natural glow.
-          </p>
         </div>
       </section>
     </main>

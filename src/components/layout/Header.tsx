@@ -32,9 +32,9 @@ export function Header() {
 
       if (nextScrollY <= 0 || isOpen) {
         setIsHidden(false);
-      } else if (delta > 2) {
+      } else if (delta > 0) {
         setIsHidden(true);
-      } else if (delta < -2) {
+      } else if (delta < 0) {
         setIsHidden(false);
       }
 

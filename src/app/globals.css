@@ -240,8 +240,9 @@
 }
 
 .site-header {
-  transform: translateY(0);
-  transition: transform 150ms linear;
+  transition:
+    transform 150ms linear,
+    background-color 350ms;
   will-change: transform;
 }
 
@@ -652,6 +653,20 @@ html.hb-cursor-text .hb-cursor {
   animation: hb-fade-up 900ms ease both;
 }
 
+.hb-scroll-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 900ms ease,
+    transform 900ms ease;
+  will-change: opacity, transform;
+}
+
+.hb-scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .hb-hero-copy-enter {
   animation: hb-fade-up 1.25s ease both;
 }
@@ -667,6 +682,12 @@ html.hb-cursor-text .hb-cursor {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hb-scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
   .hb-hero-copy-enter {
     animation: none !important;
     opacity: 1 !important;

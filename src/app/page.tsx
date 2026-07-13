@@ -35,12 +35,8 @@ export default async function Page() {
     homeContent.pureIntro.image_url ??
     homeContent.pureIntro.secondary_image_url ??
     homeContent.imageShowcase.image_url;
-  const storyImageUrl =
-    homeContent.story.image_url ?? "/images/original-home-story.jpeg";
-  const differenceImageUrl =
-    homeContent.difference.image_url ??
-    homeContent.imageShowcase.secondary_image_url ??
-    "/images/original-home-difference.jpg";
+  const storyImageUrl = homeContent.story.image_url;
+  const differenceImageUrl = homeContent.difference.image_url;
 
   return (
     <div className="bg-[#e6ecf4] text-[#6c93c4]">
@@ -137,14 +133,16 @@ export default async function Page() {
         className="home-story-section"
         id="our-story"
       >
-        <div className="home-story-media">
-          <div
-            aria-label={homeContent.story.image_alt ?? "Heaven Beauty model"}
-            className="home-story-image"
-            role="img"
-            style={{ backgroundImage: `url('${storyImageUrl}')` }}
-          />
-        </div>
+        {storyImageUrl ? (
+          <div className="home-story-media">
+            <div
+              aria-label={homeContent.story.image_alt ?? "Heaven Beauty model"}
+              className="home-story-image"
+              role="img"
+              style={{ backgroundImage: `url('${storyImageUrl}')` }}
+            />
+          </div>
+        ) : null}
         <div className="home-story-content">
           <div className="home-story-inner">
             <h3 className="home-story-title">
@@ -168,17 +166,19 @@ export default async function Page() {
       </section>
 
       <section className="home-difference-section">
-        <div className="home-difference-media">
-          <div
-            aria-label={
-              homeContent.difference.image_alt ??
-              "Heaven Beauty model holding a tint"
-            }
-            className="home-difference-image"
-            role="img"
-            style={{ backgroundImage: `url('${differenceImageUrl}')` }}
-          />
-        </div>
+        {differenceImageUrl ? (
+          <div className="home-difference-media">
+            <div
+              aria-label={
+                homeContent.difference.image_alt ??
+                "Heaven Beauty model holding a tint"
+              }
+              className="home-difference-image"
+              role="img"
+              style={{ backgroundImage: `url('${differenceImageUrl}')` }}
+            />
+          </div>
+        ) : null}
         <div className="home-difference-content">
           <div className="home-difference-inner">
             <h3 className="home-difference-title">
@@ -191,13 +191,6 @@ export default async function Page() {
         </div>
       </section>
 
-      <section className="overflow-hidden bg-[#e6ecf4] py-5 text-[#6c93c4]">
-        <div className="whitespace-nowrap text-2xl font-medium tracking-wide">
-          <span className="inline-block animate-[hb-ken-burns_20s_linear_infinite_alternate]">
-            {homeContent.marquee.marquee_text}
-          </span>
-        </div>
-      </section>
     </div>
   );
 }
