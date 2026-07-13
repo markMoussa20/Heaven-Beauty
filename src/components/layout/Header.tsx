@@ -3,19 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, Search, ShoppingBag, X } from "lucide-react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { CountrySelector } from "@/components/country/CountrySelector";
-import { shell } from "@/lib/design";
 
-// Verified against the live original site: the header is always
-// position:fixed, always fully transparent, never hides or gains a
-// background/border/shadow on scroll. Do not reintroduce scroll-linked
-// show/hide or background-fade behavior here without re-verifying live.
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollFrame = useRef<number | null>(null);
   const { count, openCart } = useCart();
   const pathname = usePathname();
   const links = [
@@ -25,22 +23,60 @@ export function Header() {
     { href: "/contact", label: "Contact" },
   ];
 
+  useEffect(() => {
+    lastScrollY.current = Math.max(window.scrollY, 0);
+
+    const updateHeader = () => {
+      const nextScrollY = Math.max(window.scrollY, 0);
+      const delta = nextScrollY - lastScrollY.current;
+
+      if (nextScrollY <= 0 || isOpen) {
+        setIsHidden(false);
+      } else if (delta > 2) {
+        setIsHidden(true);
+      } else if (delta < -2) {
+        setIsHidden(false);
+      }
+
+      lastScrollY.current = nextScrollY;
+      scrollFrame.current = null;
+    };
+
+    const handleScroll = () => {
+      if (scrollFrame.current === null) {
+        scrollFrame.current = window.requestAnimationFrame(updateHeader);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollFrame.current !== null) {
+        window.cancelAnimationFrame(scrollFrame.current);
+      }
+    };
+  }, [isOpen]);
+
   if (pathname?.startsWith("/admin")) {
     return null;
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 bg-transparent">
-      <div className={`${shell} grid min-h-[72px] grid-cols-[1fr_auto_1fr] items-center gap-4 py-3 md:min-h-[90px]`}>
+    <header
+      className={`site-header fixed inset-x-0 top-0 z-40 bg-transparent ${
+        isHidden && !isOpen ? "site-header-hidden" : ""
+      }`}
+    >
+      <div className="site-header-inner">
         <div className="flex items-center md:hidden">
           <button
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="grid h-11 w-11 place-items-center text-white"
+            className="grid h-9 w-9 place-items-center text-white"
             onClick={() => setIsOpen((value) => !value)}
             type="button"
           >
-            {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-8 w-8" />}
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-7 w-7" />}
           </button>
         </div>
         <nav className="hidden items-center gap-7 text-sm font-medium text-white md:flex">
@@ -61,21 +97,31 @@ export function Header() {
         >
           <Image
             alt="Heaven Beauty"
-            className="h-auto w-[170px] object-contain brightness-0 invert sm:w-[230px]"
-            height={149}
+            className="site-header-logo-desktop hidden h-auto w-[209px] object-contain md:block"
+            height={155}
             priority
-            src="/images/heaven-beauty-logo.png"
+            src="/images/heaven-beauty-logo-desktop.png"
             unoptimized
-            width={508}
+            width={536}
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="h-auto w-full object-contain md:hidden"
+            height={153}
+            priority
+            src="/images/heaven-beauty-logo-mobile.png"
+            unoptimized
+            width={575}
           />
         </Link>
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2 md:gap-3">
           <div className="hidden sm:block">
             <CountrySelector />
           </div>
           <button
             aria-label="Search products"
-            className="grid h-10 w-10 place-items-center text-white md:hidden"
+            className="grid h-9 w-9 place-items-center text-white md:hidden"
             onClick={() => {
               window.location.href = "/shop";
             }}
@@ -85,7 +131,7 @@ export function Header() {
           </button>
           <button
             aria-label={`Open cart with ${count} items`}
-            className="relative grid h-10 w-10 place-items-center text-white md:hidden"
+            className="relative grid h-9 w-9 place-items-center text-white md:hidden"
             onClick={openCart}
             type="button"
           >
@@ -104,9 +150,9 @@ export function Header() {
         </div>
       </div>
       <div
-        className={`grid overflow-hidden border-t border-[#6c93c4]/10 bg-white/96 shadow-xl backdrop-blur-md transition-all duration-500 md:hidden ${
+        className={`grid overflow-hidden bg-white/96 shadow-xl backdrop-blur-md transition-all duration-500 md:hidden ${
           isOpen
-            ? "grid-rows-[1fr] opacity-100"
+            ? "grid-rows-[1fr] border-t border-[#6c93c4]/10 opacity-100"
             : "pointer-events-none grid-rows-[0fr] opacity-0"
         }`}
       >
