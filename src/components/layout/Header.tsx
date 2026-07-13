@@ -24,6 +24,8 @@ export function Header() {
   ];
 
   useEffect(() => {
+    const hideAfterPixels = 90;
+    const scrollThreshold = 10;
     const getScrollY = () =>
       Math.max(
         window.scrollY,
@@ -39,6 +41,18 @@ export function Header() {
       const delta = nextScrollY - lastScrollY.current;
 
       if (nextScrollY <= 0 || isOpen) {
+        setIsHidden(false);
+        lastScrollY.current = nextScrollY;
+        scrollFrame.current = null;
+        return;
+      }
+
+      if (Math.abs(delta) < scrollThreshold) {
+        scrollFrame.current = null;
+        return;
+      }
+
+      if (nextScrollY <= hideAfterPixels) {
         setIsHidden(false);
       } else if (delta > 0) {
         setIsHidden(true);
@@ -57,14 +71,8 @@ export function Header() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("touchmove", handleScroll, { passive: true });
-    window.visualViewport?.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("touchmove", handleScroll);
-      window.visualViewport?.removeEventListener("scroll", handleScroll);
       if (scrollFrame.current !== null) {
         window.cancelAnimationFrame(scrollFrame.current);
       }
