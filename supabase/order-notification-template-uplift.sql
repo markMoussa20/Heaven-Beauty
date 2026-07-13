@@ -16,8 +16,6 @@ Delivery address:
 {addressLine}
 {shippingAreaName}
 
-Payment method: {paymentMethod}
-
 We will contact you if we need any extra delivery details.
 
 With love,
@@ -42,9 +40,6 @@ Order summary:
 Subtotal: {subtotal}
 Shipping: {shippingFee}
 Total: {total}
-
-Payment processing method:
-{paymentMethod}
 
 Delivery method:
 {shippingAreaName}

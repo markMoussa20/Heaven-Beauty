@@ -1,3 +1,8 @@
+-- Preserve any legacy column/data, but remove the COD-only validation introduced
+-- by the recent checkout migration and replace the RPC with a payment-free version.
+alter table if exists public.orders
+  drop constraint if exists orders_payment_method_check;
+
 create or replace function public.place_order(
   p_country_id uuid, p_items jsonb, p_shipping_zone_id uuid,
   p_phone text, p_email text, p_first_name text, p_last_name text,

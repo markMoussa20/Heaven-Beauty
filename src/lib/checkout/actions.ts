@@ -74,7 +74,12 @@ export async function submitCheckout(
   for (const item of parsed.data.items) {
     uniqueItems.set(item.countryItemId, (uniqueItems.get(item.countryItemId) ?? 0) + item.quantity);
   }
-  const items = [...uniqueItems].map(([countryItemId, quantity]) => ({ countryItemId, quantity }));
+  const items = [...uniqueItems].map(([countryItemId, quantity]) => ({
+    countryItemId,
+    country_item_id: countryItemId,
+    quantity,
+    qty: quantity,
+  }));
   if (items.some((item) => item.quantity > 10)) {
     return { ok: false, error: "A product quantity cannot exceed 10." };
   }
@@ -110,11 +115,13 @@ export async function submitCheckout(
 
   const result = data?.[0];
   if (error || !result) {
-    console.error("place_order RPC failed", {
-      code: error?.code,
-      details: error?.details,
-      message: error?.message,
-    });
+    console.error(
+      `place_order RPC failed: ${JSON.stringify({
+        code: error?.code ?? "NO_RESULT",
+        details: error?.details ?? null,
+        message: error?.message ?? "The RPC returned no order.",
+      })}`,
+    );
     return { ok: false, error: checkoutErrorMessage(error?.message) };
   }
 
@@ -141,5 +148,8 @@ function checkoutErrorMessage(message?: string) {
   if (message?.includes("ITEM_UNAVAILABLE")) return "One or more cart items are no longer available.";
   if (message?.includes("INVALID_SHIPPING_ZONE")) return "The selected delivery area is not available for this country.";
   if (message?.includes("COUNTRY_UNAVAILABLE")) return "The selected country is not currently available.";
-  return "We could not place your order. No payment was taken. Please review your cart and try again.";
+  if (message?.includes("subtotal") || message?.includes("orders")) {
+    return "Checkout database setup is out of date. Please run the latest checkout migration and try again.";
+  }
+  return "We could not place your order. Please review your cart and try again.";
 }

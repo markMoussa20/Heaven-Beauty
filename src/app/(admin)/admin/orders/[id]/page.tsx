@@ -84,7 +84,6 @@ export default async function AdminOrderDetailPage({
               <p className="font-medium">Subtotal: {typedOrder.subtotal ?? "-"}</p>
               <p className="font-medium">Shipping: {typedOrder.shipping_fee ?? "-"}</p>
               <p className="font-semibold">Total: {typedOrder.total ?? "-"}</p>
-              <p className="text-sm text-zinc-500">Payment: {typedOrder.payment_method ?? "COD"}</p>
             </div>
           </section>
           <section className="rounded-lg border border-zinc-200 bg-white p-4">

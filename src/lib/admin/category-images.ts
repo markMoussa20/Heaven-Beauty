@@ -6,21 +6,17 @@ import {
   getProductImageUrl,
 } from "@/lib/storage/product-images";
 
-export async function uploadPublicPageImage({
+export async function uploadCategoryImage({
   file,
-  kind,
   slug,
-  index,
 }: {
   file: File;
-  kind: "primary" | "secondary" | "gallery";
   slug: string;
-  index?: number;
 }) {
   validateImage(file);
   const supabase = createAdminClient();
   const extension = getImageExtension(file);
-  const path = getSafePublicPageImagePath({ extension, kind, slug, index });
+  const path = getSafeCategoryImagePath({ extension, slug });
 
   const { error } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
@@ -34,7 +30,7 @@ export async function uploadPublicPageImage({
     throw error;
   }
 
-  return getProductImageUrl(supabase, path);
+  return { path, url: getProductImageUrl(supabase, path) };
 }
 
 function validateImage(file: File) {
@@ -43,16 +39,12 @@ function validateImage(file: File) {
   if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
 }
 
-function getSafePublicPageImagePath({
+function getSafeCategoryImagePath({
   extension,
-  kind,
   slug,
-  index,
 }: {
   extension: string;
-  kind: "primary" | "secondary" | "gallery";
   slug: string;
-  index?: number;
 }) {
   const safeSlug = slug
     .toLowerCase()
@@ -60,9 +52,7 @@ function getSafePublicPageImagePath({
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  const indexSuffix = kind === "gallery" && index !== undefined ? `-${index}` : "";
-
-  return `pages/${safeSlug || "page"}/${kind}-${Date.now()}${indexSuffix}.${extension}`;
+  return `categories/${safeSlug || "category"}/main-${Date.now()}.${extension}`;
 }
 
 function getImageExtension(file: File) {

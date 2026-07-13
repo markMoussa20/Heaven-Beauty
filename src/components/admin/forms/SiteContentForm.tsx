@@ -6,8 +6,27 @@ import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveSiteContent } from "@/lib/admin/actions";
 import type { SiteContent } from "@/types/database";
 
+function CurrentImage({ url }: { url?: string | null }) {
+  if (!url) {
+    return <p className="text-xs text-zinc-500">No image uploaded yet.</p>;
+  }
+
+  return (
+    <a
+      className="block text-xs text-zinc-500 underline"
+      href={url}
+      rel="noreferrer"
+      target="_blank"
+    >
+      View current image
+    </a>
+  );
+}
+
 export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
   const action = saveSiteContent.bind(null, block?.id ?? null);
+  const galleryUrls = block?.gallery_image_urls ?? [];
+  const isHero = block?.key === "home_hero";
 
   return (
     <AdminActionForm
@@ -55,7 +74,10 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="body"
         />
       </AdminFormField>
-      <AdminFormField label="Marquee text">
+      <AdminFormField
+        label="Marquee text"
+        hint="Only used by the scrolling marquee block, not for slide images."
+      >
         <textarea
           className="min-h-32 rounded-md border border-zinc-300 px-3 py-2"
           defaultValue={block?.marquee_text ?? ""}
@@ -76,18 +98,14 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="cta_href"
         />
       </AdminFormField>
-      <AdminFormField label="Image URL">
-        <input
-          className="h-10 rounded-md border border-zinc-300 px-3"
-          defaultValue={block?.image_url ?? ""}
-          name="image_url"
-        />
-      </AdminFormField>
       <AdminFormField
-        hint="Upload replaces the image URL after saving."
-        label="Image upload"
+        hint="Uploading replaces this image."
+        label={isHero ? "Slide 1 image" : "Primary image"}
       >
-        <ImageUploader name="content_primary_image" />
+        <div className="grid gap-2">
+          <CurrentImage url={block?.image_url} />
+          <ImageUploader name="content_primary_image" />
+        </div>
       </AdminFormField>
       <AdminFormField label="Image alt text">
         <input
@@ -96,18 +114,14 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="image_alt"
         />
       </AdminFormField>
-      <AdminFormField label="Second image URL">
-        <input
-          className="h-10 rounded-md border border-zinc-300 px-3"
-          defaultValue={block?.secondary_image_url ?? ""}
-          name="secondary_image_url"
-        />
-      </AdminFormField>
       <AdminFormField
-        hint="Upload replaces the second image URL after saving."
-        label="Second image upload"
+        hint="Uploading replaces this image."
+        label={isHero ? "Slide 2 image" : "Second image"}
       >
-        <ImageUploader name="content_secondary_image" />
+        <div className="grid gap-2">
+          <CurrentImage url={block?.secondary_image_url} />
+          <ImageUploader name="content_secondary_image" />
+        </div>
       </AdminFormField>
       <AdminFormField label="Second image alt text">
         <input
@@ -116,6 +130,41 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="secondary_image_alt"
         />
       </AdminFormField>
+      {isHero ? (
+        <AdminFormField
+          hint="Additional slides beyond the first two. Uncheck 'keep' to remove one, upload new files to add more."
+          label="Additional slide images"
+        >
+          <div className="grid gap-3 rounded-md border border-zinc-200 p-3">
+            <input name="gallery_section_present" type="hidden" value="1" />
+            {galleryUrls.length > 0 ? (
+              <div className="grid gap-2">
+                {galleryUrls.map((url) => (
+                  <label className="flex items-center gap-2 text-xs" key={url}>
+                    <input
+                      defaultChecked
+                      name="existing_gallery_image_url"
+                      type="checkbox"
+                      value={url}
+                    />
+                    <a
+                      className="truncate text-zinc-600 underline"
+                      href={url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {url}
+                    </a>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500">No additional slides yet.</p>
+            )}
+            <ImageUploader multiple name="content_gallery_images" />
+          </div>
+        </AdminFormField>
+      ) : null}
       <div className="flex items-end">
         <InlineCheckbox
           defaultChecked={block?.is_active ?? true}

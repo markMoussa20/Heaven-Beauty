@@ -17,7 +17,6 @@ const placeholders = [
   "{total}",
   "{addressLine}",
   "{shippingAreaName}",
-  "{paymentMethod}",
   "{notes}",
 ];
 

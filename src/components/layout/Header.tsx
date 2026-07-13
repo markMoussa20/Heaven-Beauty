@@ -3,18 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Menu, Search, ShoppingBag, X } from "lucide-react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { CountrySelector } from "@/components/country/CountrySelector";
 import { shell } from "@/lib/design";
 
+// Verified against the live original site: the header is always
+// position:fixed, always fully transparent, never hides or gains a
+// background/border/shadow on scroll. Do not reintroduce scroll-linked
+// show/hide or background-fade behavior here without re-verifying live.
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const lastScrollYRef = useRef(0);
   const { count, openCart } = useCart();
   const pathname = usePathname();
   const links = [
@@ -24,62 +25,25 @@ export function Header() {
     { href: "/contact", label: "Contact" },
   ];
 
-  useEffect(() => {
-    const stickyDistance = 180;
-    const scrollTolerance = 8;
-
-    const updateHeaderVisibility = () => {
-      const currentScrollY = Math.max(window.scrollY, 0);
-      const isScrollingDown =
-        currentScrollY > lastScrollYRef.current + scrollTolerance;
-      const isScrollingUp =
-        currentScrollY < lastScrollYRef.current - scrollTolerance;
-
-      if (currentScrollY <= stickyDistance || isScrollingUp) {
-        setIsHidden(false);
-      } else if (isScrollingDown) {
-        setIsHidden(true);
-      }
-
-      setIsScrolled(currentScrollY > 24);
-      lastScrollYRef.current = currentScrollY;
-    };
-
-    lastScrollYRef.current = window.scrollY;
-    window.addEventListener("scroll", updateHeaderVisibility, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", updateHeaderVisibility);
-    };
-  }, []);
-
   if (pathname?.startsWith("/admin")) {
     return null;
   }
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-40 border-b transition-all duration-500 ease-out ${
-        isHidden && !isOpen ? "-translate-y-full" : "translate-y-0"
-      } ${
-        isScrolled || isOpen
-          ? "border-[#6c93c4]/10 bg-[#e6ecf4]/82 shadow-sm backdrop-blur-md"
-          : "border-transparent bg-transparent"
-      }`}
-    >
+    <header className="fixed inset-x-0 top-0 z-40 bg-transparent">
       <div className={`${shell} grid min-h-[72px] grid-cols-[1fr_auto_1fr] items-center gap-4 py-3 md:min-h-[90px]`}>
         <div className="flex items-center md:hidden">
           <button
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="grid h-11 w-11 place-items-center text-[#86a3d3]"
+            className="grid h-11 w-11 place-items-center text-white"
             onClick={() => setIsOpen((value) => !value)}
             type="button"
           >
             {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-8 w-8" />}
           </button>
         </div>
-        <nav className="hidden items-center gap-7 text-sm font-medium text-[#6c93c4] md:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-white md:flex">
           {links.map((link) => (
             <Link
               className="transition hover:opacity-70"
@@ -97,7 +61,7 @@ export function Header() {
         >
           <Image
             alt="Heaven Beauty"
-            className="h-auto w-[170px] object-contain [filter:brightness(0)_saturate(100%)_invert(58%)_sepia(20%)_saturate(832%)_hue-rotate(175deg)_brightness(91%)_contrast(86%)] sm:w-[230px]"
+            className="h-auto w-[170px] object-contain brightness-0 invert sm:w-[230px]"
             height={149}
             priority
             src="/images/heaven-beauty-logo.png"
@@ -111,7 +75,7 @@ export function Header() {
           </div>
           <button
             aria-label="Search products"
-            className="grid h-10 w-10 place-items-center text-[#86a3d3] md:hidden"
+            className="grid h-10 w-10 place-items-center text-white md:hidden"
             onClick={() => {
               window.location.href = "/shop";
             }}
@@ -121,7 +85,7 @@ export function Header() {
           </button>
           <button
             aria-label={`Open cart with ${count} items`}
-            className="relative grid h-10 w-10 place-items-center text-[#86a3d3] md:hidden"
+            className="relative grid h-10 w-10 place-items-center text-white md:hidden"
             onClick={openCart}
             type="button"
           >
@@ -131,7 +95,7 @@ export function Header() {
             </span>
           </button>
           <button
-            className="hidden h-9 border border-[#6c93c4]/25 bg-white/70 px-3 text-xs font-medium uppercase tracking-wide text-[#6c93c4] transition hover:border-[#6c93c4] sm:inline-flex sm:items-center"
+            className="hidden h-9 border border-white/40 bg-transparent px-3 text-xs font-medium uppercase tracking-wide text-white transition hover:border-white sm:inline-flex sm:items-center"
             onClick={openCart}
             type="button"
           >
@@ -151,7 +115,7 @@ export function Header() {
             {links.map((link) => (
               <Link
                 className={`origin-left text-xl font-medium uppercase tracking-wide transition duration-300 hover:translate-x-2 ${
-                  pathname === link.href ? "text-[#b7cdea]" : "text-[#171412]"
+                  pathname === link.href ? "text-[#b7cdea]" : "text-[#6c93c4]"
                 }`}
                 href={link.href}
                 key={link.href}

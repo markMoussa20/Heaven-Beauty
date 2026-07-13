@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Kanit } from "next/font/google";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CountryProvider } from "@/components/country/CountryProvider";
@@ -10,6 +11,13 @@ import { PublicOnly } from "@/components/layout/PublicOnly";
 import { SoftCursor } from "@/components/layout/SoftCursor";
 import { getActiveCountries, getSelectedCountryCode } from "@/lib/country";
 import "./globals.css";
+
+const kanit = Kanit({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600"],
+  variable: "--font-kanit",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +40,7 @@ export default async function RootLayout({
   const isAdminRoute = pathname.startsWith("/admin");
 
   return (
-    <html lang="en" className="h-full overflow-x-clip antialiased">
+    <html lang="en" className={`${kanit.variable} h-full overflow-x-clip antialiased`}>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-zinc-50 text-zinc-950">
         <CountryProvider
           countries={countries}

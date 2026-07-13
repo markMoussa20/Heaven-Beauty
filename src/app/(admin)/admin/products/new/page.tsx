@@ -9,7 +9,7 @@ export default async function NewProductPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="New product" description="Upload images instead of pasting URLs. Demo URL stays optional fallback only." />
+      <AdminPageHeader title="New product" description="Upload images directly — external image URLs are no longer supported." />
       <ProductForm categories={categories} />
     </div>
   );

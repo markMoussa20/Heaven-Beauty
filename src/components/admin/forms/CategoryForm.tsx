@@ -27,17 +27,20 @@ export function CategoryForm({
       <AdminFormField label="Parent category">
         <AdminSelect defaultValue={category?.parent_id ?? ""} name="parent_id" options={categories.filter((item) => item.value !== category?.id)} />
       </AdminFormField>
-      <AdminFormField label="Image URL">
-        <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={category?.image_url ?? ""} name="image_url" />
-      </AdminFormField>
-      <AdminFormField label="Image path">
-        <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={category?.image_path ?? ""} name="image_path" />
+      <AdminFormField hint="Uploading replaces this image." label="Image">
+        <div className="grid gap-2">
+          {category?.image_url ? (
+            <a className="text-xs text-zinc-500 underline" href={category.image_url} rel="noreferrer" target="_blank">
+              View current image
+            </a>
+          ) : (
+            <p className="text-xs text-zinc-500">No image uploaded yet.</p>
+          )}
+          <ImageUploader name="category_image" />
+        </div>
       </AdminFormField>
       <AdminFormField label="Sort order">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={category?.sort_order ?? ""} name="sort_order" type="number" />
-      </AdminFormField>
-      <AdminFormField label="Upload image">
-        <ImageUploader name="category_image" />
       </AdminFormField>
       <div className="flex items-end">
         <InlineCheckbox defaultChecked={category?.is_active ?? true} label="Active" name="is_active" />

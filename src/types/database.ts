@@ -261,13 +261,15 @@ export type Order = {
   customer_email?: string | null;
   address?: string | null;
   address_line?: string | null;
+  apartment?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
   shipping_area?: string | null;
   shipping_area_name?: string | null;
   shipping_fee?: number | string | null;
   subtotal?: number | string | null;
   total?: number | string | null;
   status?: string | null;
-  payment_method?: string | null;
   notes?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
@@ -303,6 +305,7 @@ export type SiteContent = {
   image_alt?: string | null;
   secondary_image_url?: string | null;
   secondary_image_alt?: string | null;
+  gallery_image_urls?: string[] | null;
   marquee_text?: string | null;
   sort_order?: number | null;
   is_active?: boolean | null;

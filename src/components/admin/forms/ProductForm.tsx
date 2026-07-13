@@ -40,12 +40,18 @@ export function ProductForm({
       <AdminFormField label="Description">
         <textarea className="min-h-32 rounded-md border border-zinc-300 px-3 py-2" defaultValue={product?.description ?? ""} name="description" />
       </AdminFormField>
-      <AdminFormField label="Demo image URL fallback">
-        <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={product?.main_image_url ?? ""} name="main_image_url" />
-      </AdminFormField>
       <div className="grid gap-4 md:grid-cols-2">
         <AdminFormField label="Main image upload" hint="png, jpg, jpeg, webp up to 5MB">
-          <ImageUploader name="image" />
+          <div className="grid gap-2">
+            {product?.main_image_url ? (
+              <a className="text-xs text-zinc-500 underline" href={product.main_image_url} rel="noreferrer" target="_blank">
+                View current image
+              </a>
+            ) : (
+              <p className="text-xs text-zinc-500">No image uploaded yet.</p>
+            )}
+            <ImageUploader name="image" />
+          </div>
         </AdminFormField>
         <AdminFormField label="Gallery image upload" hint="Upload multiple images. Stored in product_images.">
           <ImageUploader multiple name="gallery" />

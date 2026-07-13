@@ -71,8 +71,6 @@ Delivery address:
 {addressLine}
 {shippingAreaName}
 
-Payment method: {paymentMethod}
-
 We will contact you if we need any extra delivery details.
 
 With love,
@@ -96,9 +94,6 @@ Order summary:
 Subtotal: {subtotal}
 Shipping: {shippingFee}
 Total: {total}
-
-Payment processing method:
-{paymentMethod}
 
 Delivery method:
 {shippingAreaName}
@@ -420,7 +415,6 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
     itemsText,
     notes: order.notes ?? "-",
     orderNumber: order.order_number ?? order.id,
-    paymentMethod: order.payment_method ?? "Cash on Delivery (COD)",
     shippingAreaName: order.shipping_area_name ?? order.shipping_area ?? "",
     shippingFee: formatMoney(shippingFeeValue),
     subtotal: formatMoney(subtotalValue),

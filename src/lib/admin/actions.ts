@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/admin/auth";
+import { uploadCategoryImage } from "@/lib/admin/category-images";
 import { uploadProductImage } from "@/lib/admin/product-images";
 import { uploadPublicPageImage } from "@/lib/admin/public-page-images";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -207,20 +208,22 @@ export async function saveCountry(id: string | null, _: AdminActionState, formDa
   return upsertRecord({ table: "countries", id, payload, path: "/admin/countries" });
 }
 
-export async function saveCategory(id: string | null, _: AdminActionState, formData: FormData) {
+export async function saveCategory(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const name = String(formData.get("name") ?? "");
-  const payload = {
-    ...payloadFrom(formData, [
-      "name",
-      "slug",
-      "parent_id",
-      "image_url",
-      "image_path",
-      "sort_order",
-      "is_active",
-    ]),
-    slug: text(formData, "slug") ?? slugify(name),
+  const slug = text(formData, "slug") ?? slugify(name);
+  const payload: Record<string, unknown> = {
+    ...payloadFrom(formData, ["name", "slug", "parent_id", "sort_order", "is_active"]),
+    slug,
   };
+
+  await requireAdmin();
+  const image = formData.get("category_image");
+
+  if (image instanceof File && image.size > 0) {
+    const uploaded = await uploadCategoryImage({ file: image, slug });
+    payload.image_path = uploaded.path;
+    payload.image_url = uploaded.url;
+  }
 
   return upsertRecord({ table: "categories", id, payload, path: "/admin/categories" });
 }
@@ -284,16 +287,14 @@ export async function saveExchangeRate(id: string | null, _: AdminActionState, f
 
 export async function saveSiteContent(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const key = text(formData, "key") ?? "content";
-  const payload = payloadFrom(formData, [
+  const payload: Record<string, unknown> = payloadFrom(formData, [
     "key",
     "title",
     "subtitle",
     "body",
     "cta_label",
     "cta_href",
-    "image_url",
     "image_alt",
-    "secondary_image_url",
     "secondary_image_alt",
     "marquee_text",
     "sort_order",
@@ -304,6 +305,11 @@ export async function saveSiteContent(id: string | null, _: AdminActionState, fo
   const supabase = adminDb();
   const primaryImage = formData.get("content_primary_image");
   const secondaryImage = formData.get("content_secondary_image");
+  const galleryImages = formData.getAll("content_gallery_images");
+  const existingGalleryUrls = formData
+    .getAll("existing_gallery_image_url")
+    .map(String)
+    .filter(Boolean);
 
   if (primaryImage instanceof File && primaryImage.size > 0) {
     payload.image_url = await uploadPublicPageImage({
@@ -319,6 +325,24 @@ export async function saveSiteContent(id: string | null, _: AdminActionState, fo
       kind: "secondary",
       slug: key,
     });
+  }
+
+  const newGalleryUrls: string[] = [];
+  for (const [index, file] of galleryImages.entries()) {
+    if (file instanceof File && file.size > 0) {
+      const uploadedUrl = await uploadPublicPageImage({
+        file,
+        kind: "gallery",
+        slug: key,
+        index,
+      });
+      if (uploadedUrl) {
+        newGalleryUrls.push(uploadedUrl);
+      }
+    }
+  }
+  if (newGalleryUrls.length > 0 || formData.has("gallery_section_present")) {
+    payload.gallery_image_urls = [...existingGalleryUrls, ...newGalleryUrls];
   }
 
   if (id) {
@@ -510,7 +534,7 @@ export async function saveOrderNotificationTemplate(
 export async function savePublicPage(id: string | null, _: AdminActionState, formData: FormData): Promise<AdminActionState> {
   const title = String(formData.get("title") ?? "");
   const slug = text(formData, "slug") ?? slugify(title);
-  const payload = {
+  const payload: Record<string, unknown> = {
     ...payloadFrom(formData, [
       "slug",
       "title",
@@ -518,9 +542,7 @@ export async function savePublicPage(id: string | null, _: AdminActionState, for
       "body",
       "cta_label",
       "cta_href",
-      "image_url",
       "image_alt",
-      "secondary_image_url",
       "secondary_image_alt",
       "sort_order",
       "is_active",
@@ -582,7 +604,6 @@ export async function saveProduct(id: string | null, _: AdminActionState, formDa
       "description",
       "brand",
       "base_sku",
-      "main_image_url",
       "is_active",
     ]),
     slug,

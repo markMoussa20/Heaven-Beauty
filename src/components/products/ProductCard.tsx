@@ -76,11 +76,11 @@ export function ProductCard({ item }: ProductCardProps) {
       </div>
       <div className="px-7 pb-7 pt-4">
         <div className="min-h-14">
-          <h3 className="line-clamp-2 text-base font-light leading-6 text-[#6c93c4]">
+          <h3 className="line-clamp-2 text-base font-normal leading-6 text-[#6c93c4]">
             {product.name}
           </h3>
         </div>
-        <div className="mt-1 flex items-end justify-between gap-3">
+        <div className="mt-3 flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-light text-[#6c93c4]">
               {country.currency_symbol}
@@ -91,7 +91,7 @@ export function ProductCard({ item }: ProductCardProps) {
             </p>
           </div>
           <button
-            className="border-b border-[#6c93c4] pb-1 text-xs font-medium uppercase tracking-wide text-[#6c93c4] transition duration-300 sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+            className="rounded-[2px] bg-[#6c93c4] px-5 py-4 text-sm font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white"
             onClick={handleAddToCart}
             type="button"
           >

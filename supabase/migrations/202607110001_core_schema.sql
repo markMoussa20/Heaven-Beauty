@@ -103,15 +103,18 @@ create table if not exists public.orders (
   customer_id uuid references public.customers(id), customer_name text not null,
   customer_phone text not null, customer_email text, currency_code text not null,
   shipping_zone_id uuid references public.shipping_zones(id), shipping_area_name text,
-  address_line text not null, notes text, subtotal numeric(12,2) not null,
+  address_line text not null, apartment text, city text, postal_code text,
+  notes text, subtotal numeric(12,2) not null,
   shipping_fee numeric(12,2) not null, total numeric(12,2) not null,
-  payment_method text not null default 'COD', status text not null default 'pending',
+  status text not null default 'pending',
   created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
   check (subtotal >= 0 and shipping_fee >= 0 and total >= 0),
-  check (payment_method = 'COD'),
   check (status in ('pending','confirmed','processing','shipped','delivered','cancelled'))
 );
 alter table public.orders add column if not exists idempotency_key uuid;
+alter table public.orders add column if not exists apartment text;
+alter table public.orders add column if not exists city text;
+alter table public.orders add column if not exists postal_code text;
 alter table public.orders add column if not exists updated_at timestamptz not null default now();
 create unique index if not exists orders_order_number_unique on public.orders(order_number);
 create unique index if not exists orders_idempotency_unique on public.orders(idempotency_key) where idempotency_key is not null;

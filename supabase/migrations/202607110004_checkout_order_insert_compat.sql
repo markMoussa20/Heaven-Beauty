@@ -1,3 +1,14 @@
+-- Replace the checkout RPC with an order insert that matches both the fresh schema
+-- and the existing production-like orders table that stores address parts separately.
+alter table if exists public.orders
+  add column if not exists apartment text;
+
+alter table if exists public.orders
+  add column if not exists city text;
+
+alter table if exists public.orders
+  add column if not exists postal_code text;
+
 create or replace function public.place_order(
   p_country_id uuid, p_items jsonb, p_shipping_zone_id uuid,
   p_phone text, p_email text, p_first_name text, p_last_name text,
@@ -64,17 +75,29 @@ begin
   order by case when c.country_id=p_country_id and c.phone=p_phone then 0 else 1 end
   limit 1 for update;
   if found then
-    update public.customers set country_id=p_country_id,full_name=v_full_name,phone=p_phone,
-      email=nullif(p_email,''),updated_at=now() where id=v_customer_id;
+    update public.customers set country_id=p_country_id, full_name=v_full_name, phone=p_phone,
+      email=nullif(p_email,''), updated_at=now() where id=v_customer_id;
   else
-    insert into public.customers(country_id,full_name,phone,email)
-    values(p_country_id,v_full_name,p_phone,nullif(p_email,'')) returning id into v_customer_id;
+    insert into public.customers(country_id, full_name, phone, email)
+    values(p_country_id, v_full_name, p_phone, nullif(p_email,'')) returning id into v_customer_id;
   end if;
+
+  v_total := v_subtotal + v_shipping;
   v_order_number := 'HB-' || to_char(now(),'YYYYMMDD') || '-' || upper(substr(replace(gen_random_uuid()::text,'-',''),1,5));
-  insert into public.orders(order_number,idempotency_key,country_id,customer_id,customer_name,customer_phone,customer_email,currency_code,shipping_zone_id,shipping_area_name,address_line,apartment,city,postal_code,notes,subtotal,shipping_fee,total,status)
-  values(v_order_number,p_idempotency_key,p_country_id,v_customer_id,v_full_name,p_phone,nullif(p_email,''),v_country.currency_code,
+  insert into public.orders(
+    order_number, idempotency_key, country_id, customer_id, customer_name,
+    customer_phone, customer_email, currency_code, shipping_zone_id,
+    shipping_area_name, address_line, apartment, city, postal_code, notes,
+    subtotal, shipping_fee, total, status
+  )
+  values(
+    v_order_number, p_idempotency_key, p_country_id, v_customer_id, v_full_name,
+    p_phone, nullif(p_email,''), v_country.currency_code,
     case when v_country.use_shipping_zones then v_zone.id else null end,
-    case when v_country.use_shipping_zones then v_zone.name else p_city end,p_address,nullif(p_apartment,''),p_city,nullif(p_postal_code,''),nullif(p_notes,''),v_subtotal,v_shipping,v_subtotal+v_shipping,'pending')
+    case when v_country.use_shipping_zones then v_zone.name else p_city end,
+    p_address, nullif(p_apartment,''), p_city, nullif(p_postal_code,''),
+    nullif(p_notes,''), v_subtotal, v_shipping, v_total, 'pending'
+  )
   returning id into v_order_id;
 
   for v_item in select value from jsonb_array_elements(p_items) loop
@@ -82,12 +105,13 @@ begin
     select ci.product_id, ci.price, ci.sale_price, p.name into v_row
     from public.country_items ci join public.products p on p.id=ci.product_id where ci.id=(v_item->>'countryItemId')::uuid;
     v_price := case when v_row.sale_price is not null and v_row.sale_price > 0 then v_row.sale_price else v_row.price end;
-    insert into public.order_items(order_id,country_item_id,product_id,product_name,quantity,unit_price,total)
-    values(v_order_id,(v_item->>'countryItemId')::uuid,v_row.product_id,v_row.name,v_qty,v_price,v_price*v_qty);
+    insert into public.order_items(order_id, country_item_id, product_id, product_name, quantity, unit_price, total)
+    values(v_order_id, (v_item->>'countryItemId')::uuid, v_row.product_id, v_row.name, v_qty, v_price, v_price*v_qty);
   end loop;
-  return query select v_order_id,v_order_number,v_subtotal,v_shipping,v_subtotal+v_shipping;
+  return query select v_order_id, v_order_number, v_subtotal, v_shipping, v_total;
 exception when unique_violation then
-  return query select o.id,o.order_number,o.subtotal,o.shipping_fee,o.total from public.orders o where o.idempotency_key=p_idempotency_key;
+  return query select o.id, o.order_number, o.subtotal, o.shipping_fee, o.total
+  from public.orders o where o.idempotency_key=p_idempotency_key;
   if not found then raise; end if;
 end $$;
 

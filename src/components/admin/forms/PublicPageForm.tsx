@@ -57,18 +57,20 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
         />
       </AdminFormField>
       <div className="grid gap-4">
-        <AdminFormField label="Image URL">
-          <input
-            className="h-10 rounded-md border border-zinc-300 px-3"
-            defaultValue={page?.image_url ?? ""}
-            name="image_url"
-          />
-        </AdminFormField>
         <AdminFormField
-          hint="Upload replaces the URL above after saving."
-          label="Primary image upload"
+          hint="Uploading replaces this image."
+          label="Primary image"
         >
-          <ImageUploader name="primary_image" />
+          <div className="grid gap-2">
+            {page?.image_url ? (
+              <a className="text-xs text-zinc-500 underline" href={page.image_url} rel="noreferrer" target="_blank">
+                View current image
+              </a>
+            ) : (
+              <p className="text-xs text-zinc-500">No image uploaded yet.</p>
+            )}
+            <ImageUploader name="primary_image" />
+          </div>
         </AdminFormField>
         <AdminFormField label="Image alt text">
           <input
@@ -77,18 +79,20 @@ export function PublicPageForm({ page }: { page?: Partial<PublicPage> }) {
             name="image_alt"
           />
         </AdminFormField>
-        <AdminFormField label="Second image URL">
-          <input
-            className="h-10 rounded-md border border-zinc-300 px-3"
-            defaultValue={page?.secondary_image_url ?? ""}
-            name="secondary_image_url"
-          />
-        </AdminFormField>
         <AdminFormField
-          hint="Upload replaces the second image URL after saving."
-          label="Second image upload"
+          hint="Uploading replaces this image."
+          label="Second image"
         >
-          <ImageUploader name="secondary_image" />
+          <div className="grid gap-2">
+            {page?.secondary_image_url ? (
+              <a className="text-xs text-zinc-500 underline" href={page.secondary_image_url} rel="noreferrer" target="_blank">
+                View current image
+              </a>
+            ) : (
+              <p className="text-xs text-zinc-500">No image uploaded yet.</p>
+            )}
+            <ImageUploader name="secondary_image" />
+          </div>
         </AdminFormField>
         <AdminFormField label="Second image alt text">
           <input

@@ -62,7 +62,7 @@ In Vercel, add the four subdomains and point each DNS record to Vercel as instru
 
 ## Checkout and stock
 
-Checkout accepts only country-item IDs and integer quantities. PostgreSQL validates country, visibility, product status, shipping zone, price, and stock while rows are locked. `NULL` stock is unlimited; finite stock decreases inside the same transaction. Any error rolls back customer, order, items, and stock. An idempotency UUID prevents duplicate orders and duplicate stock reduction. Cash on delivery is the only payment method.
+Checkout accepts only country-item IDs and integer quantities. PostgreSQL validates country, visibility, product status, shipping zone, price, and stock while rows are locked. `NULL` stock is unlimited; finite stock decreases inside the same transaction. Any error rolls back customer, order, items, and stock. An idempotency UUID prevents duplicate orders and duplicate stock reduction. The storefront records orders only; payment is arranged manually after submission.
 
 ## Notifications
 
