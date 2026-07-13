@@ -121,6 +121,7 @@ const footerLinksDefault: FooterLink[] = [
   { id: "default-legal-privacy", group_key: "legal", label: "Privacy Policy", href: "/privacy-policy", sort_order: 20, is_active: true },
   { id: "default-social-facebook", group_key: "social", label: "Facebook", href: "https://www.facebook.com/profile.php?id=61580848234817", sort_order: 10, is_active: true, is_external: true },
   { id: "default-social-instagram", group_key: "social", label: "Instagram", href: "https://www.instagram.com/heavenbeauty.lb", sort_order: 20, is_active: true, is_external: true },
+  { id: "default-social-tiktok", group_key: "social", label: "TikTok", href: "https://www.tiktok.com/@heavenbeauty.lb?_r=1&_t=ZS-980KtZUJA16", sort_order: 30, is_active: true, is_external: true },
 ];
 
 const homeKeys = Object.values(homeDefaults).map((block) => block.key);
@@ -189,6 +190,14 @@ function canonicalizeFooterLink(link: FooterLink): FooterLink {
     return {
       ...link,
       href: "https://www.instagram.com/heavenbeauty.lb",
+      is_external: true,
+    };
+  }
+
+  if (normalizedLabel === "tiktok" || normalizedLabel === "tik tok") {
+    return {
+      ...link,
+      href: "https://www.tiktok.com/@heavenbeauty.lb?_r=1&_t=ZS-980KtZUJA16",
       is_external: true,
     };
   }

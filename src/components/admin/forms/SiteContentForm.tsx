@@ -27,6 +27,7 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
   const action = saveSiteContent.bind(null, block?.id ?? null);
   const galleryUrls = block?.gallery_image_urls ?? [];
   const isHero = block?.key === "home_hero";
+  const isPureIntro = block?.key === "home_pure_intro";
 
   return (
     <AdminActionForm
@@ -91,7 +92,14 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
           name="cta_label"
         />
       </AdminFormField>
-      <AdminFormField label="Button link">
+      <AdminFormField
+        hint={
+          isPureIntro
+            ? "For the Pure popup, enter the product slug, product ID, country item ID, or SKU. Use commas for multiple items."
+            : undefined
+        }
+        label="Button link"
+      >
         <input
           className="h-10 rounded-md border border-zinc-300 px-3"
           defaultValue={block?.cta_href ?? ""}

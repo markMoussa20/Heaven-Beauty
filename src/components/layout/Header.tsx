@@ -24,10 +24,18 @@ export function Header() {
   ];
 
   useEffect(() => {
-    lastScrollY.current = Math.max(window.scrollY, 0);
+    const getScrollY = () =>
+      Math.max(
+        window.scrollY,
+        document.scrollingElement?.scrollTop ?? 0,
+        document.documentElement.scrollTop,
+        0,
+      );
+
+    lastScrollY.current = getScrollY();
 
     const updateHeader = () => {
-      const nextScrollY = Math.max(window.scrollY, 0);
+      const nextScrollY = getScrollY();
       const delta = nextScrollY - lastScrollY.current;
 
       if (nextScrollY <= 0 || isOpen) {
@@ -49,8 +57,14 @@ export function Header() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("touchmove", handleScroll, { passive: true });
+    window.visualViewport?.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchmove", handleScroll);
+      window.visualViewport?.removeEventListener("scroll", handleScroll);
       if (scrollFrame.current !== null) {
         window.cancelAnimationFrame(scrollFrame.current);
       }

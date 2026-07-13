@@ -49,7 +49,7 @@ export function ProductCard({ item }: ProductCardProps) {
     <article className="group bg-white text-[#6c93c4]">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
         {hasSalePrice ? (
-          <span className="absolute left-4 top-4 z-10 bg-[#e6ecf4] px-3 py-1 text-xs font-medium uppercase tracking-wide text-[#6c93c4]">
+          <span className="absolute left-2 top-2 z-10 bg-[#e6ecf4] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[#6c93c4] sm:left-4 sm:top-4 sm:px-3 sm:text-xs">
             Sale
           </span>
         ) : null}
@@ -74,24 +74,24 @@ export function ProductCard({ item }: ProductCardProps) {
           </div>
         )}
       </div>
-      <div className="px-7 pb-7 pt-4">
-        <div className="min-h-14">
-          <h3 className="line-clamp-2 text-base font-normal leading-6 text-[#6c93c4]">
+      <div className="px-3 pb-4 pt-3 sm:px-7 sm:pb-7 sm:pt-4">
+        <div className="min-h-11 sm:min-h-14">
+          <h3 className="line-clamp-2 text-sm font-normal leading-5 text-[#6c93c4] sm:text-base sm:leading-6">
             {product.name}
           </h3>
         </div>
-        <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="mt-2 flex flex-col gap-3 sm:mt-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-light text-[#6c93c4]">
+            <p className="text-xs font-light text-[#6c93c4] sm:text-sm">
               {country.currency_symbol}
               {price}
-              <span className="ml-1 text-xs uppercase">
+              <span className="ml-1 text-[10px] uppercase sm:text-xs">
                 {country.currency_code}
               </span>
             </p>
           </div>
           <button
-            className="rounded-[2px] bg-[#6c93c4] px-5 py-4 text-sm font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white"
+            className="rounded-[2px] bg-[#6c93c4] px-3 py-2 text-xs font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white sm:px-5 sm:py-4 sm:text-sm"
             onClick={handleAddToCart}
             type="button"
           >

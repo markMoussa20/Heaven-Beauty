@@ -31,17 +31,17 @@ export default async function ShopPage() {
 
   return (
     <main className="bg-[#e6ecf4] pt-32 text-[#6c93c4]">
-      <section className={`${shell} pb-12 pt-10 text-center`}>
+      <section className={`${shell} pb-10 pt-8 text-center sm:pb-12 sm:pt-10`}>
         {page.subtitle ? (
           <p className="text-sm font-medium uppercase tracking-[0.28em]">
             {page.subtitle}
           </p>
         ) : null}
-        <h1 className="mt-4 text-6xl font-medium leading-none sm:text-7xl">
+        <h1 className="mt-3 text-[2.7rem] font-medium leading-[1.05] sm:mt-4 sm:text-7xl">
           {page.title}
         </h1>
         {page.body ? (
-          <p className="mx-auto mt-6 max-w-2xl text-lg font-light leading-8">
+          <p className="mx-auto mt-4 max-w-2xl text-base font-light leading-7 sm:mt-6 sm:text-lg sm:leading-8">
             {page.body}
           </p>
         ) : null}

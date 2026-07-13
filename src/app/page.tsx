@@ -1,5 +1,6 @@
 import { HeroBanner } from "@/components/home/HeroBanner";
 import { ScrollTranslateY } from "@/components/home/ScrollTranslateY";
+import { FeaturedProductsDialog } from "@/components/products/FeaturedProductsDialog";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { shell } from "@/lib/design";
 import {
@@ -10,6 +11,7 @@ import {
 import { getDefaultCountryCode } from "@/lib/country/constants";
 import { getFeaturedCountryItems } from "@/lib/products";
 import { getHomeContent } from "@/lib/site-content";
+import type { CountryItemWithProduct } from "@/types/database";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +39,10 @@ export default async function Page() {
     homeContent.imageShowcase.image_url;
   const storyImageUrl = homeContent.story.image_url;
   const differenceImageUrl = homeContent.difference.image_url;
+  const pureIntroItems = getPureIntroPopupItems(
+    featuredItems,
+    homeContent.pureIntro.cta_href,
+  );
 
   return (
     <div className="bg-[#e6ecf4] text-[#6c93c4]">
@@ -94,7 +100,7 @@ export default async function Page() {
       </section>
       ) : null}
 
-      <section className="bg-[#e6ecf4] px-5 py-20 md:px-8 lg:mb-[220px] lg:px-[30px] lg:py-0">
+      <section className="bg-[#e6ecf4] px-5 py-12 md:px-8 md:py-20 lg:mb-[220px] lg:px-[30px] lg:py-0">
         <div className="mx-auto grid w-full max-w-[1260px] gap-10 lg:grid-cols-[minmax(0,63fr)_minmax(0,37fr)] lg:gap-0">
           {pureIntroImageUrl ? (
             <div
@@ -110,20 +116,17 @@ export default async function Page() {
                 {homeContent.pureIntro.title}
               </h2>
             </ScrollTranslateY>
-            <h3 className="mt-10 text-[26px] font-normal leading-[1.3] text-[#6c93c4] md:text-[28px]">
+            <h3 className="mt-5 text-[26px] font-normal leading-[1.3] text-[#6c93c4] md:mt-10 md:text-[28px]">
               {homeContent.pureIntro.subtitle}
             </h3>
-            <p className="mt-[52px] text-[16px] font-light leading-[1.6] text-[#6c93c4]">
+            <p className="mt-6 text-[16px] font-light leading-[1.6] text-[#6c93c4] md:mt-[52px]">
               {homeContent.pureIntro.body}
             </p>
-            {homeContent.pureIntro.cta_label &&
-            homeContent.pureIntro.cta_href ? (
-              <a
-                className="mt-[68px] inline-flex min-h-[46px] min-w-[70px] items-center justify-center bg-[#aac2e4] px-5 py-[15px] text-[13px] font-medium leading-[1.2] text-white transition duration-300 hover:bg-[#98b5dd]"
-                href={homeContent.pureIntro.cta_href}
-              >
-                {homeContent.pureIntro.cta_label}
-              </a>
+            {homeContent.pureIntro.cta_label ? (
+              <FeaturedProductsDialog
+                items={pureIntroItems}
+                label={homeContent.pureIntro.cta_label}
+              />
             ) : null}
           </div>
         </div>
@@ -193,4 +196,41 @@ export default async function Page() {
 
     </div>
   );
+}
+
+function getPureIntroPopupItems(
+  featuredItems: CountryItemWithProduct[],
+  selector?: string | null,
+) {
+  const tokens = (selector ?? "")
+    .split(/[\s,]+/)
+    .map((token) =>
+      token
+        .trim()
+        .replace(/^country_item:/i, "")
+        .replace(/^product:/i, "")
+        .replace(/^slug:/i, ""),
+    )
+    .filter((token) => token && !token.startsWith("#") && !token.startsWith("/"));
+
+  if (tokens.length === 0) {
+    return featuredItems.slice(0, 1);
+  }
+
+  const tokenSet = new Set(tokens.map((token) => token.toLowerCase()));
+  const selectedItems = featuredItems.filter((item) => {
+    const product = item.products;
+
+    return [
+      item.id,
+      item.country_sku,
+      item.sku,
+      product.id,
+      product.slug,
+      product.base_sku,
+      product.name,
+    ].some((value) => value && tokenSet.has(String(value).toLowerCase()));
+  });
+
+  return selectedItems.length > 0 ? selectedItems : featuredItems.slice(0, 1);
 }

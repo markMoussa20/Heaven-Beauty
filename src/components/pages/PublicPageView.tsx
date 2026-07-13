@@ -51,11 +51,11 @@ export function PublicPageView({
                 {page.subtitle}
               </p>
             ) : null}
-            <h1 className="mt-5 text-6xl font-medium leading-none sm:text-7xl lg:text-8xl">
+            <h1 className="mt-3 text-[2.7rem] font-medium leading-[1.05] sm:mt-5 sm:text-7xl lg:text-8xl">
               {page.title}
             </h1>
             {bodyBlocks[0] ? (
-              <p className="mt-8 max-w-2xl text-xl font-light leading-9">
+              <p className="mt-5 max-w-2xl text-base font-light leading-7 sm:mt-8 sm:text-xl sm:leading-9">
                 {bodyBlocks[0]}
               </p>
             ) : null}
@@ -109,15 +109,15 @@ function PolicyPageView({
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
       <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
         <div className="hb-fade-up max-w-[980px]">
-          <h1 className="text-[2.7rem] font-normal leading-[1.1] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
+          <h1 className="text-[2.35rem] font-normal leading-[1.08] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
             {titleLines[0]}
             {titleLines[1] ? (
-              <span className="mt-2 block sm:mt-4">{titleLines[1]}</span>
+              <span className="mt-1 block sm:mt-4">{titleLines[1]}</span>
             ) : null}
           </h1>
         </div>
 
-        <div className="mt-12 max-w-[1120px] space-y-20 sm:mt-16 lg:mt-20 lg:space-y-24">
+        <div className="mt-9 max-w-[1120px] space-y-14 sm:mt-16 sm:space-y-20 lg:mt-20 lg:space-y-24">
           {sections.map((section) => (
             <section className="max-w-[860px] hb-fade-up" key={section.heading}>
               <h2 className="text-xl font-normal leading-snug text-[#6c93c4] sm:text-2xl">
@@ -147,9 +147,9 @@ function FaqPageView({
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
       <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
         <div className="hb-fade-up max-w-[980px]">
-          <h1 className="text-[2.7rem] font-normal leading-[1.1] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
+          <h1 className="text-[2.35rem] font-normal leading-[1.08] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
             Frequently
-            <span className="mt-2 block sm:mt-4">Asked Questions</span>
+            <span className="mt-1 block sm:mt-4">Asked Questions</span>
           </h1>
           <a
             className="mt-10 inline-flex text-base font-light leading-relaxed text-[#6c93c4] transition duration-300 hover:text-black"
@@ -180,14 +180,14 @@ function QaCollection({
 }) {
   return (
     <div
-      className={`${compact ? "mt-10" : "mt-14 sm:mt-16 lg:mt-20"} max-w-[980px] space-y-14 sm:space-y-16`}
+      className={`${compact ? "mt-10" : "mt-10 sm:mt-16 lg:mt-20"} max-w-[980px] space-y-10 sm:space-y-16`}
     >
       {groups.map((group) => (
         <section className="hb-fade-up" key={group.title}>
           <h2 className="text-xl font-normal leading-snug text-[#6c93c4] sm:text-2xl">
             {group.title}
           </h2>
-          <div className="mt-6 divide-y divide-[#6c93c4]/18 border-y border-[#6c93c4]/18">
+            <div className="mt-4 divide-y divide-[#6c93c4]/18 border-y border-[#6c93c4]/18 sm:mt-6">
             {group.items.map((item) => (
               <AnimatedQaAccordion item={item} key={item.id} />
             ))}
@@ -218,7 +218,7 @@ function OurStoryPageView({
       <section className="relative pb-12 pt-32 lg:pb-0 lg:pt-[150px]">
         <div className="mx-auto w-full max-w-[618px]">
           <ScrollTranslateY className="p-[10px]" maxPixels={100}>
-            <h1 className="text-[3rem] font-medium leading-[1.08] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
+            <h1 className="text-[2.6rem] font-medium leading-[1.08] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
               <span className="block text-right">Welcome To</span>
               <span className="block text-left">Heaven Beauty</span>
             </h1>
@@ -320,10 +320,10 @@ function LegalPageView({
 
   return (
     <main className="bg-[#e6ecf4] text-[#7f9dd0]">
-      <section className="mx-auto max-w-[1500px] px-6 pb-16 pt-44 sm:px-10 lg:pt-52">
-        <h1 className="hb-fade-up text-[4.9rem] font-medium leading-[0.95] tracking-normal text-[#86a3d3] sm:text-[6.5rem] lg:text-[7.6rem]">
+      <section className="mx-auto max-w-[1500px] px-6 pb-12 pt-32 sm:px-10 sm:pb-16 sm:pt-44 lg:pt-52">
+        <h1 className="hb-fade-up text-[2.6rem] font-medium leading-[1.05] tracking-normal text-[#86a3d3] sm:text-[6.5rem] sm:leading-[0.95] lg:text-[7.6rem]">
           <span>{firstTitleWord} ~</span>
-          <span className="mt-8 block pl-[7vw]">{titleRest.join(" ")}</span>
+          <span className="mt-2 block pl-[7vw] sm:mt-8">{titleRest.join(" ")}</span>
         </h1>
       </section>
 
@@ -335,10 +335,10 @@ function LegalPageView({
                   className="border-b border-[#7f9dd0]/20 pb-8"
                   key={section.heading}
                 >
-                  <h2 className="text-4xl font-medium leading-tight text-[#7f9dd0] sm:text-5xl">
+                  <h2 className="text-[1.75rem] font-medium leading-[1.2] text-[#7f9dd0] sm:text-5xl sm:leading-tight">
                     {section.heading}
                   </h2>
-                  <div className="mt-6 space-y-6 text-lg font-light leading-8 text-[#7f9dd0]">
+                  <div className="mt-5 space-y-5 text-base font-light leading-7 text-[#7f9dd0] sm:mt-6 sm:space-y-6 sm:text-lg sm:leading-8">
                     {section.paragraphs.map((paragraph) => (
                       <p key={paragraph}>{renderTextWithLinks(paragraph)}</p>
                     ))}

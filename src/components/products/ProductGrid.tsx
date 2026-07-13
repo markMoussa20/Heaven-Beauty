@@ -17,12 +17,12 @@ export function ProductGrid({ items, selectedCountryName }: ProductGridProps) {
     );
   }
 
-  return <div className="space-y-12">{sections.map((section) => (
+  return <div className="space-y-10 sm:space-y-12">{sections.map((section) => (
     <section className="space-y-7" key={section.category?.id ?? "uncategorized"}>
-      <div className="text-center"><h2 className="text-5xl font-normal leading-tight text-[#6c93c4] sm:text-6xl">
+      <div className="text-center"><h2 className="text-[2rem] font-normal leading-tight text-[#6c93c4] sm:text-5xl lg:text-6xl">
         {section.category?.name ?? "More to Love"}
       </h2></div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
         {section.items.map((item) => <ProductCard item={item} key={item.id} />)}
       </div>
     </section>

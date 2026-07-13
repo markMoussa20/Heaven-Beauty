@@ -45,9 +45,26 @@ function InstagramIcon() {
   );
 }
 
+function TikTokIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path
+        d="M16.3 3c.3 2.1 1.5 3.4 3.7 3.6v3.1c-1.3.1-2.5-.3-3.6-1v5.8c0 3.7-2.4 6.2-6 6.2A5.4 5.4 0 0 1 5 15.4c0-3.4 2.8-5.9 6.3-5.3v3.2c-1.6-.5-3 .5-3 2.1 0 1.2.9 2.1 2.1 2.1 1.4 0 2.3-.9 2.3-2.8V3h3.6Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+const tikTokLink = {
+  id: "footer-tiktok",
+  label: "TikTok",
+  href: "https://www.tiktok.com/@heavenbeauty.lb?_r=1&_t=ZS-980KtZUJA16",
+};
+
 export async function Footer() {
   const { settings, links } = await getFooterContent();
-  const socialLinks = links.social?.length
+  const baseSocialLinks = links.social?.length
     ? links.social
     : [
         {
@@ -61,6 +78,11 @@ export async function Footer() {
           href: "https://www.instagram.com/heavenbeauty.lb",
         },
       ];
+  const socialLinks = baseSocialLinks.some((link) =>
+    link.label.toLowerCase().includes("tiktok"),
+  )
+    ? baseSocialLinks
+    : [...baseSocialLinks, tikTokLink];
   const legalLinks = links.legal?.length
     ? links.legal
     : [
@@ -140,6 +162,7 @@ export async function Footer() {
           <div className="site-footer-social" aria-label="Social media links">
             {socialLinks.map((link) => {
               const isInstagram = link.label.toLowerCase().includes("instagram");
+              const isTikTok = link.label.toLowerCase().includes("tiktok");
 
               return (
                 <a
@@ -149,7 +172,9 @@ export async function Footer() {
                   rel="noreferrer"
                   target="_blank"
                 >
-                  {isInstagram ? (
+                  {isTikTok ? (
+                    <TikTokIcon />
+                  ) : isInstagram ? (
                     <InstagramIcon />
                   ) : (
                     <FacebookIcon />

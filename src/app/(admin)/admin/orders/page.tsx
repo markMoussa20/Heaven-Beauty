@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
+import { LocalDateTime } from "@/components/admin/LocalDateTime";
 import { SearchForm } from "@/components/admin/SearchForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
@@ -85,7 +86,7 @@ export default async function AdminOrdersPage({
             ),
           },
           { key: "total", header: "Total", render: (row) => `${row.currency_code ?? ""} ${row.total ?? "-"}` },
-          { key: "date", header: "Created", render: (row) => row.created_at ? new Date(row.created_at).toLocaleString() : "-" },
+          { key: "date", header: "Created", render: (row) => <LocalDateTime value={row.created_at} /> },
         ]}
         rows={orders}
       />

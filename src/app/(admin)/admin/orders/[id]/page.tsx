@@ -1,5 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
+import { LocalDateTime } from "@/components/admin/LocalDateTime";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { updateOrderStatus } from "@/lib/admin/actions";
 import { getRow, listRows, type AdminRow } from "@/lib/admin/data";
@@ -62,7 +63,7 @@ export default async function AdminOrderDetailPage({
             </div>
             <div>
               <p className="text-xs text-zinc-500">Created</p>
-              <p className="font-medium">{typedOrder.created_at ? new Date(typedOrder.created_at).toLocaleString() : "-"}</p>
+              <p className="font-medium"><LocalDateTime value={typedOrder.created_at} /></p>
             </div>
             <div>
               <p className="text-xs text-zinc-500">Customer</p>
