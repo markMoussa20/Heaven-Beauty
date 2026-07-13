@@ -1,5 +1,7 @@
 import "server-only";
 
+import nodemailer from "nodemailer";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   Order,
@@ -272,7 +274,6 @@ async function sendGmailEmail({
     throw new Error("Gmail user or app password is missing in notification settings.");
   }
 
-  const nodemailer = await importOptionalNodemailer();
   const transport = nodemailer.createTransport({
     auth: {
       pass: settings.gmail_app_password,
@@ -291,22 +292,6 @@ async function sendGmailEmail({
     text,
     to: recipient,
   });
-}
-
-async function importOptionalNodemailer() {
-  try {
-    const importModule = new Function("moduleName", "return import(moduleName)") as (
-      moduleName: string,
-    ) => Promise<{ default?: { createTransport: unknown }; createTransport?: unknown }>;
-    const mailerModule = await importModule("nodemailer");
-    return (mailerModule.default ?? mailerModule) as {
-      createTransport: (options: unknown) => {
-        sendMail: (message: unknown) => Promise<unknown>;
-      };
-    };
-  } catch {
-    throw new Error("Nodemailer is not installed. Run pnpm install before enabling Gmail emails.");
-  }
 }
 
 async function sendCallMeBotMessage({

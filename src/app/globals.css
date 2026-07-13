@@ -321,7 +321,9 @@
   max-width: 1260px;
   height: 75.6px;
   margin: 0 auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(160px, 1fr) minmax(360px, 1.2fr) minmax(160px, 1fr);
+  align-items: end;
+  gap: clamp(24px, 5vw, 80px);
 }
 
 .site-footer-phone,
@@ -338,12 +340,23 @@
 
 .site-footer-email {
   justify-self: end;
+  text-align: right;
   text-transform: uppercase;
 }
 
 .site-footer-nav {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-self: center;
+  width: min(100%, 420px);
+  justify-items: center;
+  text-align: center;
+}
+
+.site-footer-group {
+  display: grid;
+  justify-items: center;
+  text-align: center;
 }
 
 .site-footer-group-title {
@@ -356,6 +369,7 @@
 .site-footer-group-links {
   display: grid;
   gap: 6px;
+  justify-items: center;
   margin-top: 7px;
   color: #6c93c4;
   font-size: 14px;
@@ -373,7 +387,8 @@
   max-width: 1260px;
   height: 90px;
   margin: 0 auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, auto) minmax(220px, 1fr);
+  gap: clamp(18px, 4vw, 64px);
 }
 
 .site-footer-copyright,
@@ -388,6 +403,7 @@
   color: #6a6a6a;
   font-size: 12px;
   font-weight: 300;
+  justify-content: flex-start;
   line-height: 2.1;
   white-space: nowrap;
 }
@@ -405,7 +421,9 @@
 }
 
 .site-footer-legal {
-  justify-content: flex-end;
+  justify-content: center;
+  justify-self: center;
+  flex-wrap: wrap;
   gap: 40px;
   color: #6c93c4;
   font-size: 12px;
@@ -447,12 +465,17 @@
     display: flex;
     height: 323.8px;
     flex-direction: column;
+    align-items: center;
+    gap: 0;
   }
 
   .site-footer-nav {
     display: flex;
     order: 1;
     flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
   }
 
   .site-footer-group:not(:last-child) {
@@ -474,7 +497,8 @@
     order: 2;
     margin-bottom: 10px;
     margin-top: auto;
-    align-self: flex-start;
+    align-self: center;
+    text-align: center;
   }
 
   .site-footer-email {
@@ -495,16 +519,19 @@
 
   .site-footer-copyright {
     justify-content: center;
+    text-align: center;
   }
 
   .site-footer-social {
-    justify-content: flex-start;
+    justify-content: center;
     gap: 40px;
   }
 
   .site-footer-legal {
-    justify-content: flex-start;
+    justify-content: center;
+    justify-self: center;
     gap: 25px;
+    text-align: center;
   }
 }
 
