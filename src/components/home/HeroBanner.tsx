@@ -24,6 +24,7 @@ const ORIGINAL_HERO_IMAGES = [
   "/images/original-home-hero-2.jpeg",
   "/images/original-home-hero-3.webp",
 ];
+const MOBILE_DRAG_QUERY = "(max-width: 767px)";
 
 export function HeroBanner({ hero }: HeroBannerProps) {
   const configuredImages = [
@@ -91,9 +92,14 @@ export function HeroBanner({ hero }: HeroBannerProps) {
     });
   };
 
+  const isMobileViewport = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia(MOBILE_DRAG_QUERY).matches;
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (
       slideCount <= 1 ||
+      isMobileViewport() ||
       (event.pointerType === "mouse" && event.button !== 0) ||
       (event.target as HTMLElement).closest("a, button")
     ) {
@@ -113,6 +119,10 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (isMobileViewport()) {
+      return;
+    }
+
     if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
       return;
     }
@@ -144,6 +154,16 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   };
 
   const finishDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    if (isMobileViewport()) {
+      isTrackingPointer.current = false;
+      isDraggingRef.current = false;
+      trackingPointerId.current = null;
+      dragOffsetRef.current = 0;
+      setIsDragging(false);
+      setDragOffset(0);
+      return;
+    }
+
     if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
       return;
     }
@@ -181,7 +201,7 @@ export function HeroBanner({ hero }: HeroBannerProps) {
 
   return (
     <section
-      className={`relative h-[550px] touch-pan-y select-none overflow-hidden bg-[#e6ecf4] ${
+      className={`relative h-[550px] touch-pan-y select-none overflow-hidden bg-[#e6ecf4] md:touch-pan-y ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
       onMouseEnter={() => setIsPaused(true)}
