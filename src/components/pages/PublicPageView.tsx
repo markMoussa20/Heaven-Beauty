@@ -35,7 +35,7 @@ export function PublicPageView({
 
   return (
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
-      <section className="relative min-h-[72vh] overflow-hidden pt-28">
+      <section className="relative min-h-[72vh] overflow-hidden pt-8 md:pt-28">
         {page.image_url ? (
           <div
             aria-label={page.image_alt ?? page.title}
@@ -107,7 +107,7 @@ function PolicyPageView({
 
   return (
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
-      <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
+      <section className={`${shell} pb-20 pt-12 md:pt-32 lg:pb-28 lg:pt-44`}>
         <div className="hb-fade-up max-w-[980px]">
           <h1 className="text-[2.35rem] font-normal leading-[1.08] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
             {titleLines[0]}
@@ -145,7 +145,7 @@ function FaqPageView({
 
   return (
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
-      <section className={`${shell} pb-20 pt-32 sm:pt-36 lg:pb-28 lg:pt-44`}>
+      <section className={`${shell} pb-20 pt-12 md:pt-32 lg:pb-28 lg:pt-44`}>
         <div className="hb-fade-up max-w-[980px]">
           <h1 className="text-[2.35rem] font-normal leading-[1.08] text-[#6c93c4] sm:text-[4.4rem] lg:text-[5.4rem]">
             Frequently
@@ -215,7 +215,7 @@ function OurStoryPageView({
 
   return (
     <main className="overflow-hidden bg-[#e6ecf4] text-[#6c93c4]">
-      <section className="relative pb-12 pt-32 lg:pb-0 lg:pt-[150px]">
+      <section className="relative pb-12 pt-12 md:pt-32 lg:pb-0 lg:pt-[150px]">
         <div className="mx-auto w-full max-w-[618px]">
           <ScrollTranslateY className="p-[10px]" maxPixels={100}>
             <h1 className="text-[2.6rem] font-medium leading-[1.08] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
@@ -320,7 +320,7 @@ function LegalPageView({
 
   return (
     <main className="bg-[#e6ecf4] text-[#7f9dd0]">
-      <section className="mx-auto max-w-[1500px] px-6 pb-12 pt-32 sm:px-10 sm:pb-16 sm:pt-44 lg:pt-52">
+      <section className="mx-auto max-w-[1500px] px-6 pb-12 pt-12 md:pt-32 sm:px-10 sm:pb-16 lg:pt-52">
         <h1 className="hb-fade-up text-[2.6rem] font-medium leading-[1.05] tracking-normal text-[#86a3d3] sm:text-[6.5rem] sm:leading-[0.95] lg:text-[7.6rem]">
           <span>{firstTitleWord} ~</span>
           <span className="mt-2 block pl-[7vw] sm:mt-8">{titleRest.join(" ")}</span>

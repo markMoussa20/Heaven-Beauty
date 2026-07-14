@@ -262,6 +262,14 @@
     backdrop-filter: blur(12px);
     position: sticky !important;
     top: 0;
+    transform: none !important;
+    transition: background-color 350ms;
+    will-change: auto;
+  }
+
+  .site-header-hidden {
+    pointer-events: auto;
+    transform: none !important;
   }
 
   .site-header-inner {
@@ -554,6 +562,8 @@ body {
   font-family: var(--font-kanit), Kanit, Arial, Helvetica, sans-serif;
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
 }
 
 /*
@@ -574,6 +584,8 @@ h6 {
 
 html {
   scroll-behavior: smooth;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
 }
 
 @media (pointer: fine) {

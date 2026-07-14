@@ -91,7 +91,7 @@ export function Header() {
 
   return (
     <header
-      className={`site-header fixed inset-x-0 top-0 z-40 bg-[#86a3d3] md:bg-transparent ${
+      className={`site-header sticky inset-x-0 top-0 z-40 bg-[#86a3d3] md:fixed md:bg-transparent ${
         isHidden && !isOpen ? "site-header-hidden" : ""
       }`}
     >

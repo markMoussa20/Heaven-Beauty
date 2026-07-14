@@ -30,7 +30,7 @@ export default async function ShopPage() {
     null;
 
   return (
-    <main className="bg-[#e6ecf4] pt-32 text-[#6c93c4]">
+    <main className="bg-[#e6ecf4] pt-8 md:pt-32 text-[#6c93c4]">
       <section className={`${shell} pb-10 pt-8 text-center sm:pb-12 sm:pt-10`}>
         {page.subtitle ? (
           <p className="text-sm font-medium uppercase tracking-[0.28em]">

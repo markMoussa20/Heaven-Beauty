@@ -105,7 +105,7 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
   }
 
   return (
-    <div className="bg-[#e6ecf4] pt-28 text-[#6c93c4]">
+    <div className="bg-[#e6ecf4] pt-8 md:pt-28 text-[#6c93c4]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-8 lg:grid-cols-[1fr_420px] lg:px-8 lg:py-12">
         <form
           action={action}
