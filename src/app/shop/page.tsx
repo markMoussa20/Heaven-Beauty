@@ -1,4 +1,4 @@
-import { ProductGrid } from "@/components/products/ProductGrid";
+import { ShopCatalog } from "@/components/products/ShopCatalog";
 import { shell } from "@/lib/design";
 import {
   getActiveCountries,
@@ -66,7 +66,7 @@ export default async function ShopPage({
         ) : null}
       </section>
       <section className={`${shell} pb-20`}>
-        <ProductGrid
+        <ShopCatalog
           items={visibleProducts}
           selectedCountryName={country?.name ?? selectedCountryCode}
         />
