@@ -24,6 +24,12 @@ export function Header() {
   ];
 
   useEffect(() => {
+    const mobileHeaderQuery = window.matchMedia("(max-width: 767px)");
+
+    if (mobileHeaderQuery.matches) {
+      return;
+    }
+
     const hideAfterPixels = 76;
     const scrollThreshold = 6;
     const getScrollY = () =>
