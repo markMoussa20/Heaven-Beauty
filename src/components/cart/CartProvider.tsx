@@ -39,6 +39,20 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+const serverCartFallback: CartContextValue = {
+  items: [],
+  count: 0,
+  hydrated: false,
+  isCartOpen: false,
+  subtotal: 0,
+  addItem: () => undefined,
+  closeCart: () => undefined,
+  openCart: () => undefined,
+  updateQuantity: () => undefined,
+  removeItem: () => undefined,
+  clearCart: () => undefined,
+};
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -190,6 +204,10 @@ export function useCart() {
   const context = useContext(CartContext);
 
   if (!context) {
+    if (typeof window === "undefined") {
+      return serverCartFallback;
+    }
+
     throw new Error("useCart must be used inside CartProvider.");
   }
 
