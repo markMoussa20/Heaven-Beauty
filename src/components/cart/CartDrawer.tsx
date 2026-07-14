@@ -23,25 +23,21 @@ export function CartDrawer() {
       minimumFractionDigits: value % 1 === 0 ? 0 : 2,
     })}`;
 
+  if (!isCartOpen) {
+    return null;
+  }
+
   return (
-    <div
-      className={`fixed inset-0 z-[70] overflow-hidden transition ${
-        isCartOpen ? "pointer-events-auto" : "pointer-events-none"
-      }`}
-    >
+    <div className="fixed inset-0 z-[70] overflow-hidden">
       <button
         aria-label="Close cart"
-        className={`absolute inset-0 bg-[#171412]/30 transition-opacity ${
-          isCartOpen ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 bg-[#171412]/30 transition-opacity"
         onClick={closeCart}
         type="button"
       />
       <aside
         aria-label="Shopping cart"
-        className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-[#e6ecf4] text-[#6c93c4] shadow-2xl transition-transform duration-300 ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-[#e6ecf4] text-[#6c93c4] shadow-2xl transition-transform duration-300"
       >
         <div className="flex items-center justify-between bg-white px-7 py-7">
           <h2 className="font-serif text-2xl tracking-wide">
