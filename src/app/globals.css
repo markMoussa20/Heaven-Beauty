@@ -550,10 +550,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-kanit), Kanit, Arial, Helvetica, sans-serif;
-  -webkit-overflow-scrolling: touch;
-  overflow-x: hidden;
-  overscroll-behavior-y: auto;
-  touch-action: pan-y;
 }
 
 /*
@@ -570,11 +566,6 @@ h5,
 h6 {
   font-family: var(--font-kanit), Kanit, Arial, Helvetica, sans-serif;
   font-weight: 400;
-}
-
-html {
-  overscroll-behavior-y: auto;
-  touch-action: pan-y;
 }
 
 @media (pointer: fine) {

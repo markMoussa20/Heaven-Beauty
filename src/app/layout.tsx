@@ -40,8 +40,8 @@ export default async function RootLayout({
   const isAdminRoute = pathname.startsWith("/admin");
 
   return (
-    <html lang="en" className={`${kanit.variable} h-full overflow-x-clip antialiased`}>
-      <body className="flex min-h-full flex-col overflow-x-hidden bg-zinc-50 text-zinc-950">
+    <html lang="en" className={`${kanit.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-950">
         <CountryProvider
           countries={countries}
           initialCountryCode={selectedCountryCode}
@@ -55,7 +55,7 @@ export default async function RootLayout({
                 <FloatingWhatsApp />
               </PublicOnly>
             ) : null}
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 overflow-x-clip">{children}</main>
             {!isAdminRoute ? (
               <PublicOnly>
                 <Footer />
