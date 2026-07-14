@@ -217,8 +217,6 @@ function CountryItemCard({
   const baseSku = asText(item.products?.base_sku);
   const countrySku = item.country_sku ?? item.sku ?? "";
   const price = `${currencySymbol}${resolveItemPrice(item)}`;
-  const regularPrice = `${currencySymbol}${item.price}`;
-  const salePrice = item.sale_price ? `${currencySymbol}${item.sale_price}` : null;
 
   return (
     <details className="rounded-lg border border-zinc-200 bg-white shadow-sm">
@@ -258,9 +256,8 @@ function CountryItemCard({
       </summary>
 
       <div className="border-t border-zinc-100 p-4">
-        <div className="mb-4 grid gap-3 rounded-md bg-zinc-50 p-3 text-sm text-zinc-600 md:grid-cols-3">
-          <Metric label="Regular price" value={regularPrice} />
-          <Metric label="Sale price" value={salePrice ?? "-"} />
+        <div className="mb-4 grid gap-3 rounded-md bg-zinc-50 p-3 text-sm text-zinc-600 md:grid-cols-2">
+          <Metric label="Price" value={price} />
           <Metric label="Country item ID" value={item.id} />
         </div>
         <CountryItemForm

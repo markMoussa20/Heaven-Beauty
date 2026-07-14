@@ -2,7 +2,6 @@ import type { CountryItemWithProduct } from "@/types/database";
 
 type PriceSource = {
   price: number | string | null;
-  sale_price?: number | string | null;
 };
 
 export function getDisplayPrice(item: CountryItemWithProduct) {
@@ -10,11 +9,6 @@ export function getDisplayPrice(item: CountryItemWithProduct) {
 }
 
 export function resolveItemPrice(item: PriceSource | null | undefined) {
-  const salePrice = toFiniteNumber(item?.sale_price);
-  if (salePrice !== null && salePrice > 0) {
-    return salePrice;
-  }
-
   return toFiniteNumber(item?.price) ?? 0;
 }
 

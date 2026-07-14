@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { getDisplayPrice } from "@/lib/pricing";
@@ -27,7 +28,7 @@ export function ProductCard({ item }: ProductCardProps) {
     supabase,
     getPrimaryProductImagePath(product),
   );
-  const hasSalePrice = Number(item.sale_price ?? 0) > 0;
+  const productHref = product.slug ? `/product/${encodeURIComponent(product.slug)}` : null;
 
   const handleAddToCart = () => {
     addItem({
@@ -48,11 +49,7 @@ export function ProductCard({ item }: ProductCardProps) {
   return (
     <article className="group bg-white text-[#6c93c4]">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
-        {hasSalePrice ? (
-          <span className="absolute left-2 top-2 z-10 bg-[#e6ecf4] px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-[#6c93c4] sm:left-4 sm:top-4 sm:px-3 sm:text-xs">
-            Sale
-          </span>
-        ) : null}
+        {productHref ? <Link aria-label={`View ${product.name}`} className="absolute inset-0 z-[1]" href={productHref} /> : null}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -74,13 +71,19 @@ export function ProductCard({ item }: ProductCardProps) {
           </div>
         )}
       </div>
-      <div className="px-3 pb-4 pt-3 sm:px-7 sm:pb-7 sm:pt-4">
-        <div className="min-h-11 sm:min-h-14">
-          <h3 className="line-clamp-2 text-sm font-normal leading-5 text-[#6c93c4] sm:text-base sm:leading-6">
-            {product.name}
-          </h3>
+      <div className="px-3 pb-3 pt-2 sm:px-7 sm:pb-7 sm:pt-4">
+        <div className="min-h-0 sm:min-h-14">
+          {productHref ? (
+            <Link className="line-clamp-2 text-sm font-normal leading-5 text-[#6c93c4] transition hover:opacity-70 sm:text-base sm:leading-6" href={productHref}>
+              {product.name}
+            </Link>
+          ) : (
+            <h3 className="line-clamp-2 text-sm font-normal leading-5 text-[#6c93c4] sm:text-base sm:leading-6">
+              {product.name}
+            </h3>
+          )}
         </div>
-        <div className="mt-2 flex flex-col gap-3 sm:mt-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-1 flex flex-col gap-1.5 sm:mt-3 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
           <div>
             <p className="text-xs font-light text-[#6c93c4] sm:text-sm">
               {country.currency_symbol}
@@ -91,7 +94,7 @@ export function ProductCard({ item }: ProductCardProps) {
             </p>
           </div>
           <button
-            className="rounded-[2px] bg-[#6c93c4] px-3 py-2 text-xs font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white sm:px-5 sm:py-4 sm:text-sm"
+            className="mt-1 w-fit rounded-[2px] bg-[#6c93c4] px-3 py-2 text-xs font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white sm:mt-0 sm:px-5 sm:py-4 sm:text-sm"
             onClick={handleAddToCart}
             type="button"
           >

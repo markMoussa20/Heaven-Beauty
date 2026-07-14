@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, Search, ShoppingBag, X } from "lucide-react";
 
@@ -11,11 +11,14 @@ import { CountrySelector } from "@/components/country/CountrySelector";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isHidden, setIsHidden] = useState(false);
   const lastScrollY = useRef(0);
   const scrollFrame = useRef<number | null>(null);
   const { count, openCart } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
   const links = [
     { href: "/", label: "Home" },
     { href: "/shop", label: "Shop" },
@@ -100,7 +103,7 @@ export function Header() {
           <button
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="grid h-9 w-9 place-items-center text-white"
+            className="grid h-9 w-9 place-items-center text-[#6c93c4]"
             onClick={() => setIsOpen((value) => !value)}
             type="button"
           >
@@ -138,7 +141,7 @@ export function Header() {
             className="h-auto w-full object-contain md:hidden"
             height={153}
             priority
-            src="/images/heaven-beauty-logo-desktop.png"
+            src="/images/heaven-beauty-logo-mobile.png"
             unoptimized
             width={575}
           />
@@ -149,17 +152,16 @@ export function Header() {
           </div>
           <button
             aria-label="Search products"
-            className="grid h-9 w-9 place-items-center text-white md:hidden"
-            onClick={() => {
-              window.location.href = "/shop";
-            }}
+            aria-expanded={isSearchOpen}
+            className="grid h-9 w-9 place-items-center text-[#6c93c4] md:hidden"
+            onClick={() => setIsSearchOpen(true)}
             type="button"
           >
             <Search className="h-6 w-6" />
           </button>
           <button
             aria-label={`Open cart with ${count} items`}
-            className="relative grid h-9 w-9 place-items-center text-white md:hidden"
+            className="relative grid h-9 w-9 place-items-center text-[#6c93c4] md:hidden"
             onClick={openCart}
             type="button"
           >
@@ -177,6 +179,44 @@ export function Header() {
           </button>
         </div>
       </div>
+      {isSearchOpen ? (
+        <div className="fixed inset-x-0 bottom-0 top-[75.6px] z-50 bg-[#e6ecf4] px-5 py-8 md:hidden">
+          <form
+            className="mx-auto max-w-xl"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const query = searchQuery.trim();
+              setIsSearchOpen(false);
+              router.push(query ? `/shop?q=${encodeURIComponent(query)}` : "/shop");
+            }}
+          >
+            <div className="flex items-center border-b border-[#6c93c4]">
+              <input
+                aria-label="Search products"
+                autoFocus
+                className="h-14 min-w-0 flex-1 bg-transparent text-xl font-light text-[#6c93c4] outline-none placeholder:text-[#6c93c4]/55"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search products"
+                value={searchQuery}
+              />
+              <button
+                aria-label="Submit search"
+                className="grid h-12 w-12 place-items-center text-[#6c93c4]"
+                type="submit"
+              >
+                <Search className="h-6 w-6" />
+              </button>
+            </div>
+            <button
+              className="mt-7 text-sm font-medium uppercase tracking-wide text-[#6c93c4]"
+              onClick={() => setIsSearchOpen(false)}
+              type="button"
+            >
+              Close search
+            </button>
+          </form>
+        </div>
+      ) : null}
       <div
         className={`grid overflow-hidden bg-white/96 shadow-xl backdrop-blur-md transition-all duration-500 md:hidden ${
           isOpen

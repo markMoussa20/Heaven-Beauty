@@ -15,7 +15,13 @@ export const metadata: Metadata = {
   title: "Shop",
 };
 
-export default async function ShopPage() {
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q = "" } = await searchParams;
+  const searchQuery = q.trim().toLowerCase();
   const selectedCountryCode = await getSelectedCountryCode();
   const [countries, selectedCountry, page, products] = await Promise.all([
     getActiveCountries(),
@@ -28,6 +34,14 @@ export default async function ShopPage() {
     countries.find((item) => item.code === getDefaultCountryCode()) ??
     countries[0] ??
     null;
+  const visibleProducts = searchQuery
+    ? products.filter((item) => {
+        const product = item.products;
+        return [product.name, product.brand, product.short_description, product.description]
+          .filter(Boolean)
+          .some((value) => value?.toLowerCase().includes(searchQuery));
+      })
+    : products;
 
   return (
     <main className="bg-[#e6ecf4] pt-8 md:pt-32 text-[#6c93c4]">
@@ -45,10 +59,15 @@ export default async function ShopPage() {
             {page.body}
           </p>
         ) : null}
+        {searchQuery ? (
+          <p className="mt-4 text-sm font-light text-[#6c93c4]">
+            {visibleProducts.length} result{visibleProducts.length === 1 ? "" : "s"} for &ldquo;{q.trim()}&rdquo;
+          </p>
+        ) : null}
       </section>
       <section className={`${shell} pb-20`}>
         <ProductGrid
-          items={products}
+          items={visibleProducts}
           selectedCountryName={country?.name ?? selectedCountryCode}
         />
       </section>

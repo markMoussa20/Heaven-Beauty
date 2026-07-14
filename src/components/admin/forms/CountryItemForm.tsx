@@ -45,7 +45,7 @@ export function CountryItemForm({
         </AdminFormField>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <AdminFormField label="Price" hint="Regular selling price.">
           <input
             className="h-11 rounded-md border border-zinc-300 px-3"
@@ -54,17 +54,6 @@ export function CountryItemForm({
             name="price"
             placeholder="0.00"
             required
-            step="0.01"
-            type="number"
-          />
-        </AdminFormField>
-        <AdminFormField label="Sale price" hint="Leave empty when there is no sale.">
-          <input
-            className="h-11 rounded-md border border-zinc-300 px-3"
-            defaultValue={String(item?.sale_price ?? "")}
-            min="0"
-            name="sale_price"
-            placeholder="Optional"
             step="0.01"
             type="number"
           />

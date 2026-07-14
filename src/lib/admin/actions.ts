@@ -245,7 +245,6 @@ export async function saveCountryItem(id: string | null, _: AdminActionState, fo
     country_id: z.string().min(1),
     product_id: z.string().min(1),
     price: z.number().min(0),
-    sale_price: numberOptional.refine((value) => value === null || value >= 0),
     stock_quantity: numberOptional.refine((value) => value === null || value >= 0),
   });
   const payload = payloadFrom(formData, [
@@ -253,7 +252,6 @@ export async function saveCountryItem(id: string | null, _: AdminActionState, fo
     "product_id",
     "country_sku",
     "price",
-    "sale_price",
     "stock_quantity",
     "is_visible",
     "is_featured",
