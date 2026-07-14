@@ -24,8 +24,8 @@ export function Header() {
   ];
 
   useEffect(() => {
-    const hideAfterPixels = 90;
-    const scrollThreshold = 10;
+    const hideAfterPixels = 76;
+    const scrollThreshold = 6;
     const getScrollY = () =>
       Math.max(
         window.scrollY,
@@ -40,7 +40,7 @@ export function Header() {
       const nextScrollY = getScrollY();
       const delta = nextScrollY - lastScrollY.current;
 
-      if (nextScrollY <= 0 || isOpen) {
+      if (nextScrollY <= 4 || isOpen) {
         setIsHidden(false);
         lastScrollY.current = nextScrollY;
         scrollFrame.current = null;
@@ -85,7 +85,7 @@ export function Header() {
 
   return (
     <header
-      className={`site-header fixed inset-x-0 top-0 z-40 bg-transparent ${
+      className={`site-header fixed inset-x-0 top-0 z-40 bg-[#86a3d3] md:bg-transparent ${
         isHidden && !isOpen ? "site-header-hidden" : ""
       }`}
     >
@@ -132,7 +132,7 @@ export function Header() {
             className="h-auto w-full object-contain md:hidden"
             height={153}
             priority
-            src="/images/heaven-beauty-logo-mobile.png"
+            src="/images/heaven-beauty-logo-desktop.png"
             unoptimized
             width={575}
           />

@@ -59,8 +59,12 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const dragOffsetRef = useRef(0);
   const dragOriginX = useRef(0);
+  const dragOriginY = useRef(0);
   const dragStartedAt = useRef(0);
   const dragStartIndex = useRef(activeIndex);
+  const isTrackingPointer = useRef(false);
+  const isDraggingRef = useRef(false);
+  const trackingPointerId = useRef<number | null>(null);
   const slideWidth = useRef(0);
 
   useEffect(() => {
@@ -96,28 +100,61 @@ export function HeroBanner({ hero }: HeroBannerProps) {
       return;
     }
 
-    event.currentTarget.setPointerCapture(event.pointerId);
     dragOriginX.current = event.clientX;
+    dragOriginY.current = event.clientY;
     dragStartedAt.current = performance.now();
     dragStartIndex.current = activeIndex;
     slideWidth.current = event.currentTarget.getBoundingClientRect().width;
+    isTrackingPointer.current = true;
+    isDraggingRef.current = false;
+    trackingPointerId.current = event.pointerId;
     dragOffsetRef.current = 0;
     setDragOffset(0);
-    setIsDragging(true);
-    setIsPaused(true);
-    setTransitionEnabled(false);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    if (!isDragging) return;
+    if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
+      return;
+    }
 
     const nextOffset = event.clientX - dragOriginX.current;
+    const verticalOffset = event.clientY - dragOriginY.current;
+
+    if (!isDragging) {
+      if (Math.abs(verticalOffset) > 8 && Math.abs(verticalOffset) > Math.abs(nextOffset)) {
+        isTrackingPointer.current = false;
+        isDraggingRef.current = false;
+        trackingPointerId.current = null;
+        return;
+      }
+
+      if (Math.abs(nextOffset) < 8 || Math.abs(nextOffset) < Math.abs(verticalOffset) * 1.2) {
+        return;
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      isDraggingRef.current = true;
+      setIsDragging(true);
+      setIsPaused(true);
+      setTransitionEnabled(false);
+    }
+
     dragOffsetRef.current = nextOffset;
     setDragOffset(nextOffset);
   };
 
   const finishDrag = (event: ReactPointerEvent<HTMLElement>) => {
-    if (!isDragging) return;
+    if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
+      return;
+    }
+
+    isTrackingPointer.current = false;
+    trackingPointerId.current = null;
+
+    if (!isDraggingRef.current) {
+      setIsPaused(false);
+      return;
+    }
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -135,6 +172,7 @@ export function HeroBanner({ hero }: HeroBannerProps) {
     }
 
     dragOffsetRef.current = 0;
+    isDraggingRef.current = false;
     setIsDragging(false);
     setTransitionEnabled(true);
     setDragOffset(0);

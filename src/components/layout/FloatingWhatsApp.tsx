@@ -2,17 +2,18 @@
 
 import { useCountry } from "@/components/country/CountryProvider";
 
+const DEFAULT_WHATSAPP_NUMBER = "96178835078";
+
 export function FloatingWhatsApp() {
   const { selectedCountry } = useCountry();
-  const phone = selectedCountry?.whatsapp?.replace(/\D/g, "") ?? "";
-
-  if (!phone) return null;
+  const phone =
+    selectedCountry?.whatsapp?.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
 
   const whatsappUrl = `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phone)}&text=&type=phone_number&app_absent=0`;
   return (
     <a
       aria-label="Contact Heaven Beauty on WhatsApp"
-      className="fixed bottom-5 right-5 z-[60] grid h-16 w-16 place-items-center rounded-2xl bg-[#6ee85f] text-white shadow-[0_16px_36px_rgba(38,185,62,0.3)] transition duration-300 hover:-translate-y-1 hover:scale-105"
+      className="fixed bottom-5 right-5 z-[90] grid h-16 w-16 place-items-center rounded-2xl bg-[#6ee85f] text-white shadow-[0_16px_36px_rgba(38,185,62,0.3)] transition duration-300 hover:-translate-y-1 hover:scale-105"
       href={whatsappUrl}
       rel="noreferrer"
       target="_blank"
