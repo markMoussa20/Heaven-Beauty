@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
 
 import { ScrollTranslateY } from "@/components/home/ScrollTranslateY";
 import { AnimatedQaAccordion } from "@/components/pages/AnimatedQaAccordion";
@@ -289,16 +290,13 @@ function OurStoryPageView({
         </>
       ) : null}
 
-      <section className="pt-16 lg:pt-[70px]">
-        <div className="mx-auto grid w-full max-w-[770px] grid-cols-2 px-5 text-center lg:grid-cols-4 lg:px-0">
-          {storyValues.map((value) => (
-            <div className="flex h-16 flex-col items-center" key={value}>
-              <span
-                aria-hidden="true"
-                className="block size-[29px]"
-              />
+      <section className="px-5 pb-14 pt-16 md:px-8 md:pb-20 lg:pt-[70px]" aria-label="Heaven Beauty product values">
+        <div className="mx-auto grid w-full max-w-[900px] grid-cols-2 gap-x-6 gap-y-12 text-center lg:grid-cols-4 lg:px-0">
+          {storyValues.map(({ label, Icon }) => (
+            <div className="flex flex-col items-center" key={label}>
+              <Icon aria-hidden="true" className="h-11 w-11 stroke-[1.25]" />
               <h3 className="mt-[11px] w-full text-[16px] font-normal uppercase leading-6 text-[#6c93c4]">
-                {value}
+                {label}
               </h3>
             </div>
           ))}
@@ -460,10 +458,10 @@ const policyHeadings = new Set([
 ]);
 
 const storyValues = [
-  "Cruelty Free",
-  "Lightweight Feel",
-  "Vegan And Conscious",
-  "Self-Love Infused",
+  { label: "Cruelty Free", Icon: Rabbit },
+  { label: "Lightweight Feel", Icon: Feather },
+  { label: "Vegan And Conscious", Icon: Leaf },
+  { label: "Self-Love Infused", Icon: Heart },
 ];
 
 function renderTextWithLinks(value: string) {
