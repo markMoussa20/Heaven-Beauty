@@ -21,6 +21,9 @@ export function ProductCard({ item }: ProductCardProps) {
   const unitPrice = Number(price);
   const product = item.products;
   const country = item.countries;
+  const showCurrencyCode =
+    country.currency_symbol.trim().toUpperCase() !==
+    country.currency_code.trim().toUpperCase();
   const { addItem, openCart } = useCart();
   const [justAdded, setJustAdded] = useState(false);
   const supabase = createClient();
@@ -88,13 +91,15 @@ export function ProductCard({ item }: ProductCardProps) {
             <p className="text-xs font-light text-[#6c93c4] sm:text-sm">
               {country.currency_symbol}
               {price}
-              <span className="ml-1 text-[10px] uppercase sm:text-xs">
-                {country.currency_code}
-              </span>
+              {showCurrencyCode ? (
+                <span className="ml-1 text-[10px] uppercase sm:text-xs">
+                  {country.currency_code}
+                </span>
+              ) : null}
             </p>
           </div>
           <button
-            className="mt-1 w-fit rounded-[2px] bg-[#6c93c4] px-3 py-2 text-xs font-normal tracking-[0.02em] text-[#e6ecf4] transition duration-300 hover:bg-[#a8c5e8] hover:text-white sm:mt-0 sm:px-5 sm:py-4 sm:text-sm"
+            className="mt-1 min-h-11 w-fit rounded-[2px] bg-[#6c93c4] px-3 py-2 text-xs font-medium tracking-[0.01em] text-white transition duration-300 hover:bg-[#a8c5e8] sm:mt-0 sm:px-5 sm:py-4 sm:text-sm"
             onClick={handleAddToCart}
             type="button"
           >

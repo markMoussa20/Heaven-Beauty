@@ -181,6 +181,7 @@ export type Product = {
   slug?: string | null;
   short_description?: string | null;
   description?: string | null;
+  ingredients?: string | null;
   brand?: string | null;
   base_sku?: string | null;
   main_image_url?: string | null;

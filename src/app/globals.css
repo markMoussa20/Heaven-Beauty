@@ -413,7 +413,7 @@
 
 .site-footer-social {
   justify-content: center;
-  gap: 56px;
+  gap: 20px;
   color: #6c93c4;
 }
 
@@ -421,6 +421,14 @@
   width: 18px;
   height: 18px;
   stroke-width: 2;
+}
+
+.site-footer-social a {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
 }
 
 .site-footer-legal {
@@ -533,7 +541,7 @@
 
   .site-footer-social {
     justify-content: center;
-    gap: 40px;
+    gap: 20px;
   }
 
   .site-footer-legal {

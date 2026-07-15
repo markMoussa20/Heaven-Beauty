@@ -131,6 +131,37 @@ export async function deactivateProduct(id: string) {
   revalidatePath("/admin/products");
 }
 
+export async function deleteProduct(id: string) {
+  await requireAdmin();
+  if (!uuidSchema.safeParse(id).success) return;
+  const supabase = adminDb();
+  const { data: productData } = await supabase
+    .from("products")
+    .select("main_image_path, gallery_image_paths")
+    .eq("id", id)
+    .single();
+  const { data: imageData } = await supabase
+    .from("product_images")
+    .select("storage_path")
+    .eq("product_id", id);
+
+  if (!(await runMutation(supabase.from("products").delete().eq("id", id), "delete product"))) return;
+
+  const product = productData as { main_image_path?: string | null; gallery_image_paths?: string[] | null } | null;
+  const images = (imageData ?? []) as Array<{ storage_path?: string | null }>;
+  const paths = [
+    product?.main_image_path,
+    ...(product?.gallery_image_paths ?? []),
+    ...images.map((image) => image.storage_path),
+  ].filter((path): path is string => Boolean(path));
+  if (paths.length) {
+    await supabase.storage.from("product-images").remove([...new Set(paths)]);
+  }
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/admin/products");
+}
+
 const numberOptional = z.union([z.number(), z.null()]);
 
 function text(formData: FormData, key: string) {
@@ -600,6 +631,7 @@ export async function saveProduct(id: string | null, _: AdminActionState, formDa
       "slug",
       "short_description",
       "description",
+      "ingredients",
       "brand",
       "base_sku",
       "is_active",

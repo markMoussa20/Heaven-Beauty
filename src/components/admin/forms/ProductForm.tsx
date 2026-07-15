@@ -40,6 +40,9 @@ export function ProductForm({
       <AdminFormField label="Description">
         <textarea className="min-h-32 rounded-md border border-zinc-300 px-3 py-2" defaultValue={product?.description ?? ""} name="description" />
       </AdminFormField>
+      <AdminFormField label="Ingredients" hint="Shown on the product details page.">
+        <textarea className="min-h-28 rounded-md border border-zinc-300 px-3 py-2" defaultValue={product?.ingredients ?? ""} name="ingredients" />
+      </AdminFormField>
       <div className="grid gap-4 md:grid-cols-2">
         <AdminFormField label="Main image upload" hint="png, jpg, jpeg, webp up to 5MB">
           <div className="grid gap-2">

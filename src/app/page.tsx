@@ -13,6 +13,8 @@ import { getFeaturedCountryItems } from "@/lib/products";
 import { getHomeContent } from "@/lib/site-content";
 import type { CountryItemWithProduct } from "@/types/database";
 import type { Metadata } from "next";
+import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -64,12 +66,12 @@ export default async function Page() {
               ) : null}
               {homeContent.tintRadiance.cta_label &&
               homeContent.tintRadiance.cta_href ? (
-                <a
+                <Link
                   className="inline-block text-base font-normal uppercase tracking-wide text-[#6c93c4] underline"
-                  href={homeContent.tintRadiance.cta_href}
+                  href="/our-story"
                 >
                   {homeContent.tintRadiance.cta_label}
-                </a>
+                </Link>
               ) : null}
             </div>
           </div>
@@ -156,12 +158,12 @@ export default async function Page() {
             </p>
             {homeContent.story.cta_label && homeContent.story.cta_href ? (
               <div className="home-story-cta-row">
-                <a
+                <Link
                   className="home-story-cta"
-                  href={homeContent.story.cta_href}
+                  href="/our-story"
                 >
                   {homeContent.story.cta_label}
-                </a>
+                </Link>
               </div>
             ) : null}
           </div>
@@ -191,6 +193,22 @@ export default async function Page() {
               {homeContent.difference.body}
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-[#e6ecf4] px-5 py-14 md:px-8 md:py-20" aria-label="Heaven Beauty product values">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-4">
+          {[
+            { label: "Cruelty Free", Icon: Rabbit },
+            { label: "Lightweight Feel", Icon: Feather },
+            { label: "Vegan and Conscious", Icon: Leaf },
+            { label: "Self-Love Infused", Icon: Heart },
+          ].map(({ label, Icon }) => (
+            <div className="flex flex-col items-center gap-5 text-center" key={label}>
+              <Icon aria-hidden="true" className="h-11 w-11 stroke-[1.25]" />
+              <p className="text-sm font-normal uppercase tracking-[0.04em] md:text-base">{label}</p>
+            </div>
+          ))}
         </div>
       </section>
 

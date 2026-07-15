@@ -47,7 +47,7 @@ const homeDefaults: HomeContent = {
     id: "default-home-image-showcase",
     key: "home_image_showcase",
     title: "Your glow speaks for itself we simply enhance it",
-    image_url: null,
+    image_url: "/images/original-home-story.jpeg",
     image_alt: "Heaven Beauty product glow image",
     secondary_image_url: null,
     secondary_image_alt: "Heaven Beauty skin tint image",
@@ -134,7 +134,15 @@ function mergeHomeContent(rows: SiteContent[]): HomeContent {
     ) as keyof HomeContent | undefined;
 
     if (targetKey) {
-      next[targetKey] = { ...homeDefaults[targetKey], ...row };
+      next[targetKey] = {
+        ...homeDefaults[targetKey],
+        ...row,
+        image_url: row.image_url ?? homeDefaults[targetKey].image_url,
+        secondary_image_url:
+          row.secondary_image_url ?? homeDefaults[targetKey].secondary_image_url,
+        gallery_image_urls:
+          row.gallery_image_urls ?? homeDefaults[targetKey].gallery_image_urls,
+      };
     }
   }
 

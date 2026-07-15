@@ -235,18 +235,21 @@ export function HeroBanner({ hero }: HeroBannerProps) {
             }}
           >
             {sourceIndex === 0 ? (
+              <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10" aria-hidden="true" />
+            ) : null}
+            {sourceIndex === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center px-[30px] md:px-[50px]">
                 <div
-                  className={`flex max-w-[66%] flex-col items-start gap-[30px] text-left [text-shadow:0_0_10px_rgba(0,0,0,0.3)] ${
+                  className={`flex max-w-[66%] flex-col items-start gap-[30px] text-left [text-shadow:0_2px_14px_rgba(0,0,0,0.65)] ${
                     isActive ? "hb-hero-copy-enter" : "opacity-0"
                   }`}
                   key={isActive ? `visible-${activeIndex}` : `hidden-${index}`}
                 >
-                  <p className="font-heading text-[35px] font-light leading-[1.4] text-white lg:text-[51px]">
+                  <p className="font-heading text-[35px] font-normal leading-[1.4] text-white lg:text-[51px]">
                     {title}
                   </p>
                   <a
-                    className="pointer-events-auto inline-flex border-2 border-white bg-transparent px-5 py-[15px] text-xs font-normal leading-[1.2] text-white transition duration-300 hover:bg-white hover:text-[#6c93c4] md:py-4 md:text-sm"
+                    className="pointer-events-auto inline-flex min-h-11 items-center border-2 border-white bg-black/30 px-5 py-[15px] text-xs font-semibold leading-[1.2] text-white shadow-sm transition duration-300 hover:bg-white hover:text-[#6c93c4] md:py-4 md:text-sm"
                     href={ctaHref}
                   >
                     {ctaLabel}

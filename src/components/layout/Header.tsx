@@ -103,7 +103,7 @@ export function Header() {
           <button
             aria-expanded={isOpen}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="grid h-9 w-9 place-items-center text-[#6c93c4]"
+            className="grid h-11 w-11 place-items-center text-[#6c93c4]"
             onClick={() => setIsOpen((value) => !value)}
             type="button"
           >
@@ -153,7 +153,7 @@ export function Header() {
           <button
             aria-label="Search products"
             aria-expanded={isSearchOpen}
-            className="grid h-9 w-9 place-items-center text-[#6c93c4] md:hidden"
+            className="grid h-11 w-11 place-items-center text-[#6c93c4] md:text-white"
             onClick={() => setIsSearchOpen(true)}
             type="button"
           >
@@ -161,7 +161,7 @@ export function Header() {
           </button>
           <button
             aria-label={`Open cart with ${count} items`}
-            className="relative grid h-9 w-9 place-items-center text-[#6c93c4] md:hidden"
+            className="relative grid h-11 w-11 place-items-center text-[#6c93c4] md:hidden"
             onClick={openCart}
             type="button"
           >
@@ -180,9 +180,9 @@ export function Header() {
         </div>
       </div>
       {isSearchOpen ? (
-        <div className="fixed inset-x-0 bottom-0 top-[75.6px] z-50 bg-[#e6ecf4] px-5 py-8 md:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-[75.6px] z-50 bg-[#e6ecf4] px-5 py-8 md:absolute md:bottom-auto md:top-full md:border-t md:border-white/25 md:bg-white/95 md:px-8 md:py-5 md:shadow-[0_18px_40px_rgba(65,91,126,0.14)] md:backdrop-blur-xl">
           <form
-            className="mx-auto max-w-xl"
+            className="mx-auto max-w-xl md:flex md:max-w-3xl md:items-center md:gap-5"
             onSubmit={(event) => {
               event.preventDefault();
               const query = searchQuery.trim();
@@ -190,29 +190,31 @@ export function Header() {
               router.push(query ? `/shop?q=${encodeURIComponent(query)}` : "/shop");
             }}
           >
-            <div className="flex items-center border-b border-[#6c93c4]">
+            <div className="flex flex-1 items-center border-b border-[#6c93c4]/55 transition focus-within:border-[#6c93c4]">
               <input
                 aria-label="Search products"
                 autoFocus
-                className="h-14 min-w-0 flex-1 bg-transparent text-xl font-light text-[#6c93c4] outline-none placeholder:text-[#6c93c4]/55"
+                className="h-14 min-w-0 flex-1 bg-transparent text-xl font-light text-[#6c93c4] outline-none placeholder:text-[#6c93c4]/55 md:h-11 md:text-base"
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search products"
                 value={searchQuery}
               />
               <button
                 aria-label="Submit search"
-                className="grid h-12 w-12 place-items-center text-[#6c93c4]"
+                className="grid h-12 w-12 place-items-center text-[#6c93c4] transition hover:opacity-65 md:h-11 md:w-11"
                 type="submit"
               >
                 <Search className="h-6 w-6" />
               </button>
             </div>
             <button
-              className="mt-7 text-sm font-medium uppercase tracking-wide text-[#6c93c4]"
+              aria-label="Close search"
+              className="mt-7 text-sm font-medium uppercase tracking-wide text-[#6c93c4] transition hover:opacity-65 md:mt-0 md:grid md:h-11 md:w-11 md:shrink-0 md:place-items-center md:rounded-full md:border md:border-[#6c93c4]/30 md:text-[0]"
               onClick={() => setIsSearchOpen(false)}
               type="button"
             >
-              Close search
+              <span className="md:hidden">Close search</span>
+              <X aria-hidden="true" className="hidden h-5 w-5 md:block" />
             </button>
           </form>
         </div>

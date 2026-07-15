@@ -45,7 +45,7 @@ export function CartDrawer() {
           </h2>
           <button
             aria-label="Close cart"
-            className="inline-flex h-10 w-10 items-center justify-center text-[#6c93c4]"
+            className="inline-flex h-11 w-11 items-center justify-center text-[#6c93c4]"
             onClick={closeCart}
             type="button"
           >
@@ -72,10 +72,10 @@ export function CartDrawer() {
                     <p className="line-clamp-2 text-sm font-semibold uppercase tracking-wide">
                       {item.name}
                     </p>
-                    <div className="mt-6 inline-flex items-center border-b border-[#6c93c4]/55">
+                    <div className="mt-4 inline-flex items-center border-b border-[#6c93c4]">
                       <button
                         aria-label={`Decrease ${item.name}`}
-                        className="grid h-8 w-8 place-items-center"
+                        className="grid h-11 w-11 place-items-center text-[#527eb5] transition hover:bg-white/50"
                         onClick={() =>
                           updateQuantity(item.countryItemId, item.quantity - 1)
                         }
@@ -83,12 +83,12 @@ export function CartDrawer() {
                       >
                         <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="grid h-8 w-8 place-items-center text-sm font-semibold">
+                      <span className="grid h-11 w-9 place-items-center text-sm font-semibold text-[#527eb5]">
                         {item.quantity}
                       </span>
                       <button
                         aria-label={`Increase ${item.name}`}
-                        className="grid h-8 w-8 place-items-center"
+                        className="grid h-11 w-11 place-items-center text-[#527eb5] transition hover:bg-white/50"
                         onClick={() =>
                           updateQuantity(item.countryItemId, item.quantity + 1)
                         }
@@ -101,7 +101,7 @@ export function CartDrawer() {
                   <div className="flex flex-col items-end justify-between">
                     <button
                       aria-label={`Remove ${item.name}`}
-                      className="grid h-9 w-9 place-items-center text-white"
+                      className="grid h-11 w-11 place-items-center text-[#527eb5] transition hover:bg-white/50"
                       onClick={() => removeItem(item.countryItemId)}
                       type="button"
                     >
@@ -137,13 +137,13 @@ export function CartDrawer() {
           </div>
           <div className="mt-8 grid grid-cols-2 gap-4 text-center text-sm font-semibold">
             <Link
-              className="py-3"
+              className="inline-flex min-h-12 items-center justify-center border border-white/55 px-2 py-3 transition hover:bg-white hover:text-[#6c93c4]"
               href="/checkout"
               onClick={closeCart}
             >
               Checkout
             </Link>
-            <Link className="py-3" href="/checkout" onClick={closeCart}>
+            <Link className="inline-flex min-h-12 items-center justify-center border border-white/55 px-2 py-3 transition hover:bg-white hover:text-[#6c93c4]" href="/checkout" onClick={closeCart}>
               View cart
             </Link>
           </div>

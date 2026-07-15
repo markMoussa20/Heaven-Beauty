@@ -20,6 +20,9 @@ export function ProductDetail({
   const product = item.products;
   const country = item.countries;
   const price = Number(getDisplayPrice(item));
+  const showCurrencyCode =
+    country.currency_symbol.trim().toUpperCase() !==
+    country.currency_code.trim().toUpperCase();
   const imageUrl = imageUrls[activeImage] ?? null;
 
   const addToCart = () => {
@@ -94,7 +97,9 @@ export function ProductDetail({
         <p className="mt-6 text-lg font-normal text-[#6c93c4]">
           {country.currency_symbol}
           {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-          <span className="ml-2 text-sm uppercase">{country.currency_code}</span>
+          {showCurrencyCode ? (
+            <span className="ml-2 text-sm uppercase">{country.currency_code}</span>
+          ) : null}
         </p>
         {product.short_description || product.description ? (
           <p className="mt-7 max-w-xl text-base font-light leading-8 text-[#6c93c4] sm:text-lg sm:leading-9">
@@ -140,6 +145,14 @@ export function ProductDetail({
           <Share2 className="h-4 w-4" />
           Share
         </button>
+        {product.ingredients ? (
+          <div className="mt-12 border-t border-[#6c93c4]/30 pt-8">
+            <h2 className="text-xl font-normal text-[#6c93c4]">Ingredients</h2>
+            <p className="mt-4 max-w-xl whitespace-pre-line text-sm font-light leading-7 text-[#6c93c4] sm:text-base">
+              {product.ingredients}
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   );

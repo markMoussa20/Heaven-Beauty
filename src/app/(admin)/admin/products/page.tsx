@@ -4,7 +4,7 @@ import { ConfirmSubmitButton } from "@/components/admin/ConfirmDialog";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
 import { SearchForm } from "@/components/admin/SearchForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { deactivateProduct } from "@/lib/admin/actions";
+import { deactivateProduct, deleteProduct } from "@/lib/admin/actions";
 import { listRows } from "@/lib/admin/data";
 import type { Product } from "@/types/database";
 
@@ -65,13 +65,22 @@ export default async function AdminProductsPage({
           },
           {
             key: "delete",
-            header: "Deactivate",
+            header: "Actions",
             render: (row) => (
-              <form action={deactivateProduct.bind(null, row.id)}>
-                <ConfirmSubmitButton className="text-sm text-red-600 underline" message="Deactivate this product?">
-                  Deactivate
-                </ConfirmSubmitButton>
-              </form>
+              <div className="flex flex-wrap gap-3">
+                {row.is_active ? (
+                  <form action={deactivateProduct.bind(null, row.id)}>
+                    <ConfirmSubmitButton className="text-sm text-amber-700 underline" message="Deactivate this product? It will be hidden from the storefront.">
+                      Deactivate
+                    </ConfirmSubmitButton>
+                  </form>
+                ) : null}
+                <form action={deleteProduct.bind(null, row.id)}>
+                  <ConfirmSubmitButton className="text-sm text-red-600 underline" message="Permanently delete this product, its country listings, and its images? This cannot be undone.">
+                    Delete permanently
+                  </ConfirmSubmitButton>
+                </form>
+              </div>
             ),
           },
         ]}

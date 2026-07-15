@@ -154,9 +154,7 @@ export async function Footer() {
         <div className="site-footer-bottom-inner">
           <p className="site-footer-copyright">
             Copyright © {new Date().getFullYear()}&nbsp;
-            <a href="https://nextlb.co/" rel="noreferrer" target="_blank">
-              Nextlb. All rights reserved.
-            </a>
+            Heaven Beauty. All rights reserved.
           </p>
 
           <div className="site-footer-social" aria-label="Social media links">
