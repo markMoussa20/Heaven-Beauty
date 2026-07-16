@@ -41,10 +41,7 @@ export default async function Page() {
     homeContent.imageShowcase.image_url;
   const storyImageUrl = homeContent.story.image_url;
   const differenceImageUrl = homeContent.difference.image_url;
-  const pureIntroItems = getPureIntroPopupItems(
-    featuredItems,
-    homeContent.pureIntro.cta_href,
-  );
+  const pureIntroItems = getPureIntroPopupItems(featuredItems);
 
   return (
     <div className="bg-[#e6ecf4] text-[#6c93c4]">
@@ -218,37 +215,8 @@ export default async function Page() {
 
 function getPureIntroPopupItems(
   featuredItems: CountryItemWithProduct[],
-  selector?: string | null,
 ) {
-  const tokens = (selector ?? "")
-    .split(/[\s,]+/)
-    .map((token) =>
-      token
-        .trim()
-        .replace(/^country_item:/i, "")
-        .replace(/^product:/i, "")
-        .replace(/^slug:/i, ""),
-    )
-    .filter((token) => token && !token.startsWith("#") && !token.startsWith("/"));
-
-  if (tokens.length === 0) {
-    return featuredItems.slice(0, 1);
-  }
-
-  const tokenSet = new Set(tokens.map((token) => token.toLowerCase()));
-  const selectedItems = featuredItems.filter((item) => {
-    const product = item.products;
-
-    return [
-      item.id,
-      item.country_sku,
-      item.sku,
-      product.id,
-      product.slug,
-      product.base_sku,
-      product.name,
-    ].some((value) => value && tokenSet.has(String(value).toLowerCase()));
-  });
-
-  return selectedItems.length > 0 ? selectedItems : featuredItems.slice(0, 1);
+  return featuredItems.filter(
+    (item) => item.show_in_home_shop_popup,
+  );
 }

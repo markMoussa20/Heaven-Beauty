@@ -27,7 +27,6 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
   const action = saveSiteContent.bind(null, block?.id ?? null);
   const galleryUrls = block?.gallery_image_urls ?? [];
   const isHero = block?.key === "home_hero";
-  const isPureIntro = block?.key === "home_pure_intro";
 
   return (
     <AdminActionForm
@@ -93,11 +92,6 @@ export function SiteContentForm({ block }: { block?: Partial<SiteContent> }) {
         />
       </AdminFormField>
       <AdminFormField
-        hint={
-          isPureIntro
-            ? "For the Pure popup, enter the product slug, product ID, country item ID, or SKU. Use commas for multiple items."
-            : undefined
-        }
         label="Button link"
       >
         <input

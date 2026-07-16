@@ -233,6 +233,9 @@ function CountryItemCard({
               <StatusBadge tone={item.is_featured ? "blue" : "neutral"}>
                 {item.is_featured ? "Featured" : "Not featured"}
               </StatusBadge>
+              {item.show_in_home_shop_popup ? (
+                <StatusBadge tone="blue">Homepage popup</StatusBadge>
+              ) : null}
             </div>
             <p className="mt-1 text-sm text-zinc-500">
               {countryName}

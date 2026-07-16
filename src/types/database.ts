@@ -224,6 +224,7 @@ export type CountryItem = {
   sale_price: number | string | null;
   is_visible: boolean;
   is_featured?: boolean | null;
+  show_in_home_shop_popup?: boolean | null;
   stock_quantity?: number | null;
   sort_order?: number | null;
   sku?: string | null;

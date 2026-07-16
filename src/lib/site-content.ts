@@ -24,7 +24,7 @@ const homeDefaults: HomeContent = {
     key: "home_hero",
     title: "Effortless Glow",
     cta_label: "Shop All",
-    cta_href: "#featured-products",
+    cta_href: "/shop",
     image_url: null,
     image_alt: "Heaven Beauty hero image",
     secondary_image_url: null,

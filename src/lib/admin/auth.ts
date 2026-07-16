@@ -2,6 +2,7 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminSession = {
@@ -19,11 +20,21 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     return null;
   }
 
-  const { data } = await supabase
+  const adminDb = createAdminClient();
+  const { data, error } = await adminDb
     .from("admin_users")
     .select("id,user_id,email")
-    .or(`user_id.eq.${user.id},email.eq.${user.email ?? ""}`)
+    .eq("user_id", user.id)
     .maybeSingle();
+
+  if (error) {
+    console.error("Admin session lookup failed", {
+      code: error.code,
+      message: error.message,
+      userId: user.id,
+    });
+    return null;
+  }
   const adminUser = data as { email?: string | null } | null;
 
   if (!adminUser) {

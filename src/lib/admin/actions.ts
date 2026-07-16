@@ -73,21 +73,35 @@ export async function loginAdmin(_: unknown, formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data: signInData, error } =
+    await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
     return { error: error.message };
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = signInData.user;
+  if (!user) {
+    await supabase.auth.signOut();
+    return { error: "Login succeeded, but no user session was returned." };
+  }
 
-  const { data: adminUser } = await supabase
+  const adminSupabase = createAdminClient();
+  const { data: adminUser, error: adminLookupError } = await adminSupabase
     .from("admin_users")
     .select("id")
-    .or(`user_id.eq.${user?.id ?? ""},email.eq.${user?.email ?? ""}`)
+    .eq("user_id", user.id)
     .maybeSingle();
+
+  if (adminLookupError) {
+    console.error("Admin authorization lookup failed", {
+      code: adminLookupError.code,
+      message: adminLookupError.message,
+      userId: user.id,
+    });
+    await supabase.auth.signOut();
+    return { error: "Admin authorization could not be checked. Please try again." };
+  }
 
   if (!adminUser) {
     await supabase.auth.signOut();
@@ -174,6 +188,7 @@ function payloadFrom(formData: FormData, fields: string[]) {
     fields.map((field) => {
       if (
         field.startsWith("is_") ||
+        field.startsWith("show_") ||
         field.includes("enabled") ||
         field.includes("use_")
       ) {
@@ -286,6 +301,7 @@ export async function saveCountryItem(id: string | null, _: AdminActionState, fo
     "stock_quantity",
     "is_visible",
     "is_featured",
+    "show_in_home_shop_popup",
     "sort_order",
   ]);
   const parsed = schema.safeParse(payload);

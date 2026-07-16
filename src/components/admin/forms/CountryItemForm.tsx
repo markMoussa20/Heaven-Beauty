@@ -103,7 +103,17 @@ export function CountryItemForm({
               label="Featured on home"
               name="is_featured"
             />
+            <InlineCheckbox
+              defaultChecked={item?.show_in_home_shop_popup ?? false}
+              label="Show in homepage Shop popup"
+              name="show_in_home_shop_popup"
+            />
           </div>
+          <p className="mt-3 max-w-xl text-xs leading-5 text-zinc-500">
+            Shows this country-specific product in the “Choose your tint”
+            popup opened by the Shop button in the homepage “Introducing PURE”
+            section. It must also be visible and featured.
+          </p>
         </div>
       </div>
 

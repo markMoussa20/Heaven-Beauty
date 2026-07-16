@@ -29,7 +29,7 @@ export function FeaturedProductsDialog({
       {isOpen ? (
         <div
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end bg-[#172234]/45 px-4 py-5 backdrop-blur-sm sm:items-center sm:justify-center sm:p-8"
+          className="fixed inset-0 z-[100] flex items-end bg-[#172234]/45 px-4 py-5 backdrop-blur-sm sm:items-center sm:justify-center sm:p-8"
           role="dialog"
         >
           <button
@@ -38,7 +38,7 @@ export function FeaturedProductsDialog({
             onClick={() => setIsOpen(false)}
             type="button"
           />
-          <div className="relative max-h-[86vh] w-full overflow-y-auto bg-[#e6ecf4] p-4 text-[#6c93c4] shadow-2xl sm:max-w-[980px] sm:p-7">
+          <div className="relative max-h-[86vh] w-full overflow-y-auto bg-[#e6ecf4] p-4 text-[#6c93c4] shadow-2xl sm:max-w-[760px] sm:p-7">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.22em]">
@@ -57,9 +57,9 @@ export function FeaturedProductsDialog({
               </button>
             </div>
             {items.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,220px))] justify-center gap-4 sm:gap-5">
                 {items.map((item) => (
-                  <ProductCard item={item} key={item.id} />
+                  <ProductCard item={item} key={item.id} variant="dialog" />
                 ))}
               </div>
             ) : (

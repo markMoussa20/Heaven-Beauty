@@ -24,8 +24,6 @@ const ORIGINAL_HERO_IMAGES = [
   "/images/original-home-hero-2.jpeg",
   "/images/original-home-hero-3.webp",
 ];
-const MOBILE_DRAG_QUERY = "(max-width: 767px)";
-
 export function HeroBanner({ hero }: HeroBannerProps) {
   const configuredImages = [
     hero.image_url,
@@ -38,7 +36,10 @@ export function HeroBanner({ hero }: HeroBannerProps) {
     configuredImages.length > 0 ? configuredImages : ORIGINAL_HERO_IMAGES;
   const title = hero.title || "Effortless Glow";
   const ctaLabel = hero.cta_label || "Shop All";
-  const ctaHref = hero.cta_href || "#featured-products";
+  const ctaHref =
+    !hero.cta_href || hero.cta_href === "#featured-products"
+      ? "/shop"
+      : hero.cta_href;
   const slideCount = heroImages.length;
   const renderedSlides =
     slideCount > 1
@@ -92,14 +93,9 @@ export function HeroBanner({ hero }: HeroBannerProps) {
     });
   };
 
-  const isMobileViewport = () =>
-    typeof window !== "undefined" &&
-    window.matchMedia(MOBILE_DRAG_QUERY).matches;
-
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (
       slideCount <= 1 ||
-      isMobileViewport() ||
       (event.pointerType === "mouse" && event.button !== 0) ||
       (event.target as HTMLElement).closest("a, button")
     ) {
@@ -119,10 +115,6 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    if (isMobileViewport()) {
-      return;
-    }
-
     if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
       return;
     }
@@ -154,16 +146,6 @@ export function HeroBanner({ hero }: HeroBannerProps) {
   };
 
   const finishDrag = (event: ReactPointerEvent<HTMLElement>) => {
-    if (isMobileViewport()) {
-      isTrackingPointer.current = false;
-      isDraggingRef.current = false;
-      trackingPointerId.current = null;
-      dragOffsetRef.current = 0;
-      setIsDragging(false);
-      setDragOffset(0);
-      return;
-    }
-
     if (!isTrackingPointer.current || trackingPointerId.current !== event.pointerId) {
       return;
     }
@@ -235,12 +217,9 @@ export function HeroBanner({ hero }: HeroBannerProps) {
             }}
           >
             {sourceIndex === 0 ? (
-              <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10" aria-hidden="true" />
-            ) : null}
-            {sourceIndex === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center px-[30px] md:px-[50px]">
                 <div
-                  className={`flex max-w-[66%] flex-col items-start gap-[30px] text-left [text-shadow:0_2px_14px_rgba(0,0,0,0.65)] ${
+                  className={`flex max-w-[66%] flex-col items-start gap-[30px] text-left [text-shadow:0_2px_12px_rgba(0,0,0,0.5)] ${
                     isActive ? "hb-hero-copy-enter" : "opacity-0"
                   }`}
                   key={isActive ? `visible-${activeIndex}` : `hidden-${index}`}
@@ -249,7 +228,7 @@ export function HeroBanner({ hero }: HeroBannerProps) {
                     {title}
                   </p>
                   <a
-                    className="pointer-events-auto inline-flex min-h-11 items-center border-2 border-white bg-black/30 px-5 py-[15px] text-xs font-semibold leading-[1.2] text-white shadow-sm transition duration-300 hover:bg-white hover:text-[#6c93c4] md:py-4 md:text-sm"
+                    className="pointer-events-auto inline-flex min-h-11 items-center border-2 border-white bg-transparent px-5 py-[15px] text-xs font-semibold leading-[1.2] text-white shadow-sm transition duration-300 hover:bg-white hover:text-[#6c93c4] md:py-4 md:text-sm"
                     href={ctaHref}
                   >
                     {ctaLabel}
