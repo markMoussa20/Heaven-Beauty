@@ -17,7 +17,7 @@ type CheckoutClientProps = {
 };
 
 export function CheckoutClient({ country, idempotencyKey, shippingZones }: CheckoutClientProps) {
-  const { hydrated, items, subtotal, updateQuantity, removeItem, clearCart } =
+  const { count, hydrated, items, subtotal, updateQuantity, removeItem, clearCart } =
     useCart();
   const formRef = useRef<HTMLFormElement>(null);
   const confirmedSubmitRef = useRef(false);
@@ -269,7 +269,9 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
         <aside className="h-fit bg-white p-6 text-[#171412] lg:sticky lg:top-28">
           <div className="flex items-center justify-between border-b border-[#6c93c4]/15 pb-4">
             <h2 className="text-xl font-medium">Order summary</h2>
-            <span className="text-sm text-[#6c93c4]">{items.length} items</span>
+            <span className="text-sm text-[#6c93c4]">
+              {count} {count === 1 ? "item" : "items"}
+            </span>
           </div>
           {items.length > 0 ? (
             <div className="divide-y divide-[#6c93c4]/10">
@@ -358,7 +360,7 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span>Items</span>
-            <span>{items.length}</span>
+            <span>{count}</span>
           </div>
           <div className="flex justify-between">
             <span>Delivery</span>

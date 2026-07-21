@@ -216,12 +216,12 @@ function OurStoryPageView({
 
   return (
     <main className="overflow-hidden bg-[#e6ecf4] text-[#6c93c4]">
-      <section className="relative pb-12 pt-12 md:pt-32 lg:pb-0 lg:pt-[150px]">
+      <section className="relative px-5 pb-8 pt-12 md:px-8 md:pb-12 md:pt-32 lg:pb-0 lg:pt-[150px]">
         <div className="mx-auto w-full max-w-[618px]">
-          <ScrollTranslateY className="p-[10px]" maxPixels={100}>
-            <h1 className="text-[2.6rem] font-medium leading-[1.08] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
-              <span className="block text-right">Welcome To</span>
-              <span className="block text-left">Heaven Beauty</span>
+          <ScrollTranslateY maxPixels={100}>
+            <h1 className="text-center text-[2.25rem] font-medium leading-[1.12] tracking-[-0.02em] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
+              <span className="block lg:text-right">Welcome To</span>
+              <span className="mt-1 block lg:mt-0 lg:text-left">Heaven Beauty</span>
             </h1>
           </ScrollTranslateY>
         </div>
