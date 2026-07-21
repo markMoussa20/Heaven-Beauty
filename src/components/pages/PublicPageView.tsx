@@ -216,14 +216,24 @@ function OurStoryPageView({
 
   return (
     <main className="overflow-hidden bg-[#e6ecf4] text-[#6c93c4]">
-      <section className="relative px-5 pb-8 pt-12 md:px-8 md:pb-12 md:pt-32 lg:pb-0 lg:pt-[150px]">
-        <div className="mx-auto w-full max-w-[618px]">
-          <ScrollTranslateY maxPixels={100}>
-            <h1 className="text-center text-[2.25rem] font-medium leading-[1.12] tracking-[-0.02em] text-[#86a3d3] sm:text-[3.75rem] lg:text-[60px] lg:leading-[69px]">
-              <span className="block lg:text-right">Welcome To</span>
-              <span className="mt-1 block lg:mt-0 lg:text-left">Heaven Beauty</span>
+      <section className="relative px-5 pb-12 pt-14 text-center md:px-8 md:pb-16 md:pt-24 lg:pb-20 lg:pt-32">
+        <div className="mx-auto max-w-[760px]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-[#6c93c4]/80 sm:text-xs">
+            Behind the glow
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-4 sm:gap-7">
+            <span className="h-px w-10 bg-[#86a3d3]/45 sm:w-20" aria-hidden="true" />
+            <h1 className="whitespace-nowrap text-[2.75rem] font-light leading-none tracking-[-0.04em] text-[#6c93c4] sm:text-[4rem] lg:text-[5rem]">
+              Our{" "}
+              <span className="font-serif text-[1.08em] font-normal italic text-[#86a3d3]">
+                Story
+              </span>
             </h1>
-          </ScrollTranslateY>
+            <span className="h-px w-10 bg-[#86a3d3]/45 sm:w-20" aria-hidden="true" />
+          </div>
+          <p className="mx-auto mt-6 max-w-[440px] text-[15px] font-light leading-relaxed text-[#6c93c4]/85 sm:text-base">
+            Beauty made effortless, intentional, and true to you.
+          </p>
         </div>
       </section>
 
