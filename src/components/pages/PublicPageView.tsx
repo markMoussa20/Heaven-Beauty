@@ -72,20 +72,22 @@ export function PublicPageView({
         </div>
       </section>
 
-      <section className={`${shell} py-16 lg:py-24`}>
-        <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-          <h2 className="text-4xl font-medium leading-tight text-[#7f9dd0]">
-            {page.subtitle ?? page.title}
-          </h2>
-          <div className="space-y-8 text-lg font-light leading-9">
-            {(bodyBlocks.length > 1 ? bodyBlocks.slice(1) : bodyBlocks).map(
-              (block) => (
-                <p key={block}>{block}</p>
-              ),
-            )}
+      {page.slug !== "contact" ? (
+        <section className={`${shell} py-16 lg:py-24`}>
+          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
+            <h2 className="text-4xl font-medium leading-tight text-[#7f9dd0]">
+              {page.subtitle ?? page.title}
+            </h2>
+            <div className="space-y-8 text-lg font-light leading-9">
+              {(bodyBlocks.length > 1 ? bodyBlocks.slice(1) : bodyBlocks).map(
+                (block) => (
+                  <p key={block}>{block}</p>
+                ),
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
       {faqItems.length > 0 ? (
         <AccordionSection faqItems={faqItems} />
       ) : null}
