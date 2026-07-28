@@ -248,7 +248,14 @@ function CountryItemCard({
 
           <div className="grid grid-cols-3 gap-3 text-sm">
             <Metric label="Current price" value={price} />
-            <Metric label="Stock" value={String(item.stock_quantity ?? 0)} />
+            <Metric
+              label="Stock"
+              value={
+                item.stock_quantity === null || item.stock_quantity === undefined
+                  ? "Not tracked"
+                  : String(item.stock_quantity)
+              }
+            />
             <Metric label="Sort" value={String(item.sort_order ?? "-")} />
           </div>
 

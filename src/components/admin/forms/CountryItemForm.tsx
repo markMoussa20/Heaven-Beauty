@@ -58,13 +58,16 @@ export function CountryItemForm({
             type="number"
           />
         </AdminFormField>
-        <AdminFormField label="Stock" hint="Available quantity.">
+        <AdminFormField
+          label="Stock quantity (optional)"
+          hint="Leave blank when inventory is not tracked. Enter 0 only when the item is genuinely out of stock."
+        >
           <input
             className="h-11 rounded-md border border-zinc-300 px-3"
             defaultValue={String(item?.stock_quantity ?? "")}
             min="0"
             name="stock_quantity"
-            placeholder="0"
+            placeholder="Not tracked"
             type="number"
           />
         </AdminFormField>
