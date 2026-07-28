@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { notifyOrderCreated } from "@/lib/order-notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { submitOrderToWakilni } from "@/lib/wakilni/orders";
 
 export type CheckoutState =
   | { ok: true; orderNumber: string }
@@ -134,6 +135,13 @@ export async function submitCheckout(
     notifyOrderCreated({ order, items: orderItems }).catch((notificationError) => {
       console.error("Post-commit order notification failed", notificationError);
     });
+    try {
+      await submitOrderToWakilni(result.order_id);
+    } catch (wakilniError) {
+      // The local checkout is already committed. Keep the customer success
+      // response and expose the retryable integration failure to admins.
+      console.error("Post-commit Wakilni submission failed", wakilniError);
+    }
   } else {
     console.error("Order committed but notification payload could not be loaded", { orderId: result.order_id });
   }

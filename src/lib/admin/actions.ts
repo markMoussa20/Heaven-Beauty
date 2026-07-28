@@ -11,6 +11,7 @@ import { uploadPublicPageImage } from "@/lib/admin/public-page-images";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { asBoolean, asNumber, slugify } from "@/lib/utils";
+import { submitOrderToWakilni } from "@/lib/wakilni/orders";
 
 type LooseQuery = {
   delete: () => LooseQuery;
@@ -125,6 +126,18 @@ export async function updateOrderStatus(orderId: string, formData: FormData) {
 
   const supabase = adminDb();
   if (!(await runMutation(supabase.from("orders").update({ status }).eq("id", orderId), "update order status"))) return;
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin/orders");
+}
+
+export async function retryWakilniOrder(orderId: string) {
+  await requireAdmin();
+  if (!uuidSchema.safeParse(orderId).success) return;
+  try {
+    await submitOrderToWakilni(orderId);
+  } catch (error) {
+    console.error("Manual Wakilni retry failed", { orderId, error });
+  }
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
 }

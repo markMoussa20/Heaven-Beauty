@@ -104,6 +104,16 @@ export type Database = {
         Insert: Partial<OrderNotificationLog>;
         Update: Partial<OrderNotificationLog>;
       };
+      wakilni_sync_logs: {
+        Row: WakilniSyncLog;
+        Insert: Partial<WakilniSyncLog>;
+        Update: Partial<WakilniSyncLog>;
+      };
+      wakilni_webhook_events: {
+        Row: WakilniWebhookEvent;
+        Insert: Partial<WakilniWebhookEvent>;
+        Update: Partial<WakilniWebhookEvent>;
+      };
       exchange_rates: {
         Row: ExchangeRate;
         Insert: Partial<ExchangeRate>;
@@ -275,6 +285,38 @@ export type Order = {
   notes?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  wakilni_bulk_id?: number | null;
+  wakilni_order_id?: number | null;
+  wakilni_tracking_id?: string | null;
+  wakilni_tracking_url?: string | null;
+  wakilni_status?: string | null;
+  wakilni_status_code?: number | null;
+  wakilni_sync_status?: string | null;
+  wakilni_last_error?: string | null;
+  wakilni_last_attempt_at?: string | null;
+  wakilni_submitted_at?: string | null;
+  wakilni_updated_at?: string | null;
+};
+
+export type WakilniSyncLog = {
+  id: string;
+  order_id: string;
+  status: string;
+  message?: string | null;
+  response?: Json | null;
+  created_at?: string | null;
+};
+
+export type WakilniWebhookEvent = {
+  id: string;
+  event_id: string;
+  order_id?: string | null;
+  topic: string;
+  country_code?: string | null;
+  delivery_id?: string | null;
+  attempt_number?: number | null;
+  payload: Json;
+  created_at?: string | null;
 };
 
 export type OrderItem = {
