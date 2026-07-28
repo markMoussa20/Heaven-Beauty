@@ -2,6 +2,7 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 
+import { getOrderTrackingUrl } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   Order,
@@ -73,7 +74,28 @@ Delivery address:
 {addressLine}
 {shippingAreaName}
 
+View your order and follow its status:
+{orderTrackingUrl}
+
 We will contact you if we need any extra delivery details.
+
+With love,
+Heaven Beauty`,
+    is_active: true,
+  },
+  customer_delivery_tracking: {
+    id: "customer_delivery_tracking",
+    key: "customer_delivery_tracking",
+    subject: "Delivery tracking is ready for order {orderNumber}",
+    body: `Hi {customerName},
+
+Delivery tracking is now available for your Heaven Beauty order {orderNumber}.
+
+Track the courier:
+{wakilniTrackingUrl}
+
+You can also view your complete order details here:
+{orderTrackingUrl}
 
 With love,
 Heaven Beauty`,
@@ -133,7 +155,7 @@ export async function notifyOrderCreated({ items, order }: NotifyOrderCreatedInp
   }
 
   const context = createTemplateContext(order, items);
-  const jobs: Promise<void>[] = [];
+  const jobs: Promise<unknown>[] = [];
 
   if (settings.customer_email_enabled && order.customer_email) {
     jobs.push(
@@ -178,6 +200,38 @@ export async function notifyOrderCreated({ items, order }: NotifyOrderCreatedInp
   }
 
   await Promise.allSettled(jobs);
+}
+
+export async function notifyWakilniTrackingAvailable({
+  items,
+  order,
+}: NotifyOrderCreatedInput) {
+  if (
+    !order.customer_email ||
+    order.wakilni_tracking_notified_at ||
+    (!order.wakilni_tracking_id && !order.wakilni_tracking_url)
+  ) {
+    return false;
+  }
+
+  const supabase = createAdminClient() as unknown as LooseSupabase;
+  const [settings, templates] = await Promise.all([
+    getSettings(supabase),
+    getTemplates(supabase),
+  ]);
+
+  if (!settings.is_active || !settings.customer_email_enabled) {
+    return false;
+  }
+
+  return sendTemplatedEmail({
+    context: createTemplateContext(order, items),
+    orderId: order.id,
+    recipient: order.customer_email,
+    settings,
+    supabase,
+    template: templates.customer_delivery_tracking,
+  });
 }
 
 async function getSettings(supabase: LooseSupabase) {
@@ -246,6 +300,7 @@ async function sendTemplatedEmail({
       recipient,
       status: "sent",
     });
+    return true;
   } catch (error) {
     await logNotification(supabase, {
       channel: "email",
@@ -254,6 +309,7 @@ async function sendTemplatedEmail({
       recipient,
       status: "failed",
     });
+    return false;
   }
 }
 
@@ -403,10 +459,13 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
     itemsText,
     notes: order.notes ?? "-",
     orderNumber: order.order_number ?? order.id,
+    orderTrackingUrl: getOrderTrackingUrl(order.public_tracking_token),
     shippingAreaName: order.shipping_area_name ?? order.shipping_area ?? "",
     shippingFee: formatMoney(shippingFeeValue),
     subtotal: formatMoney(subtotalValue),
     total: formatMoney(totalValue),
+    wakilniTrackingUrl:
+      order.wakilni_tracking_url ?? getOrderTrackingUrl(order.public_tracking_token),
   };
 }
 
@@ -455,13 +514,35 @@ function renderNotificationHtml(
   renderedText: string,
 ) {
   const isInternal = templateKey === "internal_order_alert";
-  const title = isInternal ? "New order received" : "Your order is confirmed";
+  const isTrackingReady = templateKey === "customer_delivery_tracking";
+  const title = isInternal
+    ? "New order received"
+    : isTrackingReady
+      ? "Delivery tracking is ready"
+      : "Your order is confirmed";
   const eyebrow = isInternal ? "Internal order alert" : "Heaven Beauty";
   const intro = isInternal
     ? `${context.customerName} placed a new Heaven Beauty order.`
-    : `Hi ${context.customerName || "there"}, thank you for your order. We have received it and will prepare it with care.`;
+    : isTrackingReady
+      ? `Hi ${context.customerName || "there"}, you can now follow the delivery for your order.`
+      : `Hi ${context.customerName || "there"}, thank you for your order. We have received it and will prepare it with care.`;
   const itemRows = createItemRowsHtml(context.itemsText);
   const bodyHtml = textToHtml(renderedText);
+  const actionUrl = isTrackingReady
+    ? context.wakilniTrackingUrl
+    : context.orderTrackingUrl;
+  const safeActionUrl = normalizeWebUrl(actionUrl);
+  const actionLabel = isTrackingReady ? "Track delivery" : "View your order";
+  const actionHtml =
+    !isInternal && safeActionUrl
+      ? `
+        <div style="padding:0 34px 30px;text-align:center;">
+          <a href="${escapeHtml(safeActionUrl)}" style="display:inline-block;background:#9eb9d9;color:#ffffff;text-decoration:none;padding:14px 24px;font-size:14px;font-weight:700;">
+            ${escapeHtml(actionLabel)}
+          </a>
+        </div>
+      `
+      : "";
 
   return `
     <div style="margin:0;padding:0;background:#e6ecf4;color:#171412;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
@@ -522,6 +603,8 @@ function renderNotificationHtml(
                       </tr>
                     </table>
                   </div>
+
+                  ${actionHtml}
 
                   <div style="padding:0 34px 34px;">
                     <div style="background:#f5f8fc;padding:20px;border:1px solid rgba(108,147,196,0.16);">
@@ -596,6 +679,15 @@ function escapeHtml(value: string) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function normalizeWebUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
 }
 
 function htmlToPlainText(value: string) {

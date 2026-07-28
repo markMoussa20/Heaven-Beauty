@@ -117,6 +117,7 @@ const footerLinksDefault: FooterLink[] = [
   { id: "default-shop-tints", group_key: "shop", label: "Heavenly Tints", href: "#featured-products", sort_order: 30, is_active: true },
   { id: "default-care-return", group_key: "care", label: "Return", href: "/return-cancellations", sort_order: 10, is_active: true },
   { id: "default-care-faq", group_key: "care", label: "FAQ", href: "/faq", sort_order: 20, is_active: true },
+  { id: "default-care-track-order", group_key: "care", label: "Track Order", href: "/track-order", sort_order: 30, is_active: true },
   { id: "default-legal-terms", group_key: "legal", label: "Terms & Conditions", href: "/terms-conditions", sort_order: 10, is_active: true },
   { id: "default-legal-privacy", group_key: "legal", label: "Privacy Policy", href: "/privacy-policy", sort_order: 20, is_active: true },
   { id: "default-social-facebook", group_key: "social", label: "Facebook", href: "https://www.facebook.com/profile.php?id=61580848234817", sort_order: 10, is_active: true, is_external: true },

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import { notifyWakilniTrackingAvailable } from "@/lib/order-notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Order, OrderItem } from "@/types/database";
 import {
@@ -11,7 +12,13 @@ import {
   WakilniError,
 } from "./client";
 
-type OrderWithCountry = Order & { countries?: { code?: string | null } | null };
+type OrderWithCountry = Order & {
+  countries?: {
+    code?: string | null;
+    currency_code?: string | null;
+    currency_symbol?: string | null;
+  } | null;
+};
 type DeliveryResponse = Record<string, unknown> & {
   id?: number;
   delivery_id?: number;
@@ -49,11 +56,28 @@ async function logAttempt(orderId: string, status: string, message: string, resp
   if (error) console.error("Could not write Wakilni sync log", { orderId, error });
 }
 
+async function sendTrackingNotification(order: OrderWithCountry, items: OrderItem[]) {
+  try {
+    const sent = await notifyWakilniTrackingAvailable({ order, items });
+    if (sent) {
+      await updateOrder(order.id, {
+        wakilni_tracking_notified_at: new Date().toISOString(),
+      });
+    }
+  } catch (error) {
+    console.error("Wakilni tracking email failed", { orderId: order.id, error });
+  }
+}
+
 export async function submitOrderToWakilni(orderId: string) {
   const supabase = createAdminClient();
   const [{ data: rawOrder, error: orderError }, { data: rawItems, error: itemsError }] =
     await Promise.all([
-      supabase.from("orders").select("*, countries(code)").eq("id", orderId).single(),
+      supabase
+        .from("orders")
+        .select("*, countries(code,currency_code,currency_symbol)")
+        .eq("id", orderId)
+        .single(),
       supabase.from("order_items").select("*").eq("order_id", orderId),
     ]);
 
@@ -68,6 +92,7 @@ export async function submitOrderToWakilni(orderId: string) {
     (order.wakilni_tracking_id || order.wakilni_order_id) &&
     ["submitted", "synced"].includes(order.wakilni_sync_status || "")
   ) {
+    await sendTrackingNotification(order, items);
     return { skipped: true as const, reason: "already_submitted" };
   }
 
@@ -163,6 +188,19 @@ export async function submitOrderToWakilni(orderId: string) {
       wakilni_last_error: null,
     });
     await logAttempt(orderId, "submitted", "Order submitted to Wakilni.", delivery);
+    await sendTrackingNotification(
+      {
+        ...order,
+        wakilni_bulk_id: bulkId,
+        wakilni_order_id: wakilniOrderId ?? null,
+        wakilni_tracking_id: delivery.tracking_id ?? null,
+        wakilni_tracking_url: delivery.tracking_url ?? null,
+        wakilni_status: "Pending",
+        wakilni_status_code: 1,
+        wakilni_sync_status: "submitted",
+      },
+      items,
+    );
     return { skipped: false as const, bulkId, delivery };
   } catch (error) {
     const message = errorMessage(error);

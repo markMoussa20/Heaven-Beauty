@@ -94,12 +94,24 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
           Your order {state.orderNumber} has been created. We will contact you
           to confirm the details.
         </p>
-        <Link
-          className="mt-8 inline-flex bg-[#9eb9d9] px-7 py-4 text-sm font-medium text-white transition hover:bg-[#6c93c4]"
-          href="/"
-        >
-          Continue shopping
-        </Link>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            className="inline-flex bg-[#9eb9d9] px-7 py-4 text-sm font-medium text-white transition hover:bg-[#6c93c4]"
+            href={
+              state.trackingToken
+                ? `/track-order/${state.trackingToken}`
+                : "/track-order"
+            }
+          >
+            View order details
+          </Link>
+          <Link
+            className="inline-flex border border-[#6c93c4]/30 bg-white px-7 py-4 text-sm font-medium text-[#6c93c4] transition hover:border-[#6c93c4]"
+            href="/"
+          >
+            Continue shopping
+          </Link>
+        </div>
       </div>
     );
   }

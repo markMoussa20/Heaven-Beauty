@@ -5,7 +5,7 @@ import { getFooterContent } from "@/lib/site-content";
 const footerGroups = [
   { key: "about", label: "About", links: ["Our Story"] },
   { key: "shop", label: "Shop", links: ["Shop"] },
-  { key: "care", label: "Care", links: ["Return", "FAQ"] },
+  { key: "care", label: "Care", links: ["Return", "FAQ", "Track Order"] },
 ] as const;
 
 function FacebookIcon() {
@@ -123,11 +123,25 @@ export async function Footer() {
 
           <nav className="site-footer-nav" aria-label="Footer navigation">
             {footerGroups.map((group) => {
-              const groupLinks = (links[group.key] ?? []).filter((link) =>
+              let groupLinks = (links[group.key] ?? []).filter((link) =>
                 group.links.some(
                   (label) => label.toLowerCase() === link.label.toLowerCase(),
                 ),
               );
+              if (
+                group.key === "care" &&
+                !groupLinks.some((link) => link.label.toLowerCase() === "track order")
+              ) {
+                groupLinks = [
+                  ...groupLinks,
+                  {
+                    id: "footer-track-order",
+                    group_key: "care",
+                    label: "Track Order",
+                    href: "/track-order",
+                  },
+                ];
+              }
 
               return (
                 <div className="site-footer-group" key={group.key}>

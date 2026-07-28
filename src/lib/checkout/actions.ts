@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { submitOrderToWakilni } from "@/lib/wakilni/orders";
 
 export type CheckoutState =
-  | { ok: true; orderNumber: string }
+  | { ok: true; orderNumber: string; trackingToken?: string }
   | { ok: false; error: string; fieldErrors?: Record<string, string[]> }
   | null;
 
@@ -132,9 +132,11 @@ export async function submitCheckout(
   ]);
 
   if (order && orderItems) {
-    notifyOrderCreated({ order, items: orderItems }).catch((notificationError) => {
+    try {
+      await notifyOrderCreated({ order, items: orderItems });
+    } catch (notificationError) {
       console.error("Post-commit order notification failed", notificationError);
-    });
+    }
     try {
       await submitOrderToWakilni(result.order_id);
     } catch (wakilniError) {
@@ -147,7 +149,13 @@ export async function submitCheckout(
   }
 
   revalidatePath("/admin/orders");
-  return { ok: true, orderNumber: result.order_number };
+  return {
+    ok: true,
+    orderNumber: result.order_number,
+    trackingToken: (
+      order as { public_tracking_token?: string | null } | null
+    )?.public_tracking_token ?? undefined,
+  };
 }
 
 function checkoutErrorMessage(message?: string) {

@@ -301,6 +301,8 @@ export type Order = {
   wakilni_last_attempt_at?: string | null;
   wakilni_submitted_at?: string | null;
   wakilni_updated_at?: string | null;
+  wakilni_tracking_notified_at?: string | null;
+  public_tracking_token?: string | null;
 };
 
 export type WakilniSyncLog = {
