@@ -2,6 +2,8 @@ import "server-only";
 
 import { request as httpsRequest } from "node:https";
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 type JsonObject = Record<string, unknown>;
 
 export type WakilniCountryConfig = {
@@ -33,18 +35,20 @@ export class WakilniError extends Error {
   }
 }
 
-function countryConfigs() {
-  const raw = process.env.WAKILNI_COUNTRIES_JSON;
-  if (!raw) return {} as Record<string, WakilniCountryConfig>;
-  try {
-    return JSON.parse(raw) as Record<string, WakilniCountryConfig>;
-  } catch {
-    throw new WakilniError("WAKILNI_COUNTRIES_JSON is not valid JSON.");
-  }
-}
+type RpcClient = {
+  rpc: (name: string, args?: Record<string, unknown>) => Promise<{
+    data: unknown;
+    error: { message: string } | null;
+  }>;
+};
 
-export function getWakilniCountryConfig(countryCode: string) {
-  const account = countryConfigs()[countryCode.toUpperCase()];
+export async function getWakilniCountryConfig(countryCode: string) {
+  const supabase = createAdminClient() as unknown as RpcClient;
+  const { data, error } = await supabase.rpc("get_wakilni_country_config", {
+    p_country_code: countryCode,
+  });
+  if (error) throw new WakilniError(`Could not load Wakilni settings: ${error.message}`);
+  const account = data as WakilniCountryConfig | null;
   if (!account?.enabled) return null;
   if (!account.baseUrl || !account.key || !account.secret) {
     throw new WakilniError(`Wakilni credentials or baseUrl are missing for ${countryCode}.`);
@@ -62,13 +66,13 @@ export function getWakilniCountryConfig(countryCode: string) {
   return { ...account, baseUrl: account.baseUrl.replace(/\/$/, "") };
 }
 
-export function getWakilniWebhookSecrets() {
-  return Object.entries(countryConfigs())
-    .filter(([, account]) => account.enabled && account.webhookSecret)
-    .map(([countryCode, account]) => ({
-      countryCode,
-      secret: account.webhookSecret as string,
-    }));
+export async function getWakilniWebhookSecrets() {
+  const supabase = createAdminClient() as unknown as RpcClient;
+  const { data, error } = await supabase.rpc("get_wakilni_webhook_configs");
+  if (error) throw new WakilniError(`Could not load Wakilni webhook settings: ${error.message}`);
+  return ((data ?? []) as Array<{ countryCode: string; webhookSecret?: string | null }>)
+    .filter((account) => Boolean(account.webhookSecret))
+    .map((account) => ({ countryCode: account.countryCode, secret: account.webhookSecret as string }));
 }
 
 async function parseResponse(response: Response) {

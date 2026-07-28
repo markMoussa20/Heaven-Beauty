@@ -62,7 +62,7 @@ export async function submitOrderToWakilni(orderId: string) {
   if (orderError || itemsError || !order) throw new Error("The local order could not be loaded.");
   const countryCode = order.countries?.code;
   if (!countryCode) throw new WakilniError("The order country code is missing.");
-  const account = getWakilniCountryConfig(countryCode);
+  const account = await getWakilniCountryConfig(countryCode);
   if (!account) return { skipped: true as const, reason: "country_disabled" };
   if (
     (order.wakilni_tracking_id || order.wakilni_order_id) &&

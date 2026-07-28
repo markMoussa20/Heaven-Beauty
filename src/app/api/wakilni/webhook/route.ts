@@ -26,7 +26,7 @@ function validSignature(rawBody: string, supplied: string | null, secret: string
 }
 
 export async function POST(request: Request) {
-  const webhookSecrets = getWakilniWebhookSecrets();
+  const webhookSecrets = await getWakilniWebhookSecrets();
   if (!webhookSecrets.length) {
     return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
   }

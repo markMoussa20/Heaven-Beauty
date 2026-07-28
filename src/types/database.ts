@@ -114,6 +114,11 @@ export type Database = {
         Insert: Partial<WakilniWebhookEvent>;
         Update: Partial<WakilniWebhookEvent>;
       };
+      wakilni_country_settings: {
+        Row: WakilniCountrySettings;
+        Insert: Partial<WakilniCountrySettings>;
+        Update: Partial<WakilniCountrySettings>;
+      };
       exchange_rates: {
         Row: ExchangeRate;
         Insert: Partial<ExchangeRate>;
@@ -317,6 +322,31 @@ export type WakilniWebhookEvent = {
   attempt_number?: number | null;
   payload: Json;
   created_at?: string | null;
+};
+
+export type WakilniCountrySettings = {
+  id: string;
+  country_id: string;
+  enabled: boolean;
+  base_url?: string | null;
+  pickup_location_id?: number | null;
+  pickup_longitude?: number | string | null;
+  pickup_latitude?: number | string | null;
+  pickup_floor?: number | null;
+  pickup_area?: string | null;
+  currency_id?: number | null;
+  cash_collection_type_id?: number | null;
+  package_type_id?: number | null;
+  default_receiver_gender?: number | null;
+  express?: boolean | null;
+  api_key_secret_id?: string | null;
+  api_secret_secret_id?: string | null;
+  webhook_secret_id?: string | null;
+  last_test_status?: string | null;
+  last_test_message?: string | null;
+  last_tested_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type OrderItem = {

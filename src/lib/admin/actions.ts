@@ -12,6 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { asBoolean, asNumber, slugify } from "@/lib/utils";
 import { submitOrderToWakilni } from "@/lib/wakilni/orders";
+import { getWakilniCountryConfig, getWakilniToken } from "@/lib/wakilni/client";
 
 type LooseQuery = {
   delete: () => LooseQuery;
@@ -140,6 +141,101 @@ export async function retryWakilniOrder(orderId: string) {
   }
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
+}
+
+const wakilniSettingsSchema = z.object({
+  countryId: z.string().uuid(),
+  enabled: z.boolean(),
+  baseUrl: z.union([z.literal(""), z.string().url()]),
+  pickupLocationId: z.number().int().nonnegative(),
+  pickupLongitude: z.number(),
+  pickupLatitude: z.number(),
+  pickupFloor: z.number().int(),
+  pickupArea: z.string().max(255),
+  currencyId: z.number().int().nonnegative(),
+  cashCollectionTypeId: z.number().int().positive(),
+  packageTypeId: z.number().int().positive(),
+  defaultReceiverGender: z.number().int().positive(),
+  express: z.boolean(),
+});
+
+function requiredNumber(formData: FormData, key: string) {
+  const raw = String(formData.get(key) ?? "");
+  return raw === "" ? Number.NaN : Number(raw);
+}
+
+export async function saveWakilniSettings(formData: FormData) {
+  await requireAdmin();
+  const parsed = wakilniSettingsSchema.safeParse({
+    countryId: formData.get("country_id"),
+    enabled: formData.get("enabled") === "on",
+    baseUrl: String(formData.get("base_url") ?? "").trim(),
+    pickupLocationId: requiredNumber(formData, "pickup_location_id"),
+    pickupLongitude: requiredNumber(formData, "pickup_longitude"),
+    pickupLatitude: requiredNumber(formData, "pickup_latitude"),
+    pickupFloor: requiredNumber(formData, "pickup_floor"),
+    pickupArea: String(formData.get("pickup_area") ?? "").trim(),
+    currencyId: requiredNumber(formData, "currency_id"),
+    cashCollectionTypeId: requiredNumber(formData, "cash_collection_type_id"),
+    packageTypeId: requiredNumber(formData, "package_type_id"),
+    defaultReceiverGender: requiredNumber(formData, "default_receiver_gender"),
+    express: formData.get("express") === "on",
+  });
+  if (!parsed.success) {
+    console.error("Invalid Wakilni settings", z.flattenError(parsed.error));
+    return;
+  }
+
+  const supabase = createAdminClient() as unknown as {
+    rpc: (name: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+  };
+  const value = parsed.data;
+  const { error } = await supabase.rpc("save_wakilni_country_settings", {
+    p_country_id: value.countryId,
+    p_enabled: value.enabled,
+    p_base_url: value.baseUrl,
+    p_pickup_location_id: value.pickupLocationId,
+    p_pickup_longitude: value.pickupLongitude,
+    p_pickup_latitude: value.pickupLatitude,
+    p_pickup_floor: value.pickupFloor,
+    p_pickup_area: value.pickupArea,
+    p_currency_id: value.currencyId,
+    p_cash_collection_type_id: value.cashCollectionTypeId,
+    p_package_type_id: value.packageTypeId,
+    p_default_receiver_gender: value.defaultReceiverGender,
+    p_express: value.express,
+    p_api_key: String(formData.get("api_key") ?? ""),
+    p_api_secret: String(formData.get("api_secret") ?? ""),
+    p_webhook_secret: String(formData.get("webhook_secret") ?? ""),
+  });
+  if (error) console.error("Saving Wakilni settings failed", error);
+  revalidatePath("/admin/wakilni");
+}
+
+export async function testWakilniConnection(countryCode: string, settingsId: string) {
+  await requireAdmin();
+  if (!uuidSchema.safeParse(settingsId).success) return;
+  let status = "failed";
+  let message = "Connection failed.";
+  try {
+    const account = await getWakilniCountryConfig(countryCode);
+    if (!account) throw new Error("This country is disabled.");
+    await getWakilniToken(account);
+    status = "success";
+    message = "Authentication succeeded.";
+  } catch (error) {
+    message = error instanceof Error ? error.message.slice(0, 1000) : message;
+  }
+  const supabase = createAdminClient();
+  await supabase
+    .from("wakilni_country_settings")
+    .update({
+      last_test_status: status,
+      last_test_message: message,
+      last_tested_at: new Date().toISOString(),
+    } as never)
+    .eq("id", settingsId);
+  revalidatePath("/admin/wakilni");
 }
 
 export async function deleteRow(table: string, id: string, path: string) {

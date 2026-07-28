@@ -11,6 +11,7 @@ import {
   Package,
   ReceiptText,
   Truck,
+  Unplug,
   Users,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ const items = [
   { href: "/admin/country-items", label: "Country Items", icon: Boxes },
   { href: "/admin/content", label: "Content", icon: LayoutPanelTop },
   { href: "/admin/shipping", label: "Shipping", icon: Truck },
+  { href: "/admin/wakilni", label: "Wakilni", icon: Unplug },
   { href: "/admin/orders", label: "Orders", icon: ReceiptText },
   { href: "/admin/notifications", label: "Notifications", icon: MessageSquareText },
   { href: "/admin/customers", label: "Customers", icon: Users },
