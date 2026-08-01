@@ -168,29 +168,17 @@ export function OrderTrackingView({
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold">Courier status</h2>
+                <h2 className="text-lg font-semibold">Delivery status</h2>
                 <p className="mt-3 text-sm leading-6 text-[#6c7180]">
                   {order.wakilni_status
                     ? displayStatus(order)
                     : order.wakilni_sync_status === "failed"
                       ? "We are arranging your delivery."
-                      : "Courier tracking will appear here once available."}
+                      : "Delivery updates will appear here as your order progresses."}
                 </p>
-                {order.wakilni_tracking_id ? (
-                  <p className="mt-1 text-xs text-[#8b9099]">
-                    Tracking ID: {order.wakilni_tracking_id}
-                  </p>
-                ) : null}
-                {order.wakilni_tracking_url ? (
-                  <a
-                    className="mt-5 inline-flex bg-[#9eb9d9] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#6c93c4]"
-                    href={order.wakilni_tracking_url}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Track with Wakilni
-                  </a>
-                ) : null}
+                <p className="mt-2 text-xs text-[#8b9099]">
+                  Reference: {order.order_number ?? order.id}
+                </p>
               </div>
             </section>
           </div>

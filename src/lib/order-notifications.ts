@@ -46,8 +46,6 @@ const defaultSettings: Partial<OrderNotificationSettings> = {
   sender_name: "Heaven Beauty",
   sender_email: "service@myheavenbeauty.com",
   reply_to_email: "service@myheavenbeauty.com",
-  gmail_user: "service@myheavenbeauty.com",
-  smtp_host: "smtp.gmail.com",
   smtp_port: 465,
   smtp_secure: true,
   callmebot_endpoint_template:
@@ -86,15 +84,12 @@ Heaven Beauty`,
   customer_delivery_tracking: {
     id: "customer_delivery_tracking",
     key: "customer_delivery_tracking",
-    subject: "Delivery tracking is ready for order {orderNumber}",
+    subject: "Delivery update for order {orderNumber}",
     body: `Hi {customerName},
 
-Delivery tracking is now available for your Heaven Beauty order {orderNumber}.
+There is a delivery update for your Heaven Beauty order {orderNumber}.
 
-Track the courier:
-{wakilniTrackingUrl}
-
-You can also view your complete order details here:
+View your order details and latest delivery status:
 {orderTrackingUrl}
 
 With love,
@@ -286,7 +281,7 @@ async function sendTemplatedEmail({
 }) {
   try {
     const renderedBody = renderTemplate(template.body ?? "", context);
-    await sendGmailEmail({
+    await sendSmtpEmail({
       html: renderNotificationHtml(template.key, context, renderedBody),
       recipient,
       settings,
@@ -313,7 +308,7 @@ async function sendTemplatedEmail({
   }
 }
 
-async function sendGmailEmail({
+async function sendSmtpEmail({
   html,
   recipient,
   settings,
@@ -326,24 +321,28 @@ async function sendGmailEmail({
   subject: string;
   text: string;
 }) {
-  if (!settings.gmail_user || !settings.gmail_app_password) {
-    throw new Error("Gmail user or app password is missing in notification settings.");
+  const smtpUsername = settings.smtp_username ?? settings.gmail_user;
+  const smtpPassword = settings.smtp_password ?? settings.gmail_app_password;
+  const smtpHost = settings.smtp_host?.trim();
+
+  if (!smtpUsername || !smtpPassword || !smtpHost) {
+    throw new Error("SMTP host, username, or password is missing in notification settings.");
   }
 
   const transport = nodemailer.createTransport({
     auth: {
-      pass: settings.gmail_app_password,
-      user: settings.gmail_user,
+      pass: smtpPassword,
+      user: smtpUsername,
     },
-    host: settings.smtp_host ?? "smtp.gmail.com",
+    host: smtpHost,
     port: Number(settings.smtp_port ?? 465),
     secure: settings.smtp_secure !== false,
   });
 
   await transport.sendMail({
-    from: `${settings.sender_name ?? "Heaven Beauty"} <${settings.sender_email ?? settings.gmail_user}>`,
+    from: `${settings.sender_name ?? "Heaven Beauty"} <${settings.sender_email ?? smtpUsername}>`,
     html,
-    replyTo: settings.reply_to_email ?? settings.sender_email ?? settings.gmail_user,
+    replyTo: settings.reply_to_email ?? settings.sender_email ?? smtpUsername,
     subject,
     text,
     to: recipient,
@@ -448,6 +447,7 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
       return `${item.quantity}x ${item.product_name ?? "Product"} (${formatMoney(lineTotal)})`;
     })
     .join("; ");
+  const orderTrackingUrl = getOrderTrackingUrl(order.public_tracking_token);
 
   return {
     addressLine: order.address_line ?? order.address ?? "",
@@ -459,13 +459,14 @@ function createTemplateContext(order: NotificationOrder, items: OrderItem[]) {
     itemsText,
     notes: order.notes ?? "-",
     orderNumber: order.order_number ?? order.id,
-    orderTrackingUrl: getOrderTrackingUrl(order.public_tracking_token),
+    orderTrackingUrl,
     shippingAreaName: order.shipping_area_name ?? order.shipping_area ?? "",
     shippingFee: formatMoney(shippingFeeValue),
     subtotal: formatMoney(subtotalValue),
     total: formatMoney(totalValue),
-    wakilniTrackingUrl:
-      order.wakilni_tracking_url ?? getOrderTrackingUrl(order.public_tracking_token),
+    // Keep the legacy template variable pointed at our private order page so
+    // saved templates never expose the courier tracking identifier or URL.
+    wakilniTrackingUrl: orderTrackingUrl,
   };
 }
 
@@ -518,21 +519,19 @@ function renderNotificationHtml(
   const title = isInternal
     ? "New order received"
     : isTrackingReady
-      ? "Delivery tracking is ready"
+      ? "Your delivery has an update"
       : "Your order is confirmed";
   const eyebrow = isInternal ? "Internal order alert" : "Heaven Beauty";
   const intro = isInternal
     ? `${context.customerName} placed a new Heaven Beauty order.`
     : isTrackingReady
-      ? `Hi ${context.customerName || "there"}, you can now follow the delivery for your order.`
+      ? `Hi ${context.customerName || "there"}, view the latest delivery status for your order.`
       : `Hi ${context.customerName || "there"}, thank you for your order. We have received it and will prepare it with care.`;
   const itemRows = createItemRowsHtml(context.itemsText);
   const bodyHtml = textToHtml(renderedText);
-  const actionUrl = isTrackingReady
-    ? context.wakilniTrackingUrl
-    : context.orderTrackingUrl;
+  const actionUrl = context.orderTrackingUrl;
   const safeActionUrl = normalizeWebUrl(actionUrl);
-  const actionLabel = isTrackingReady ? "Track delivery" : "View your order";
+  const actionLabel = isTrackingReady ? "View delivery status" : "View your order";
   const actionHtml =
     !isInternal && safeActionUrl
       ? `

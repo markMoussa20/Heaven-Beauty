@@ -65,7 +65,7 @@ export default async function AdminNotificationsPage() {
         <div>
           <h2 className="text-lg font-semibold text-zinc-950">Delivery settings</h2>
           <p className="text-sm text-zinc-500">
-            Gmail requires an app password. CallMeBot can stay disabled until you add the API key.
+            Use the SMTP credentials supplied by your email provider. CallMeBot can stay disabled until you add the API key.
           </p>
         </div>
         <OrderNotificationSettingsForm settings={settings} />

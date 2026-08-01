@@ -43,32 +43,34 @@ export function OrderNotificationSettingsForm({
         />
       </AdminFormField>
       <AdminFormField
-        hint="For Gmail SMTP this is usually the same Gmail mailbox as the sender."
-        label="Gmail username"
+        hint="The full mailbox address used to authenticate with your email provider."
+        label="SMTP username"
       >
         <input
           className="h-10 rounded-md border border-zinc-300 px-3"
-          defaultValue={settings?.gmail_user ?? ""}
-          name="gmail_user"
+          defaultValue={settings?.smtp_username ?? settings?.gmail_user ?? ""}
+          name="smtp_username"
           type="email"
         />
       </AdminFormField>
       <AdminFormField
-        hint="Use a Gmail app password, not the normal Gmail login password."
-        label="Gmail app password"
+        hint="Use the app password or SMTP password issued by your email provider."
+        label="SMTP password"
       >
         <input
           className="h-10 rounded-md border border-zinc-300 px-3"
-          defaultValue={settings?.gmail_app_password ?? ""}
-          name="gmail_app_password"
+          defaultValue={settings?.smtp_password ?? settings?.gmail_app_password ?? ""}
+          name="smtp_password"
           type="password"
         />
       </AdminFormField>
       <AdminFormField label="SMTP host">
         <input
           className="h-10 rounded-md border border-zinc-300 px-3"
-          defaultValue={settings?.smtp_host ?? "smtp.gmail.com"}
+          defaultValue={settings?.smtp_host ?? ""}
           name="smtp_host"
+          placeholder="smtp.example.com"
+          required
         />
       </AdminFormField>
       <AdminFormField label="SMTP port">

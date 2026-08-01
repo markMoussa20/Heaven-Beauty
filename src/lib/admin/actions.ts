@@ -324,11 +324,13 @@ async function upsertRecord({
   id,
   payload,
   path,
+  redirectPath,
 }: {
   table: string;
   id?: string | null;
   payload: Record<string, unknown>;
   path: string;
+  redirectPath?: string;
 }): Promise<AdminActionState> {
   await requireAdmin();
   const supabase = adminDb();
@@ -341,7 +343,7 @@ async function upsertRecord({
   }
 
   revalidatePath(path);
-  redirect(path);
+  redirect(redirectPath ?? path);
 }
 
 export async function saveCountry(id: string | null, _: AdminActionState, formData: FormData) {
@@ -415,11 +417,20 @@ export async function saveCountryItem(id: string | null, _: AdminActionState, fo
   ]);
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return { ok: false as const, message: "Check the country, product, price, and stock values.", fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  const requestedReturnPath = String(formData.get("return_to") ?? "");
+  const countryItemsPath = "/admin/country-items";
+  const returnPath =
+    requestedReturnPath === countryItemsPath ||
+    requestedReturnPath.startsWith(`${countryItemsPath}?`)
+      ? requestedReturnPath
+      : countryItemsPath;
+
   return upsertRecord({
     table: "country_items",
     id,
     payload,
     path: "/admin/country-items",
+    redirectPath: returnPath,
   });
 }
 
@@ -617,8 +628,8 @@ export async function saveOrderNotificationSettings(id: string | null, _: AdminA
       "sender_name",
       "sender_email",
       "reply_to_email",
-      "gmail_user",
-      "gmail_app_password",
+      "smtp_username",
+      "smtp_password",
       "smtp_host",
       "smtp_port",
       "smtp_secure",

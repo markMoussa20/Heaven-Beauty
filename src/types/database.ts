@@ -441,7 +441,11 @@ export type OrderNotificationSettings = {
   sender_name?: string | null;
   sender_email?: string | null;
   reply_to_email?: string | null;
+  smtp_username?: string | null;
+  smtp_password?: string | null;
+  /** @deprecated Kept temporarily for settings created before the SMTP migration. */
   gmail_user?: string | null;
+  /** @deprecated Kept temporarily for settings created before the SMTP migration. */
   gmail_app_password?: string | null;
   smtp_host?: string | null;
   smtp_port?: number | string | null;

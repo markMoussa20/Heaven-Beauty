@@ -46,6 +46,7 @@ export default async function AdminCountryItemsPage({
   const rows = filterCountryItems(data as CountryItemRow[], params);
   const visibleCount = rows.filter((row) => row.is_visible).length;
   const featuredCount = rows.filter((row) => row.is_featured).length;
+  const returnTo = countryItemsUrl(params);
 
   return (
     <div className="space-y-6">
@@ -77,6 +78,7 @@ export default async function AdminCountryItemsPage({
           <CountryItemForm
             countries={countries}
             products={products}
+            returnTo={returnTo}
             submitLabel="Create country item"
           />
         </div>
@@ -92,6 +94,7 @@ export default async function AdminCountryItemsPage({
               item={row}
               key={row.id}
               products={products}
+              returnTo={returnTo}
             />
           ))
         ) : (
@@ -205,10 +208,12 @@ function CountryItemCard({
   countries,
   item,
   products,
+  returnTo,
 }: {
   countries: { value: string; label: string }[];
   item: CountryItemRow;
   products: { value: string; label: string }[];
+  returnTo: string;
 }) {
   const productName = asText(item.products?.name, item.product_id);
   const countryName = asText(item.countries?.name, item.country_id);
@@ -274,6 +279,7 @@ function CountryItemCard({
           countries={countries}
           item={item}
           products={products}
+          returnTo={returnTo}
           submitLabel="Save country item"
         />
         <form
@@ -361,4 +367,15 @@ function filterCountryItems(rows: CountryItemRow[], params: CountryItemParams) {
 
 function asText(value: unknown, fallback = "") {
   return value === null || value === undefined ? fallback : String(value);
+}
+
+function countryItemsUrl(params: CountryItemParams) {
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value) query.set(key, value);
+  }
+
+  const queryString = query.toString();
+  return `/admin/country-items${queryString ? `?${queryString}` : ""}`;
 }

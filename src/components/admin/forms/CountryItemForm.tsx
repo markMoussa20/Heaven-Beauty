@@ -10,11 +10,13 @@ export function CountryItemForm({
   item,
   countries,
   products,
+  returnTo,
   submitLabel,
 }: {
   item?: Partial<CountryItem>;
   countries: { value: string; label: string }[];
   products: { value: string; label: string }[];
+  returnTo?: string;
   submitLabel?: string;
 }) {
   const action = saveCountryItem.bind(null, item?.id ?? null);
@@ -24,6 +26,11 @@ export function CountryItemForm({
       action={action}
       className="grid gap-5 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm"
     >
+      <input
+        name="return_to"
+        type="hidden"
+        value={returnTo ?? "/admin/country-items"}
+      />
       <div className="grid gap-4 md:grid-cols-2">
         <AdminFormField label="Country" hint="Where this product can be sold.">
           <AdminSelect

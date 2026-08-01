@@ -126,7 +126,12 @@ export default async function AdminOrderDetailPage({
           <section className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="text-lg font-semibold">Update status</h2>
             <form action={updateOrderStatus.bind(null, id)} className="mt-3 flex gap-3">
-              <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" defaultValue={typedOrder.status ?? "pending"} name="status">
+              <select
+                className="h-10 rounded-md border border-zinc-300 px-3 text-sm"
+                defaultValue={typedOrder.status ?? "pending"}
+                key={typedOrder.status ?? "pending"}
+                name="status"
+              >
                 {statuses.map((status) => (
                   <option key={status} value={status}>{status}</option>
                 ))}
