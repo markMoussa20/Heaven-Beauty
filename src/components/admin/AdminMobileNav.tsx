@@ -14,6 +14,7 @@ const items = [
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/notifications", label: "Notifications" },
   { href: "/admin/customers", label: "Customers" },
+  { href: "/admin/admin-users", label: "Admin Users" },
   { href: "/admin/exchange-rates", label: "Exchange Rates" },
 ];
 

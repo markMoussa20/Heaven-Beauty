@@ -10,6 +10,7 @@ import {
   MapPinned,
   Package,
   ReceiptText,
+  ShieldCheck,
   Truck,
   Unplug,
   Users,
@@ -27,6 +28,7 @@ const items = [
   { href: "/admin/orders", label: "Orders", icon: ReceiptText },
   { href: "/admin/notifications", label: "Notifications", icon: MessageSquareText },
   { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/admin-users", label: "Admin Users", icon: ShieldCheck },
   { href: "/admin/exchange-rates", label: "Exchange Rates", icon: ChartNoAxesCombined },
   { href: "/", label: "Public Site", icon: MapPinned },
 ];

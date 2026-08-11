@@ -366,7 +366,10 @@ export type AdminUser = {
   id: string;
   user_id?: string | null;
   email?: string | null;
+  full_name?: string | null;
+  is_active: boolean;
   created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type SiteContent = {
