@@ -89,23 +89,11 @@ export async function loginAdmin(_: unknown, formData: FormData) {
   }
 
   const adminSupabase = createAdminClient();
-  let { data: adminUser, error: adminLookupError } = await adminSupabase
+  const { data: adminUser, error: adminLookupError } = await adminSupabase
     .from("admin_users")
-    .select("id,is_active")
+    .select("id")
     .eq("user_id", user.id)
     .maybeSingle();
-
-  // Allow legacy admin rows during the short window before the additive
-  // admin-user management migration is applied.
-  if (adminLookupError?.code === "42703") {
-    const legacyResult = await adminSupabase
-      .from("admin_users")
-      .select("id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    adminUser = legacyResult.data as typeof adminUser;
-    adminLookupError = legacyResult.error;
-  }
 
   if (adminLookupError) {
     console.error("Admin authorization lookup failed", {
@@ -122,11 +110,6 @@ export async function loginAdmin(_: unknown, formData: FormData) {
     return { error: "Not authorized." };
   }
 
-  if ((adminUser as { is_active?: boolean }).is_active === false) {
-    await supabase.auth.signOut();
-    return { error: "This admin account is inactive. Contact another administrator." };
-  }
-
   redirect("/admin/dashboard");
 }
 
@@ -140,7 +123,6 @@ const adminUserSchema = z.object({
   fullName: z.string().trim().min(2, "Enter the admin's name.").max(100),
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters.").max(128).optional(),
-  isActive: z.boolean(),
 });
 
 function adminUserErrorMessage(error: { message: string } | null | undefined) {
@@ -161,7 +143,6 @@ export async function saveAdminUser(
     fullName: formData.get("full_name"),
     email: formData.get("email"),
     password: passwordValue || undefined,
-    isActive: formData.get("is_active") === "on",
   });
 
   if (!parsed.success) {
@@ -172,7 +153,7 @@ export async function saveAdminUser(
     };
   }
 
-  const session = await requireAdmin();
+  await requireAdmin();
   const supabase = createAdminClient();
   const values = parsed.data;
 
@@ -195,8 +176,6 @@ export async function saveAdminUser(
     const { error: insertError } = await supabase.from("admin_users").insert({
       user_id: created.user.id,
       email: values.email,
-      full_name: values.fullName,
-      is_active: values.isActive,
     } as never);
 
     if (insertError) {
@@ -217,10 +196,6 @@ export async function saveAdminUser(
       return failed("The admin account could not be found.");
     }
 
-    if (existingAdmin.user_id === session.userId && !values.isActive) {
-      return failed("You cannot deactivate the account you are currently using.");
-    }
-
     const authChanges: {
       email: string;
       email_confirm: boolean;
@@ -238,12 +213,7 @@ export async function saveAdminUser(
 
     const { error: updateError } = await supabase
       .from("admin_users")
-      .update({
-        email: values.email,
-        full_name: values.fullName,
-        is_active: values.isActive,
-        updated_at: new Date().toISOString(),
-      } as never)
+      .update({ email: values.email } as never)
       .eq("id", id);
 
     if (updateError) return failed(adminUserErrorMessage(updateError));
@@ -251,28 +221,6 @@ export async function saveAdminUser(
 
   revalidatePath("/admin/admin-users");
   redirect("/admin/admin-users");
-}
-
-export async function setAdminUserActive(id: string, active: boolean) {
-  const session = await requireAdmin();
-  if (!uuidSchema.safeParse(id).success) return;
-
-  const supabase = createAdminClient();
-  const { data: target } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  const targetAdmin = target as { user_id: string | null } | null;
-  if (!targetAdmin || (targetAdmin.user_id === session.userId && !active)) return;
-
-  const { error } = await supabase
-    .from("admin_users")
-    .update({ is_active: active, updated_at: new Date().toISOString() } as never)
-    .eq("id", id);
-  if (error) console.error("Updating admin status failed", { id, message: error.message });
-  revalidatePath("/admin/admin-users");
 }
 
 export async function deleteAdminUser(id: string) {

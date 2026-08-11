@@ -1,6 +1,5 @@
 import { AdminActionForm } from "@/components/admin/AdminActionForm";
 import { AdminFormField } from "@/components/admin/AdminFormField";
-import { InlineCheckbox } from "@/components/admin/InlineCheckbox";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { saveAdminUser } from "@/lib/admin/actions";
 import type { AdminUser } from "@/types/database";
@@ -43,9 +42,6 @@ export function AdminUserForm({ adminUser }: { adminUser?: AdminUser }) {
           type="password"
         />
       </AdminFormField>
-      <div className="flex items-end pb-2">
-        <InlineCheckbox defaultChecked={adminUser?.is_active ?? true} label="Active — can log in to the dashboard" name="is_active" />
-      </div>
       <div className="md:col-span-2">
         <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
           {isEditing ? "Save admin user" : "Add admin user"}

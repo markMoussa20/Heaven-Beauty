@@ -21,23 +21,11 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   }
 
   const adminDb = createAdminClient();
-  let { data, error } = await adminDb
+  const { data, error } = await adminDb
     .from("admin_users")
-    .select("id,user_id,email,is_active")
+    .select("id,user_id,email")
     .eq("user_id", user.id)
     .maybeSingle();
-
-  // Keep existing admins able to sign in while an application deployment and
-  // its additive database migration are briefly out of sync.
-  if (error?.code === "42703") {
-    const legacyResult = await adminDb
-      .from("admin_users")
-      .select("id,user_id,email")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    data = legacyResult.data as typeof data;
-    error = legacyResult.error;
-  }
 
   if (error) {
     console.error("Admin session lookup failed", {
@@ -47,9 +35,9 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     });
     return null;
   }
-  const adminUser = data as { email?: string | null; is_active?: boolean } | null;
+  const adminUser = data as { email?: string | null } | null;
 
-  if (!adminUser || adminUser.is_active === false) {
+  if (!adminUser) {
     return null;
   }
 

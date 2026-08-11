@@ -4,10 +4,9 @@ import { ConfirmSubmitButton } from "@/components/admin/ConfirmDialog";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
 import { AdminUserForm } from "@/components/admin/forms/AdminUserForm";
 import { SearchForm } from "@/components/admin/SearchForm";
-import { StatusBadge } from "@/components/admin/StatusBadge";
-import { deleteAdminUser, setAdminUserActive } from "@/lib/admin/actions";
+import { deleteAdminUser } from "@/lib/admin/actions";
 import { requireAdmin } from "@/lib/admin/auth";
-import { listRows } from "@/lib/admin/data";
+import { listAdminUsers } from "@/lib/admin/data";
 import type { AdminUser } from "@/types/database";
 
 export const metadata = { title: "Admin Users" };
@@ -18,12 +17,7 @@ export default async function AdminUsersPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const [params, session] = await Promise.all([searchParams, requireAdmin()]);
-  const { data, error } = await listRows("admin_users", {
-    order: "created_at",
-    ascending: false,
-    search: params.q,
-    searchColumns: ["full_name", "email"],
-  });
+  const { data, error } = await listAdminUsers(params.q);
   const adminUsers = data as AdminUser[];
 
   return (
@@ -45,37 +39,9 @@ export default async function AdminUsersPage({
           { key: "name", header: "Name", render: (row) => row.full_name ?? "-" },
           { key: "email", header: "Email", render: (row) => row.email ?? "-" },
           {
-            key: "status",
-            header: "Status",
-            render: (row) => (
-              <StatusBadge tone={row.is_active ? "green" : "neutral"}>
-                {row.is_active ? "Active" : "Inactive"}
-              </StatusBadge>
-            ),
-          },
-          {
             key: "created",
             header: "Created",
             render: (row) => row.created_at ? new Date(row.created_at).toLocaleString() : "-",
-          },
-          {
-            key: "access",
-            header: "Access",
-            render: (row) => {
-              const isCurrentUser = row.user_id === session.userId;
-              return (
-                <form action={setAdminUserActive.bind(null, row.id, !row.is_active)}>
-                  <button
-                    className="text-sm font-medium text-zinc-700 underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-40"
-                    disabled={isCurrentUser && row.is_active}
-                    title={isCurrentUser && row.is_active ? "You cannot deactivate your own account" : undefined}
-                    type="submit"
-                  >
-                    {row.is_active ? "Deactivate" : "Activate"}
-                  </button>
-                </form>
-              );
-            },
           },
           {
             key: "delete",
