@@ -14,6 +14,7 @@ import { getHomeContent } from "@/lib/site-content";
 import type { CountryItemWithProduct } from "@/types/database";
 import type { Metadata } from "next";
 import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -90,10 +91,13 @@ export default async function Page() {
               {homeContent.imageShowcase.title}
             </h2>
           </ScrollTranslateY>
-          <div
-            aria-label={homeContent.imageShowcase.image_alt ?? undefined}
-            className="mx-auto mt-10 hidden aspect-[218/272] w-[218px] rotate-[10deg] bg-cover bg-center md:block lg:mt-[-37px]"
-            style={{ backgroundImage: `url('${showcaseImageUrl}')` }}
+          <Image
+            alt={homeContent.imageShowcase.image_alt ?? ""}
+            className="mx-auto mt-10 hidden rotate-[10deg] object-cover md:block lg:mt-[-37px]"
+            height={272}
+            sizes="218px"
+            src={showcaseImageUrl}
+            width={218}
           />
         </div>
       </section>
@@ -102,12 +106,15 @@ export default async function Page() {
       <section className="bg-[#e6ecf4] px-5 py-12 md:px-8 md:py-20 lg:mb-[220px] lg:px-[30px] lg:py-0">
         <div className="mx-auto grid w-full max-w-[1260px] gap-10 lg:grid-cols-[minmax(0,63fr)_minmax(0,37fr)] lg:gap-0">
           {pureIntroImageUrl ? (
-            <div
-              aria-label={homeContent.pureIntro.image_alt ?? undefined}
-              className="aspect-[4/5] w-full bg-cover bg-center lg:w-[calc(100%-24px)] lg:-translate-x-7"
-              role={homeContent.pureIntro.image_alt ? "img" : undefined}
-              style={{ backgroundImage: `url('${pureIntroImageUrl}')` }}
-            />
+            <div className="relative aspect-[4/5] w-full lg:w-[calc(100%-24px)] lg:-translate-x-7">
+              <Image
+                alt={homeContent.pureIntro.image_alt ?? ""}
+                className="object-cover object-center"
+                fill
+                sizes="(min-width: 1024px) 794px, 100vw"
+                src={pureIntroImageUrl}
+              />
+            </div>
           ) : null}
           <div className="w-full lg:pt-[150px]">
             <ScrollTranslateY maxPixels={70}>
@@ -137,12 +144,15 @@ export default async function Page() {
       >
         {storyImageUrl ? (
           <div className="home-story-media">
-            <div
-              aria-label={homeContent.story.image_alt ?? "Heaven Beauty model"}
-              className="home-story-image"
-              role="img"
-              style={{ backgroundImage: `url('${storyImageUrl}')` }}
-            />
+            <div className="home-story-image">
+              <Image
+                alt={homeContent.story.image_alt ?? "Heaven Beauty model"}
+                className="object-cover object-center"
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                src={storyImageUrl}
+              />
+            </div>
           </div>
         ) : null}
         <div className="home-story-content">
@@ -170,15 +180,18 @@ export default async function Page() {
       <section className="home-difference-section">
         {differenceImageUrl ? (
           <div className="home-difference-media">
-            <div
-              aria-label={
-                homeContent.difference.image_alt ??
-                "Heaven Beauty model holding a tint"
-              }
-              className="home-difference-image"
-              role="img"
-              style={{ backgroundImage: `url('${differenceImageUrl}')` }}
-            />
+            <div className="home-difference-image">
+              <Image
+                alt={
+                  homeContent.difference.image_alt ??
+                  "Heaven Beauty model holding a tint"
+                }
+                className="object-cover object-center"
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                src={differenceImageUrl}
+              />
+            </div>
           </div>
         ) : null}
         <div className="home-difference-content">

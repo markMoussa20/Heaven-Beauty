@@ -20,7 +20,7 @@ export function DashboardCharts({
     <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          detail={`${analytics.thirtyDayOrders} in the last 30 days`}
+          detail={`${analytics.rangeOrders} in ${analytics.range.label.toLowerCase()}`}
           href="/admin/orders"
           label="Total orders"
           value={analytics.totalOrders}
@@ -57,11 +57,13 @@ export function DashboardCharts({
             <div>
               <h2 className="font-semibold text-zinc-950">Order volume</h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Daily orders during the last 30 days
+                {analytics.range.granularity === "week" ? "Weekly" : "Daily"} orders
+                {" · "}
+                {analytics.range.fromDate} to {analytics.range.toDate}
               </p>
             </div>
             <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-600">
-              {analytics.thirtyDayOrders} orders
+              {analytics.rangeOrders} orders
             </span>
           </div>
           <div className="mt-6">
@@ -73,12 +75,12 @@ export function DashboardCharts({
           <div>
             <h2 className="font-semibold text-zinc-950">Order status</h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Distribution for the last 30 days
+              Distribution for {analytics.range.label.toLowerCase()}
             </p>
           </div>
           <StatusChart
             statuses={analytics.statuses}
-            total={analytics.thirtyDayOrders}
+            total={analytics.rangeOrders}
           />
         </section>
       </div>
@@ -251,7 +253,8 @@ function OrdersBarChart({
         const barHeight =
           point.value === 0 ? 0 : Math.max(3, (point.value / max) * plotHeight);
         const y = padding.top + plotHeight - barHeight;
-        const showLabel = index % 5 === 0 || index === data.length - 1;
+        const labelStep = Math.max(1, Math.ceil(data.length / 8));
+        const showLabel = index % labelStep === 0 || index === data.length - 1;
         return (
           <g key={point.date}>
             <rect

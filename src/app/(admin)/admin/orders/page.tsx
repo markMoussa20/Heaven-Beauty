@@ -3,25 +3,30 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
+import { ExportButton } from "@/components/admin/ExportButton";
 import { LocalDateTime } from "@/components/admin/LocalDateTime";
 import { SearchForm } from "@/components/admin/SearchForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
+import {
+  ORDER_STATUSES,
+  orderStatusLabel,
+  orderStatusTone,
+} from "@/lib/orders/statuses";
 import type { Order } from "@/types/database";
 
 export const metadata = { title: "Orders" };
 
-function statusTone(status?: string | null) {
-  if (status === "delivered") return "green";
-  if (status === "cancelled") return "red";
-  if (status === "pending") return "yellow";
-  return "blue";
-}
-
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; country_id?: string; status?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    country_id?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+  }>;
 }) {
   const params = await searchParams;
   const [countries, { data, error }] = await Promise.all([
@@ -34,6 +39,8 @@ export default async function AdminOrdersPage({
         country_id: params.country_id,
         status: params.status,
       },
+      from: params.from,
+      to: params.to,
       order: "created_at",
       ascending: false,
     }),
@@ -42,24 +49,53 @@ export default async function AdminOrdersPage({
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Orders" description="View orders and update statuses. Financial totals are read-only." />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <AdminPageHeader title="Orders" description="View orders and update statuses. Financial totals are read-only." />
+        <ExportButton
+          filters={{
+            country_id: params.country_id,
+            from: params.from,
+            q: params.q,
+            status: params.status,
+            to: params.to,
+          }}
+          href="/api/admin/exports/orders"
+        />
+      </div>
       <SearchForm
         filters={
           <>
-            <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" name="country_id">
+            <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" defaultValue={params.country_id ?? ""} name="country_id">
               <option value="">All countries</option>
               {countries.map((country) => (
                 <option key={country.value} value={country.value}>{country.label}</option>
               ))}
             </select>
-            <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" name="status">
+            <input
+              aria-label="From date"
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm"
+              defaultValue={params.from ?? ""}
+              name="from"
+              type="date"
+            />
+            <input
+              aria-label="To date"
+              className="h-10 rounded-md border border-zinc-300 px-3 text-sm"
+              defaultValue={params.to ?? ""}
+              name="to"
+              type="date"
+            />
+            <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" defaultValue={params.status ?? ""} name="status">
               <option value="">All statuses</option>
-              {["pending", "confirmed", "processing", "out_for_delivery", "delivered", "cancelled"].map((status) => (
-                <option key={status} value={status}>{status}</option>
+              {ORDER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {orderStatusLabel(status)}
+                </option>
               ))}
             </select>
           </>
         }
+        defaultQuery={params.q}
         placeholder="Search order number, phone, name..."
       />
       <ErrorMessage message={error} />
@@ -80,8 +116,8 @@ export default async function AdminOrdersPage({
             key: "status",
             header: "Status",
             render: (row) => (
-              <StatusBadge tone={statusTone(row.status)}>
-                {row.status ?? "pending"}
+              <StatusBadge tone={orderStatusTone(row.status)}>
+                {orderStatusLabel(row.status)}
               </StatusBadge>
             ),
           },

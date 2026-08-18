@@ -14,6 +14,9 @@ export async function listRows(
     searchColumns?: string[];
     filters?: Record<string, string | undefined>;
     select?: string;
+    /** Inclusive calendar dates (YYYY-MM-DD) applied to created_at. */
+    from?: string;
+    to?: string;
   } = {},
 ) {
   const supabase = createAdminClient();
@@ -26,6 +29,16 @@ export async function listRows(
     if (value) {
       query = query.eq(column, value);
     }
+  }
+
+  if (options.from) {
+    query = query.gte("created_at", `${options.from}T00:00:00.000Z`);
+  }
+
+  if (options.to) {
+    const end = new Date(`${options.to}T00:00:00.000Z`);
+    end.setUTCDate(end.getUTCDate() + 1);
+    query = query.lt("created_at", end.toISOString());
   }
 
   if (options.search && options.searchColumns?.length) {

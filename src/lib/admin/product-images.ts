@@ -1,5 +1,6 @@
 import "server-only";
 
+import { prepareImageForUpload } from "@/lib/admin/image-processing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PRODUCT_IMAGES_BUCKET, getSafeProductImagePath } from "@/lib/storage/product-images";
 
@@ -14,21 +15,20 @@ export async function uploadProductImage({
   kind: "main" | "gallery";
   index?: number;
 }) {
-  validateImage(file);
+  const image = await prepareImageForUpload(file);
   const supabase = createAdminClient();
-  const extension = getImageExtension(file);
   const path = getSafeProductImagePath({
     productSlug,
     kind,
-    extension,
+    extension: image.extension,
     index,
   });
 
   const { error } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
-    .upload(path, file, {
+    .upload(path, image.body, {
       cacheControl: "31536000",
-      contentType: file.type || `image/${extension}`,
+      contentType: image.contentType,
       upsert: false,
     });
 
@@ -37,20 +37,4 @@ export async function uploadProductImage({
   }
 
   return path;
-}
-
-function validateImage(file: File) {
-  const allowed = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"]);
-  if (!allowed.has(file.type)) throw new Error("Only AVIF, JPEG, PNG, and WebP images are allowed.");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
-}
-
-function getImageExtension(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-
-  if (extension && ["avif", "jpg", "jpeg", "png", "webp"].includes(extension)) {
-    return extension === "jpeg" ? "jpg" : extension;
-  }
-
-  return "webp";
 }

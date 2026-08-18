@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+# Project-local pnpm content-addressable store. Hundreds of MB of hashed
+# files that node_modules hard-links into; never commit it.
+/.pnpm-store
 /.pnp
 .pnp.*
 .yarn/*

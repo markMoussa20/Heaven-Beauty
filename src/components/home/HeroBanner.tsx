@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import type { SiteContent } from "@/types/database";
 import type {
   PointerEvent as ReactPointerEvent,
@@ -209,13 +211,19 @@ export function HeroBanner({ hero }: HeroBannerProps) {
 
           return (
           <div
-            className="relative h-full shrink-0 bg-cover bg-center"
+            className="relative h-full shrink-0 overflow-hidden"
             key={`${imageUrl}-${index}`}
-            style={{
-              width: `${100 / renderedSlides.length}%`,
-              backgroundImage: `url('${imageUrl}')`,
-            }}
+            style={{ width: `${100 / renderedSlides.length}%` }}
           >
+            <Image
+              alt=""
+              className="object-cover object-center"
+              fill
+              // The first slide is the largest element above the fold.
+              priority={index === 0}
+              sizes="100vw"
+              src={imageUrl}
+            />
             {sourceIndex === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center px-[30px] md:px-[50px]">
                 <div

@@ -7,6 +7,7 @@ import { getOptions, getRow, listRows, type AdminRow } from "@/lib/admin/data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProductImageUrl } from "@/lib/storage/product-images";
 import type { Product } from "@/types/database";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -62,12 +63,15 @@ export default async function EditProductPage({
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {images.map((image) => (
                 <div className="rounded-md border border-zinc-200 p-3" key={image.id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt=""
-                    className="aspect-square w-full rounded bg-zinc-100 object-cover"
-                    src={getProductImageUrl(supabase, String(image.storage_path)) ?? ""}
-                  />
+                  <div className="relative aspect-square w-full overflow-hidden rounded bg-zinc-100">
+                    <Image
+                      alt=""
+                      className="object-cover"
+                      fill
+                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                      src={getProductImageUrl(supabase, String(image.storage_path)) ?? ""}
+                    />
+                  </div>
                   <form
                     action={deleteProductImage.bind(
                       null,

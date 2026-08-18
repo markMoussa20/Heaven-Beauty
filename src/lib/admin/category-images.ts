@@ -1,5 +1,6 @@
 import "server-only";
 
+import { prepareImageForUpload } from "@/lib/admin/image-processing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   PRODUCT_IMAGES_BUCKET,
@@ -13,16 +14,15 @@ export async function uploadCategoryImage({
   file: File;
   slug: string;
 }) {
-  validateImage(file);
+  const image = await prepareImageForUpload(file);
   const supabase = createAdminClient();
-  const extension = getImageExtension(file);
-  const path = getSafeCategoryImagePath({ extension, slug });
+  const path = getSafeCategoryImagePath({ extension: image.extension, slug });
 
   const { error } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)
-    .upload(path, file, {
+    .upload(path, image.body, {
       cacheControl: "31536000",
-      contentType: file.type || `image/${extension}`,
+      contentType: image.contentType,
       upsert: true,
     });
 
@@ -31,12 +31,6 @@ export async function uploadCategoryImage({
   }
 
   return { path, url: getProductImageUrl(supabase, path) };
-}
-
-function validateImage(file: File) {
-  const allowed = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"]);
-  if (!allowed.has(file.type)) throw new Error("Only AVIF, JPEG, PNG, and WebP images are allowed.");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Images must be 5 MB or smaller.");
 }
 
 function getSafeCategoryImagePath({
@@ -53,14 +47,4 @@ function getSafeCategoryImagePath({
     .replace(/^-+|-+$/g, "");
 
   return `categories/${safeSlug || "category"}/main-${Date.now()}.${extension}`;
-}
-
-function getImageExtension(file: File) {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-
-  if (extension && ["avif", "jpg", "jpeg", "png", "webp"].includes(extension)) {
-    return extension === "jpeg" ? "jpg" : extension;
-  }
-
-  return "webp";
 }

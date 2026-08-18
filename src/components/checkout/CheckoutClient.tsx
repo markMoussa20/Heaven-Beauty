@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
@@ -290,11 +291,12 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
               {items.map((item) => (
                 <div className="flex gap-4 py-4" key={item.countryItemId}>
                   {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       alt={item.name}
                       className="h-20 w-20 object-cover"
+                      height={80}
                       src={item.imageUrl}
+                      width={80}
                     />
                   ) : (
                     <div className="h-20 w-20 bg-[#e6ecf4]" />

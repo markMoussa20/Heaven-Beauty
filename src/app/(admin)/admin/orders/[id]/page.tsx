@@ -4,17 +4,13 @@ import { LocalDateTime } from "@/components/admin/LocalDateTime";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { retryWakilniOrder, updateOrderStatus } from "@/lib/admin/actions";
 import { getRow, listRows, type AdminRow } from "@/lib/admin/data";
+import {
+  ORDER_STATUSES,
+  orderStatusLabel,
+  orderStatusTone,
+} from "@/lib/orders/statuses";
 import type { Order, OrderItem } from "@/types/database";
 import type { Metadata } from "next";
-
-const statuses = [
-  "pending",
-  "confirmed",
-  "processing",
-  "out_for_delivery",
-  "delivered",
-  "cancelled",
-];
 
 export async function generateMetadata({
   params,
@@ -32,10 +28,13 @@ export async function generateMetadata({
 
 export default async function AdminOrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const { id } = await params;
+  const { error: statusError, saved } = await searchParams;
   const [{ data: order, error }, items] = await Promise.all([
     getRow("orders", id, "*, countries(name,currency_code,currency_symbol), customers(*)"),
     listRows("order_items", {
@@ -50,12 +49,22 @@ export default async function AdminOrderDetailPage({
     <div className="space-y-6">
       <AdminPageHeader title={`Order ${typedOrder?.order_number ?? id}`} description="Update status only. Totals are read-only." />
       <ErrorMessage message={error ?? items.error} />
+      <ErrorMessage message={statusError} />
+      {saved && !statusError ? (
+        <p className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          Order status updated.
+        </p>
+      ) : null}
       {typedOrder ? (
         <>
           <section className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 md:grid-cols-3">
             <div>
               <p className="text-xs text-zinc-500">Status</p>
-              <div className="mt-1"><StatusBadge tone="blue">{typedOrder.status ?? "pending"}</StatusBadge></div>
+              <div className="mt-1">
+                <StatusBadge tone={orderStatusTone(typedOrder.status)}>
+                  {orderStatusLabel(typedOrder.status)}
+                </StatusBadge>
+              </div>
             </div>
             <div>
               <p className="text-xs text-zinc-500">Country</p>
@@ -132,8 +141,10 @@ export default async function AdminOrderDetailPage({
                 key={typedOrder.status ?? "pending"}
                 name="status"
               >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>{status}</option>
+                {ORDER_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {orderStatusLabel(status)}
+                  </option>
                 ))}
               </select>
               <button className="rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white" type="submit">

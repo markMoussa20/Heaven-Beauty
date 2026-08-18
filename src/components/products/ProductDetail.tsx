@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus, Share2 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
@@ -56,10 +57,12 @@ export function ProductDetail({
       <div className="min-w-0">
         <div className="relative aspect-square bg-white">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               alt={product.name}
-              className="h-full w-full object-contain"
+              className="object-contain"
+              fill
+              priority
+              sizes="(min-width: 1024px) 55vw, 100vw"
               src={imageUrl}
             />
           ) : (
@@ -82,8 +85,13 @@ export function ProductDetail({
                 onClick={() => setActiveImage(index)}
                 type="button"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="" className="h-full w-full object-cover" src={url} />
+                <Image
+                  alt=""
+                  className="h-full w-full object-cover"
+                  height={64}
+                  src={url}
+                  width={64}
+                />
               </button>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { ErrorMessage } from "@/components/admin/ErrorMessage";
+import { ExportButton } from "@/components/admin/ExportButton";
 import { SearchForm } from "@/components/admin/SearchForm";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
 import type { Customer } from "@/types/database";
@@ -28,16 +29,23 @@ export default async function AdminCustomersPage({
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Customers" description="Customers are not deleted by default. Search and review customer history." />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <AdminPageHeader title="Customers" description="Customers are not deleted by default. Search and review customer history." />
+        <ExportButton
+          filters={{ country_id: params.country_id, q: params.q }}
+          href="/api/admin/exports/customers"
+        />
+      </div>
       <SearchForm
         filters={
-          <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" name="country_id">
+          <select className="h-10 rounded-md border border-zinc-300 px-3 text-sm" defaultValue={params.country_id ?? ""} name="country_id">
             <option value="">All countries</option>
             {countries.map((country) => (
               <option key={country.value} value={country.value}>{country.label}</option>
             ))}
           </select>
         }
+        defaultQuery={params.q}
         placeholder="Search name, phone, email..."
       />
       <ErrorMessage message={error} />

@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { uploadCategoryImage } from "@/lib/admin/category-images";
 import { uploadProductImage } from "@/lib/admin/product-images";
 import { uploadPublicPageImage } from "@/lib/admin/public-page-images";
+import { isOrderStatus } from "@/lib/orders/statuses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { asBoolean, asNumber, slugify } from "@/lib/utils";
@@ -48,7 +49,6 @@ export type AdminActionState =
   | null;
 
 const uuidSchema = z.string().uuid();
-const orderStatuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
 const deleteTables = new Set(["categories", "shipping_zones", "exchange_rates", "country_items"]);
 
 function failed(message = "The change could not be saved. Please try again."): AdminActionState {
@@ -251,12 +251,25 @@ export async function updateOrderStatus(orderId: string, formData: FormData) {
   await requireAdmin();
   const status = String(formData.get("status") ?? "");
 
-  if (!uuidSchema.safeParse(orderId).success || !z.enum(orderStatuses).safeParse(status).success) return;
+  if (!uuidSchema.safeParse(orderId).success) return;
+
+  // Previously every failure path here was a bare `return`, so a rejected
+  // status looked identical to a successful save: nothing happened and nothing
+  // was reported. Both failures now surface on the order page.
+  if (!isOrderStatus(status)) {
+    redirect(`/admin/orders/${orderId}?error=${encodeURIComponent(`"${status}" is not a valid order status.`)}`);
+  }
 
   const supabase = adminDb();
-  if (!(await runMutation(supabase.from("orders").update({ status }).eq("id", orderId), "update order status"))) return;
+  const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
+  if (error) {
+    console.error("update order status failed", { orderId, status, message: error.message });
+    redirect(`/admin/orders/${orderId}?error=${encodeURIComponent(error.message)}`);
+  }
+
   revalidatePath(`/admin/orders/${orderId}`);
   revalidatePath("/admin/orders");
+  redirect(`/admin/orders/${orderId}?saved=1`);
 }
 
 export async function retryWakilniOrder(orderId: string) {

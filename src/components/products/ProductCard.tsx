@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
@@ -64,10 +65,11 @@ export function ProductCard({
         <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
           {productHref ? <Link aria-label={`View ${product.name}`} className="absolute inset-0 z-[1]" href={productHref} /> : null}
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               alt={product.name}
-              className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              className="object-cover transition duration-700 group-hover:scale-105"
+              fill
+              sizes={isDialog ? "220px" : "(min-width: 1024px) 33vw, 50vw"}
               src={imageUrl}
             />
           ) : (

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 
@@ -59,11 +60,12 @@ export function CartDrawer() {
               {items.map((item) => (
                 <div className="grid grid-cols-[88px_1fr_auto] gap-5" key={item.countryItemId}>
                   {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       alt={item.name}
                       className="h-[88px] w-[88px] bg-white object-cover"
+                      height={88}
                       src={item.imageUrl}
+                      width={88}
                     />
                   ) : (
                     <div className="h-[88px] w-[88px] bg-white" />

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
 
@@ -38,11 +39,16 @@ export function PublicPageView({
     <main className="bg-[#e6ecf4] text-[#6c93c4]">
       <section className="relative min-h-[72vh] overflow-hidden pt-8 md:pt-28">
         {page.image_url ? (
-          <div
-            aria-label={page.image_alt ?? page.title}
-            className="absolute inset-0 bg-cover bg-center opacity-45 hb-page-drift"
-            style={{ backgroundImage: `url('${page.image_url}')` }}
-          />
+          <div className="absolute inset-0 opacity-45 hb-page-drift">
+            <Image
+              alt=""
+              className="object-cover object-center"
+              fill
+              priority
+              sizes="100vw"
+              src={page.image_url}
+            />
+          </div>
         ) : null}
         <div className="absolute inset-0 bg-[#e6ecf4]/70" />
         <div className={`${shell} relative flex min-h-[58vh] items-center py-20`}>
@@ -250,12 +256,15 @@ function OurStoryPageView({
             </p>
 
             {page.image_url ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                alt={page.image_alt ?? page.title}
-                className="mt-9 aspect-[3/4] w-full object-cover object-center"
-                src={page.image_url}
-              />
+              <div className="relative mt-9 aspect-[3/4] w-full">
+                <Image
+                  alt={page.image_alt ?? page.title}
+                  className="object-cover object-center"
+                  fill
+                  sizes="(min-width: 1024px) 756px, 100vw"
+                  src={page.image_url}
+                />
+              </div>
             ) : null}
 
             <p className="mt-5 text-[16px] font-light leading-[1.6] text-[#6c93c4]">
@@ -289,12 +298,15 @@ function OurStoryPageView({
           <section>
             <div className="mx-auto grid w-full max-w-[1260px] px-5 lg:grid-cols-[77fr_23fr] lg:px-0">
               <div className="lg:mb-[170px] lg:pr-[130px] lg:pt-[100px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt={page.secondary_image_alt ?? "Heaven Beauty products"}
-                  className="aspect-[5/4] w-full object-cover object-center"
-                src={page.secondary_image_url}
-              />
+              <div className="relative aspect-[5/4] w-full">
+                <Image
+                  alt={page.secondary_image_alt ?? "Heaven Beauty products"}
+                  className="object-cover object-center"
+                  fill
+                  sizes="(min-width: 1024px) 840px, 100vw"
+                  src={page.secondary_image_url}
+                />
+              </div>
               </div>
               <div aria-hidden="true" />
             </div>
