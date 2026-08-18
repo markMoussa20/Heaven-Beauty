@@ -6,7 +6,7 @@ const statusStyles: Record<string, string> = {
   pending: "bg-amber-400",
   confirmed: "bg-blue-400",
   processing: "bg-violet-400",
-  shipped: "bg-cyan-500",
+  out_for_delivery: "bg-cyan-500",
   delivered: "bg-emerald-500",
   cancelled: "bg-red-400",
 };

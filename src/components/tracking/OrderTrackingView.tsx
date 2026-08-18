@@ -13,7 +13,11 @@ type TrackingOrder = Order & {
 const progressStatuses = ["Ordered", "Confirmed", "In delivery", "Delivered"] as const;
 
 function statusStep(order: TrackingOrder) {
-  const status = `${order.wakilni_status ?? ""} ${order.status ?? ""}`.toLowerCase();
+  // Courier text arrives as free-form words while our own status is
+  // snake_case, so flatten underscores before the phrase checks below.
+  const status = `${order.wakilni_status ?? ""} ${order.status ?? ""}`
+    .toLowerCase()
+    .replaceAll("_", " ");
   if (/\bdelivered\b|\bcompleted\b/.test(status)) return 3;
   if (
     status.includes("out for delivery") ||

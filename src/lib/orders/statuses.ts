@@ -1,18 +1,24 @@
 /**
  * The single source of truth for order statuses.
  *
- * These values must stay in step with the `orders_status_check` constraint in
- * the database. Previously the list was duplicated across the server action,
- * the orders list filter, the order detail dropdown, and the dashboard labels,
- * and they had drifted: the admin screens offered `out_for_delivery` while the
- * database and the action's validator only accepted `shipped`, so choosing it
- * silently did nothing.
+ * These values are copied from the live `orders_status_check` constraint:
+ *   CHECK (status = ANY (ARRAY['pending', 'confirmed', 'processing',
+ *                              'out_for_delivery', 'delivered', 'cancelled']))
+ *
+ * The list used to be duplicated across the server action, the orders filter,
+ * the order detail dropdown, and the dashboard labels, and had drifted. The
+ * admin screens were correct with `out_for_delivery`; the action's validator
+ * still said `shipped`, so picking the real value was silently rejected.
+ *
+ * Note that supabase/migrations/202607110001_core_schema.sql also still says
+ * `shipped` — that file no longer matches the database. Verify against the
+ * constraint itself, not the migration, before changing this list.
  */
 export const ORDER_STATUSES = [
   "pending",
   "confirmed",
   "processing",
-  "shipped",
+  "out_for_delivery",
   "delivered",
   "cancelled",
 ] as const;
@@ -23,7 +29,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
   processing: "Processing",
-  shipped: "Shipped",
+  out_for_delivery: "Out for delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
