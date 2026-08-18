@@ -1,10 +1,20 @@
 import { cookies, headers } from "next/headers";
+import { cache } from "react";
 
 import { COUNTRY_COOKIE_KEY, getDefaultCountryCode } from "@/lib/country/constants";
 import { createClient } from "@/lib/supabase/server";
 import type { Country } from "@/types/database";
 
-export async function getSelectedCountryCode() {
+/**
+ * These three are wrapped in React's `cache()` so they run at most once per
+ * request. The layout, the page, and the country-detection helper all need the
+ * same country list, which previously meant four identical `countries` queries
+ * on a single page render.
+ *
+ * The cache is per-request, so a country activated in the admin panel still
+ * shows up on the very next request.
+ */
+export const getSelectedCountryCode = cache(async () => {
   const countries = await getActiveCountries();
   if (countries.length === 0) return getDefaultCountryCode();
 
@@ -34,9 +44,9 @@ export async function getSelectedCountryCode() {
     countries.find((country) => country.code === defaultCode)?.code ??
     countries[0]?.code ?? defaultCode
   );
-}
+});
 
-export async function getActiveCountries(): Promise<Country[]> {
+export const getActiveCountries = cache(async (): Promise<Country[]> => {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -50,25 +60,27 @@ export async function getActiveCountries(): Promise<Country[]> {
   }
 
   return data ?? [];
-}
+});
 
-export async function getCountryByCode(code: string): Promise<Country | null> {
-  const supabase = await createClient();
+export const getCountryByCode = cache(
+  async (code: string): Promise<Country | null> => {
+    const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("countries")
-    .select("*")
-    .eq("code", code)
-    .eq("is_active", true)
-    .maybeSingle();
+    const { data, error } = await supabase
+      .from("countries")
+      .select("*")
+      .eq("code", code)
+      .eq("is_active", true)
+      .maybeSingle();
 
-  if (error) {
-    console.error("Failed to fetch selected country", error);
-    return null;
-  }
+    if (error) {
+      console.error("Failed to fetch selected country", error);
+      return null;
+    }
 
-  return data;
-}
+    return data;
+  },
+);
 
 async function getDetectedCountryCode(countries: Country[]) {
   const requestHeaders = await headers();
