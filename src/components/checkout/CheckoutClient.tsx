@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
 import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
 import type { Country, ShippingZone } from "@/types/database";
 
@@ -22,6 +23,8 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
     useCart();
   const formRef = useRef<HTMLFormElement>(null);
   const confirmedSubmitRef = useRef(false);
+  const initiateCheckoutSentRef = useRef(false);
+  const purchaseSentRef = useRef(false);
   const [state, action, pending] = useActionState<CheckoutState, FormData>(
     submitCheckout,
     null,
@@ -50,10 +53,46 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
   );
 
   useEffect(() => {
-    if (state?.ok) {
-      clearCart();
+    if (!hydrated || items.length === 0 || initiateCheckoutSentRef.current) {
+      return;
     }
-  }, [clearCart, state]);
+
+    initiateCheckoutSentRef.current = true;
+    trackMetaEvent("InitiateCheckout", {
+      content_ids: items.map((item) => item.productId),
+      content_type: "product",
+      contents: toMetaContents(items),
+      currency: country.currency_code,
+      num_items: count,
+      value: total,
+    });
+  }, [count, country.currency_code, hydrated, items, total]);
+
+  useEffect(() => {
+    if (!state?.ok) {
+      return;
+    }
+
+    // Read the cart before clearing it, and dedupe on the order number so a
+    // remount or refresh of the success screen cannot double-count the sale.
+    if (!purchaseSentRef.current) {
+      purchaseSentRef.current = true;
+      trackMetaEvent(
+        "Purchase",
+        {
+          content_ids: items.map((item) => item.productId),
+          content_type: "product",
+          contents: toMetaContents(items),
+          currency: country.currency_code,
+          num_items: count,
+          value: total,
+        },
+        { eventID: state.orderNumber },
+      );
+    }
+
+    clearCart();
+  }, [clearCart, count, country.currency_code, items, state, total]);
 
   const money = (value: number) =>
     `${country.currency_symbol}${value.toLocaleString(undefined, {

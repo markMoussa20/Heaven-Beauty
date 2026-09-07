@@ -27,9 +27,28 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_DEFAULT_COUNTRY_CODE=AE
 CHECKOUT_RATE_LIMIT_SECRET=
+NEXT_PUBLIC_META_PIXEL_ID=
 ```
 
 The service-role key and rate-limit secret are server-only. Never prefix them with `NEXT_PUBLIC_`.
+
+## Meta pixel
+
+`NEXT_PUBLIC_META_PIXEL_ID` enables the Meta (Facebook) pixel. Leave it unset in
+development or preview to keep test traffic out of the production dataset - every
+tracking call is a no-op without it. The pixel never loads on `/admin` routes.
+
+Base code lives in `src/components/analytics/MetaPixel.tsx` and fires `PageView`
+on load and on every client-side route change. Standard events:
+
+| Event | Fired from |
+| --- | --- |
+| `ViewContent` | `src/components/products/ProductDetail.tsx` |
+| `AddToCart` | `src/components/products/ProductCard.tsx`, `ProductDetail.tsx` |
+| `InitiateCheckout` | `src/components/checkout/CheckoutClient.tsx` |
+| `Purchase` | `src/components/checkout/CheckoutClient.tsx`, deduped on order number |
+
+Verify with the Meta Pixel Helper extension, or in Events Manager > Test events.
 
 ## Supabase
 

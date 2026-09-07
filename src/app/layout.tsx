@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Kanit } from "next/font/google";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CountryProvider } from "@/components/country/CountryProvider";
@@ -42,6 +43,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${kanit.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-950">
+        <MetaPixel />
         <CountryProvider
           countries={countries}
           initialCountryCode={selectedCountryCode}

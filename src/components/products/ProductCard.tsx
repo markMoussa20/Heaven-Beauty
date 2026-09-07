@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
+import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
 import { getDisplayPrice } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/browser";
 import {
@@ -49,6 +50,14 @@ export function ProductCard({
       currencyCode: country.currency_code,
       currencySymbol: country.currency_symbol,
       countryCode: country.code,
+    });
+    trackMetaEvent("AddToCart", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [{ id: product.id, item_price: unitPrice, quantity: 1 }],
+      currency: country.currency_code,
+      value: unitPrice,
     });
     openCart();
     setJustAdded(true);

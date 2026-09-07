@@ -2,9 +2,10 @@
 
 import { Minus, Plus, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
+import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
 import { getDisplayPrice } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
 
@@ -26,6 +27,23 @@ export function ProductDetail({
     country.currency_code.trim().toUpperCase();
   const imageUrl = imageUrls[activeImage] ?? null;
 
+  const viewContentSentRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (viewContentSentRef.current === product.id) {
+      return;
+    }
+
+    viewContentSentRef.current = product.id;
+    trackMetaEvent("ViewContent", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      currency: country.currency_code,
+      value: price,
+    });
+  }, [country.currency_code, price, product.id, product.name]);
+
   const addToCart = () => {
     addItem(
       {
@@ -40,6 +58,14 @@ export function ProductDetail({
       },
       quantity,
     );
+    trackMetaEvent("AddToCart", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      contents: [{ id: product.id, item_price: price, quantity }],
+      currency: country.currency_code,
+      value: price * quantity,
+    });
     openCart();
   };
 
