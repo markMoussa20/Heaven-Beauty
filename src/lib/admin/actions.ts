@@ -925,11 +925,16 @@ export async function saveProduct(id: string | null, _: AdminActionState, formDa
   };
 
   if (image instanceof File && image.size > 0) {
-    payload.main_image_path = await uploadProductImage({
-      file: image,
-      productSlug: slug,
-      kind: "main",
-    });
+    try {
+      payload.main_image_path = await uploadProductImage({
+        file: image,
+        productSlug: slug,
+        kind: "main",
+      });
+    } catch (error) {
+      console.error("Failed to upload product main image", error);
+      return failed("The main image could not be uploaded. Use AVIF, JPEG, PNG, or WebP up to 5 MB.");
+    }
   }
 
   let productId = id;
@@ -961,12 +966,18 @@ export async function saveProduct(id: string | null, _: AdminActionState, formDa
 
     for (const [index, file] of gallery.entries()) {
       if (file instanceof File && file.size > 0) {
-        const storagePath = await uploadProductImage({
-          file,
-          productSlug: slug,
-          kind: "gallery",
-          index,
-        });
+        let storagePath: string;
+        try {
+          storagePath = await uploadProductImage({
+            file,
+            productSlug: slug,
+            kind: "gallery",
+            index,
+          });
+        } catch (error) {
+          console.error("Failed to upload product gallery image", error);
+          return failed("The product was saved, but a gallery image could not be uploaded. Use AVIF, JPEG, PNG, or WebP up to 5 MB.");
+        }
         if (!(await runMutation(supabase.from("product_images").insert({
           product_id: productId,
           storage_path: storagePath,

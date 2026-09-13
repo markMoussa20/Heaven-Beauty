@@ -42,6 +42,15 @@ const nextConfig: NextConfig = {
   },
   // sharp ships prebuilt native binaries and must not be bundled.
   serverExternalPackages: ["sharp"],
+  experimental: {
+    // Admin forms post images through server actions, whose default body cap is
+    // 1 MB — a single phone photo exceeded it and crashed the save. Vercel caps
+    // function requests at 4.5 MB, so stay just under that; ImageUploader
+    // shrinks images in the browser so a full form fits comfortably.
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
+  },
 };
 
 export default nextConfig;
