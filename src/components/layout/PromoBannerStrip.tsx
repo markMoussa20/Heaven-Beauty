@@ -47,6 +47,9 @@ export function PromoBannerStrip({
     );
   }
 
+  // Symmetric padding keeps the content centred; the close button needs room on both sides to stay balanced.
+  const paddingClassName = banner.is_dismissible === false ? "px-4 md:px-12" : "px-12";
+
   return (
     <div
       aria-label="Promotion"
@@ -55,7 +58,9 @@ export function PromoBannerStrip({
       role={preview ? undefined : "region"}
       style={{ backgroundColor: banner.background_color, color: banner.text_color }}
     >
-      <div className="mx-auto flex min-h-11 max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 py-2 pl-4 pr-12 text-center text-sm font-medium md:px-12">
+      <div
+        className={`mx-auto flex min-h-11 max-w-7xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 py-2 text-center text-sm font-medium ${paddingClassName}`}
+      >
         {banner.image_url ? (
           <Image
             alt=""
