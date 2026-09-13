@@ -50,6 +50,9 @@ export function CountryForm({ country }: { country?: Partial<Country> }) {
       <AdminFormField label="Global delivery fee">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={String(country?.global_delivery_fee ?? "")} min="0" name="global_delivery_fee" type="number" step="0.01" />
       </AdminFormField>
+      <AdminFormField hint="Orders with an items subtotal at or above this amount get free delivery, including zone fees. Leave empty to always charge delivery." label="Free delivery from subtotal">
+        <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={String(country?.free_delivery_threshold ?? "")} min="0" name="free_delivery_threshold" placeholder="e.g. 25" type="number" step="0.01" />
+      </AdminFormField>
       <AdminFormField label="Delivery label">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={country?.delivery_label ?? ""} name="delivery_label" />
       </AdminFormField>

@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
 import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
+import { quoteDelivery } from "@/lib/checkout/delivery";
 import type { Country, ShippingZone } from "@/types/database";
 
 type CheckoutClientProps = {
@@ -37,9 +38,14 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
   const cartMatchesCountry =
     items.length === 0 || !cartCountryCode || cartCountryCode === country.code;
   const selectedZone = shippingZones.find((zone) => zone.id === selectedZoneId);
-  const deliveryFee = country.use_shipping_zones
-    ? Number(selectedZone?.fee ?? 0)
-    : Number(country.global_delivery_fee ?? 0);
+  const delivery = quoteDelivery({
+    baseFee: country.use_shipping_zones
+      ? Number(selectedZone?.fee ?? 0)
+      : Number(country.global_delivery_fee ?? 0),
+    subtotal,
+    freeDeliveryThreshold: country.free_delivery_threshold,
+  });
+  const deliveryFee = delivery.fee;
   const total = subtotal + deliveryFee;
   const cartItemsPayload = useMemo(
     () =>
@@ -99,6 +105,12 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
       maximumFractionDigits: 2,
       minimumFractionDigits: value % 1 === 0 ? 0 : 2,
     })}`;
+
+  // With no zone available there is no real fee yet, so don't advertise "Free".
+  const deliveryLabel =
+    delivery.isFree && !(country.use_shipping_zones && !selectedZone)
+      ? "Free"
+      : money(deliveryFee);
 
   const submitDisabled =
     pending ||
@@ -392,8 +404,13 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
             </div>
             <div className="flex justify-between">
               <span>Delivery</span>
-              <span>{money(deliveryFee)}</span>
+              <span>{deliveryLabel}</span>
             </div>
+            {delivery.amountToFree !== null && items.length > 0 ? (
+              <p className="bg-[#e6ecf4] px-3 py-2 text-xs text-[#6c93c4]">
+                Add {money(delivery.amountToFree)} more for free delivery
+              </p>
+            ) : null}
             <div className="flex justify-between pt-2 text-lg font-medium">
               <span>Total</span>
               <span>{money(total)}</span>
@@ -417,7 +434,7 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
           </div>
           <div className="flex justify-between">
             <span>Delivery</span>
-            <span>{money(deliveryFee)}</span>
+            <span>{deliveryLabel}</span>
           </div>
           <div className="flex justify-between border-t border-[#6c93c4]/15 pt-3 text-base font-semibold">
             <span>Total</span>

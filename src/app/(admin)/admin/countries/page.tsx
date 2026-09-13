@@ -6,6 +6,7 @@ import { CountryForm } from "@/components/admin/forms/CountryForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { saveCountry } from "@/lib/admin/actions";
 import { listRows } from "@/lib/admin/data";
+import { parseFreeDeliveryThreshold } from "@/lib/checkout/delivery";
 import type { Country } from "@/types/database";
 
 export const metadata = { title: "Countries" };
@@ -34,10 +35,13 @@ export default async function AdminCountriesPage() {
           {
             key: "delivery",
             header: "Delivery",
-            render: (row) =>
-              row.use_shipping_zones
+            render: (row) => {
+              const fee = row.use_shipping_zones
                 ? "Uses shipping zones"
-                : `Global fee ${row.global_delivery_fee ?? 0}`,
+                : `Global fee ${row.global_delivery_fee ?? 0}`;
+              const threshold = parseFreeDeliveryThreshold(row.free_delivery_threshold);
+              return threshold === null ? fee : `${fee} · Free from ${threshold}`;
+            },
           },
           {
             key: "active",

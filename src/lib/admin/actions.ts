@@ -511,6 +511,15 @@ export async function saveCountry(id: string | null, _: AdminActionState, formDa
   } else if (!isValidTimeZone(String(payload.timezone))) {
     return failed("Enter a valid IANA timezone, for example Asia/Dubai.");
   }
+  // Only forms that render the field may change it, so quick actions such as
+  // the activate toggle cannot clear the threshold.
+  if (formData.has("free_delivery_threshold")) {
+    const threshold = asNumber(formData.get("free_delivery_threshold"));
+    if (threshold !== null && !(Number.isFinite(threshold) && threshold >= 0)) {
+      return failed("Free delivery threshold must be zero or more.");
+    }
+    payload.free_delivery_threshold = threshold;
+  }
   return upsertRecord({ table: "countries", id, payload, path: "/admin/countries" });
 }
 

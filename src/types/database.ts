@@ -182,6 +182,8 @@ export type Country = {
   use_shipping_zones: boolean;
   global_delivery_fee: number | string | null;
   delivery_label?: string | null;
+  /** Items subtotal at or above which delivery is free. Null disables it. */
+  free_delivery_threshold?: number | string | null;
   price_conversion_enabled?: boolean | null;
   price_conversion_base_currency?: string | null;
   /** IANA timezone used for country-local schedules (promo banners). */
