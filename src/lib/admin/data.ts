@@ -1,7 +1,35 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdminUser } from "@/types/database";
+import type { AdminUser, Country, PromoBanner } from "@/types/database";
+
+export type AdminPromoBanner = PromoBanner & { country_ids: string[] };
+
+export async function listPromoBanners() {
+  const supabase = createAdminClient();
+  const [banners, countries] = await Promise.all([
+    supabase
+      .from("promo_banners")
+      .select("*, promo_banner_countries(country_id)")
+      .order("priority", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(200),
+    supabase.from("countries").select("*").order("name"),
+  ]);
+
+  const rows = (banners.data ?? []) as unknown as (PromoBanner & {
+    promo_banner_countries: { country_id: string }[] | null;
+  })[];
+
+  return {
+    banners: rows.map(({ promo_banner_countries: links, ...banner }) => ({
+      ...banner,
+      country_ids: (links ?? []).map((link) => link.country_id),
+    })) as AdminPromoBanner[],
+    countries: (countries.data ?? []) as Country[],
+    error: banners.error?.message ?? countries.error?.message ?? null,
+  };
+}
 
 export type AdminRow = Record<string, unknown> & { id: string };
 

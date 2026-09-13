@@ -31,6 +31,22 @@ export function CountryForm({ country }: { country?: Partial<Country> }) {
       <AdminFormField label="Domain">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={country?.domain ?? ""} name="domain" />
       </AdminFormField>
+      <AdminFormField hint="IANA timezone used for banner schedules, e.g. Asia/Dubai." label="Timezone">
+        <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={country?.timezone ?? ""} list="country-timezones" name="timezone" placeholder="Asia/Dubai" />
+        <datalist id="country-timezones">
+          <option value="Asia/Dubai" />
+          <option value="Asia/Beirut" />
+          <option value="Africa/Cairo" />
+          <option value="Asia/Amman" />
+          <option value="Asia/Riyadh" />
+          <option value="Asia/Kuwait" />
+          <option value="Asia/Qatar" />
+          <option value="Asia/Bahrain" />
+          <option value="Asia/Muscat" />
+          <option value="Europe/London" />
+          <option value="UTC" />
+        </datalist>
+      </AdminFormField>
       <AdminFormField label="Global delivery fee">
         <input className="h-10 rounded-md border border-zinc-300 px-3" defaultValue={String(country?.global_delivery_fee ?? "")} min="0" name="global_delivery_fee" type="number" step="0.01" />
       </AdminFormField>

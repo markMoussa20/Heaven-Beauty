@@ -124,6 +124,16 @@ export type Database = {
         Insert: Partial<ExchangeRate>;
         Update: Partial<ExchangeRate>;
       };
+      promo_banners: {
+        Row: PromoBanner;
+        Insert: Partial<PromoBanner>;
+        Update: Partial<PromoBanner>;
+      };
+      promo_banner_countries: {
+        Row: PromoBannerCountry;
+        Insert: PromoBannerCountry;
+        Update: Partial<PromoBannerCountry>;
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -174,8 +184,37 @@ export type Country = {
   delivery_label?: string | null;
   price_conversion_enabled?: boolean | null;
   price_conversion_base_currency?: string | null;
+  /** IANA timezone used for country-local schedules (promo banners). */
+  timezone?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+export type PromoBanner = {
+  id: string;
+  name: string;
+  message: string;
+  cta_label: string | null;
+  cta_href: string | null;
+  image_url: string | null;
+  image_path: string | null;
+  background_color: string;
+  text_color: string;
+  button_background_color: string;
+  button_text_color: string;
+  /** Wall-clock time, evaluated in each target country's timezone. */
+  starts_at: string | null;
+  ends_at: string | null;
+  all_countries: boolean;
+  is_enabled: boolean;
+  priority: number;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type PromoBannerCountry = {
+  banner_id: string;
+  country_id: string;
 };
 
 export type Category = {

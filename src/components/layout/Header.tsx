@@ -94,7 +94,7 @@ export function Header() {
 
   return (
     <header
-      className={`site-header sticky inset-x-0 top-0 z-40 bg-[#86a3d3] md:fixed md:bg-transparent ${
+      className={`site-header sticky inset-x-0 top-0 z-40 bg-[#86a3d3] md:fixed md:top-[var(--promo-bar-offset,0px)] md:bg-transparent ${
         isHidden && !isOpen ? "site-header-hidden" : ""
       }`}
     >
@@ -180,7 +180,7 @@ export function Header() {
         </div>
       </div>
       {isSearchOpen ? (
-        <div className="fixed inset-x-0 bottom-0 top-[75.6px] z-50 bg-[#e6ecf4] px-5 py-8 md:absolute md:bottom-auto md:top-full md:border-t md:border-white/25 md:bg-white/95 md:px-8 md:py-5 md:shadow-[0_18px_40px_rgba(65,91,126,0.14)] md:backdrop-blur-xl">
+        <div className="fixed inset-x-0 bottom-0 top-[calc(75.6px+var(--promo-bar-offset,0px))] z-50 bg-[#e6ecf4] px-5 py-8 md:absolute md:bottom-auto md:top-full md:border-t md:border-white/25 md:bg-white/95 md:px-8 md:py-5 md:shadow-[0_18px_40px_rgba(65,91,126,0.14)] md:backdrop-blur-xl">
           <form
             className="mx-auto max-w-xl md:flex md:max-w-3xl md:items-center md:gap-5"
             onSubmit={(event) => {

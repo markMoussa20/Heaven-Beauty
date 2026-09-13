@@ -9,6 +9,7 @@ import { uploadCategoryImage } from "@/lib/admin/category-images";
 import { uploadProductImage } from "@/lib/admin/product-images";
 import { uploadPublicPageImage } from "@/lib/admin/public-page-images";
 import { isOrderStatus } from "@/lib/orders/statuses";
+import { isValidTimeZone } from "@/lib/promo-banners/schedule";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { asBoolean, asNumber, slugify } from "@/lib/utils";
@@ -502,7 +503,14 @@ export async function saveCountry(id: string | null, _: AdminActionState, formDa
     "delivery_label",
     "price_conversion_enabled",
     "price_conversion_base_currency",
+    "timezone",
   ]);
+  if (payload.timezone === null) {
+    // Keep the stored value (the column defaults to UTC) rather than writing null.
+    delete payload.timezone;
+  } else if (!isValidTimeZone(String(payload.timezone))) {
+    return failed("Enter a valid IANA timezone, for example Asia/Dubai.");
+  }
   return upsertRecord({ table: "countries", id, payload, path: "/admin/countries" });
 }
 

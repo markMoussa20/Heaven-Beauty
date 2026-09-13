@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Kanit } from "next/font/google";
 import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CountryProvider } from "@/components/country/CountryProvider";
 import { Footer } from "@/components/layout/Footer";
@@ -11,6 +12,7 @@ import { Header } from "@/components/layout/Header";
 import { PublicOnly } from "@/components/layout/PublicOnly";
 import { SoftCursor } from "@/components/layout/SoftCursor";
 import { getActiveCountries, getSelectedCountryCode } from "@/lib/country";
+import { getActivePromoBanner } from "@/lib/promo-banners/active";
 import "./globals.css";
 
 const kanit = Kanit({
@@ -39,6 +41,11 @@ export default async function RootLayout({
   ]);
   const pathname = (await headers()).get("x-pathname") ?? "";
   const isAdminRoute = pathname.startsWith("/admin");
+  const promoBanner = isAdminRoute
+    ? null
+    : await getActivePromoBanner(
+        countries.find((country) => country.code === selectedCountryCode) ?? null,
+      );
 
   return (
     <html lang="en" className={`${kanit.variable} h-full antialiased`}>
@@ -52,6 +59,9 @@ export default async function RootLayout({
             <SoftCursor />
             {!isAdminRoute ? (
               <PublicOnly>
+                {promoBanner ? (
+                  <AnnouncementBar banner={promoBanner} key={promoBanner.dismissKey} />
+                ) : null}
                 <Header />
                 <CartDrawer />
                 <FloatingWhatsApp />
