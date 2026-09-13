@@ -48,6 +48,7 @@ const promoBannerSchema = z
     all_countries: z.boolean(),
     country_ids: z.array(z.string().uuid()),
     is_enabled: z.boolean(),
+    is_dismissible: z.boolean(),
     priority: z.number().int("Priority must be a whole number.").min(-1000).max(1000),
   })
   .superRefine((value, context) => {
@@ -102,6 +103,7 @@ export async function savePromoBanner(
     all_countries: asBoolean(formData.get("all_countries")),
     country_ids: formData.getAll("country_ids").map(String).filter(Boolean),
     is_enabled: asBoolean(formData.get("is_enabled")),
+    is_dismissible: asBoolean(formData.get("is_dismissible")),
     priority: asNumber(formData.get("priority")) ?? 0,
   });
 

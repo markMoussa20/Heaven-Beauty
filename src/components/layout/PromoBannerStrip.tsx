@@ -69,7 +69,7 @@ export function PromoBannerStrip({
         <p className="leading-snug">{banner.message || (preview ? "Your message appears here" : "")}</p>
         {cta}
       </div>
-      {preview ? (
+      {banner.is_dismissible === false ? null : preview ? (
         <span aria-hidden="true" className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center">
           <X className="h-4 w-4" />
         </span>

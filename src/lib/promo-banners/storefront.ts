@@ -15,6 +15,7 @@ export type StorefrontPromoBanner = {
   text_color: string;
   button_background_color: string;
   button_text_color: string;
+  is_dismissible: boolean;
 };
 
 export const PROMO_DISMISSED_COOKIE = "hb_promo_dismissed";

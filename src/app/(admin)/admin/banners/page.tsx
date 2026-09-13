@@ -117,6 +117,11 @@ export default async function BannersPage() {
           },
           { key: "priority", header: "Priority", render: (row) => row.priority },
           {
+            key: "closable",
+            header: "Closable",
+            render: (row) => (row.is_dismissible === false ? "No, always shown" : "Yes"),
+          },
+          {
             key: "delete",
             header: "Delete",
             render: (row) => (

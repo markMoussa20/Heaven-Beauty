@@ -207,6 +207,8 @@ export type PromoBanner = {
   ends_at: string | null;
   all_countries: boolean;
   is_enabled: boolean;
+  /** When false, visitors can't close the banner. */
+  is_dismissible: boolean;
   priority: number;
   created_at: string | null;
   updated_at: string | null;

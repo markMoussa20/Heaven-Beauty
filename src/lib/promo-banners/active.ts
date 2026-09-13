@@ -54,9 +54,13 @@ export const getActivePromoBanner = cache(
       if (!banner) return null;
 
       const dismissKey = getDismissKey(banner);
-      const cookieStore = await cookies();
-      const dismissed = parseDismissedKeys(cookieStore.get(PROMO_DISMISSED_COOKIE)?.value);
-      if (dismissed.includes(dismissKey)) return null;
+      // Treat a missing column (pre-migration) as closable, matching the column default.
+      const isDismissible = banner.is_dismissible !== false;
+      if (isDismissible) {
+        const cookieStore = await cookies();
+        const dismissed = parseDismissedKeys(cookieStore.get(PROMO_DISMISSED_COOKIE)?.value);
+        if (dismissed.includes(dismissKey)) return null;
+      }
 
       return {
         id: banner.id,
@@ -69,6 +73,7 @@ export const getActivePromoBanner = cache(
         text_color: banner.text_color,
         button_background_color: banner.button_background_color,
         button_text_color: banner.button_text_color,
+        is_dismissible: isDismissible,
       };
     } catch (error) {
       console.error("Failed to resolve promo banner", error);

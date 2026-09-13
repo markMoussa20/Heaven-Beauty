@@ -50,6 +50,7 @@ export function PromoBannerForm({
     button_text_color: banner?.button_text_color ?? DEFAULT_COLORS.button_text_color,
   });
   const [allCountries, setAllCountries] = useState(banner?.all_countries ?? true);
+  const [isDismissible, setIsDismissible] = useState(banner?.is_dismissible ?? true);
   const [removeImage, setRemoveImage] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -74,6 +75,7 @@ export function PromoBannerForm({
               cta_label: ctaLabel || null,
               cta_href: null,
               image_url: previewImageUrl,
+              is_dismissible: isDismissible,
               ...colors,
             }}
             preview
@@ -211,6 +213,18 @@ export function PromoBannerForm({
 
       <div className="flex flex-wrap gap-4 md:col-span-2">
         <InlineCheckbox defaultChecked={banner?.is_enabled ?? true} label="Enabled" name="is_enabled" />
+        <label className="flex items-center gap-2 text-sm font-medium text-zinc-700">
+          <input
+            checked={isDismissible}
+            name="is_dismissible"
+            onChange={(event) => setIsDismissible(event.target.checked)}
+            type="checkbox"
+          />
+          Visitors can close this banner
+        </label>
+        <span className="w-full text-xs text-zinc-500">
+          When unticked, the close button is hidden and the banner stays visible for its whole schedule.
+        </span>
       </div>
       <div className="md:col-span-2">
         <SubmitButton className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white">
