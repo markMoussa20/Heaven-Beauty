@@ -7,8 +7,9 @@ import { CountryItemForm } from "@/components/admin/forms/CountryItemForm";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { deleteRow } from "@/lib/admin/actions";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
-import { resolveItemPrice } from "@/lib/pricing";
-import type { CountryItem } from "@/types/database";
+import { getCountryItemPrices } from "@/lib/discounts/storefront";
+import { getItemPricing, resolveItemPrice } from "@/lib/pricing";
+import type { CountryItem, ItemPricing } from "@/types/database";
 
 export const metadata = { title: "Country Items" };
 
@@ -44,6 +45,9 @@ export default async function AdminCountryItemsPage({
     }),
   ]);
   const rows = filterCountryItems(data as CountryItemRow[], params);
+  const countryIds = [...new Set(rows.map((row) => row.country_id))];
+  const priceMaps = await Promise.all(countryIds.map((countryId) => getCountryItemPrices(countryId)));
+  const pricesByItem = new Map(priceMaps.flatMap((prices) => [...prices]));
   const visibleCount = rows.filter((row) => row.is_visible).length;
   const featuredCount = rows.filter((row) => row.is_featured).length;
   const returnTo = countryItemsUrl(params);
@@ -93,6 +97,7 @@ export default async function AdminCountryItemsPage({
               countries={countries}
               item={row}
               key={row.id}
+              pricing={pricesByItem.get(row.id)}
               products={products}
               returnTo={returnTo}
             />
@@ -207,11 +212,13 @@ function CountryItemFilters({
 function CountryItemCard({
   countries,
   item,
+  pricing,
   products,
   returnTo,
 }: {
   countries: { value: string; label: string }[];
   item: CountryItemRow;
+  pricing?: ItemPricing;
   products: { value: string; label: string }[];
   returnTo: string;
 }) {
@@ -222,6 +229,12 @@ function CountryItemCard({
   const baseSku = asText(item.products?.base_sku);
   const countrySku = item.country_sku ?? item.sku ?? "";
   const price = `${currencySymbol}${resolveItemPrice(item)}`;
+  const current = pricing ? getItemPricing({ price: item.price, pricing }, currencySymbol) : null;
+  const priceNow = !current
+    ? "—"
+    : current.isDiscounted
+      ? `${currencySymbol}${current.final} (${current.badge ?? "discounted"})`
+      : `${currencySymbol}${current.final}`;
 
   return (
     <details className="rounded-lg border border-zinc-200 bg-white shadow-sm">
@@ -251,8 +264,9 @@ function CountryItemCard({
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <Metric label="Current price" value={price} />
+            <Metric label="Price now" value={priceNow} />
             <Metric
               label="Stock"
               value={

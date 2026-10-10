@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
-import { getDisplayPrice } from "@/lib/pricing";
+import { getItemPricing } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
 
 export function ProductDetail({
@@ -21,7 +21,8 @@ export function ProductDetail({
   const { addItem, openCart } = useCart();
   const product = item.products;
   const country = item.countries;
-  const price = Number(getDisplayPrice(item));
+  const pricing = getItemPricing(item, country.currency_symbol);
+  const price = pricing.final;
   const showCurrencyCode =
     country.currency_symbol.trim().toUpperCase() !==
     country.currency_code.trim().toUpperCase();
@@ -52,6 +53,7 @@ export function ProductDetail({
         name: product.name,
         imageUrl,
         unitPrice: price,
+        originalUnitPrice: pricing.original,
         currencyCode: country.currency_code,
         currencySymbol: country.currency_symbol,
         countryCode: country.code,
@@ -128,11 +130,27 @@ export function ProductDetail({
         <h1 className="text-[27px] font-normal leading-[1.2] text-[#6c93c4] sm:text-4xl">
           {product.name}
         </h1>
-        <p className="mt-6 text-lg font-normal text-[#6c93c4]">
-          {country.currency_symbol}
-          {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-          {showCurrencyCode ? (
-            <span className="ml-2 text-sm uppercase">{country.currency_code}</span>
+        <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-lg font-normal text-[#6c93c4]">
+          {pricing.isDiscounted ? (
+            <>
+              <span className="sr-only">Original price</span>
+              <s className="text-base text-[#6c93c4]/60 line-through">
+                {country.currency_symbol}
+                {pricing.original.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </s>
+            </>
+          ) : null}
+          <span>
+            {country.currency_symbol}
+            {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            {showCurrencyCode ? (
+              <span className="ml-2 text-sm uppercase">{country.currency_code}</span>
+            ) : null}
+          </span>
+          {pricing.badge ? (
+            <span className="rounded-[3px] bg-[#d48a8a] px-2 py-0.5 text-sm font-medium text-white">
+              {pricing.badge}
+            </span>
           ) : null}
         </p>
         {product.short_description || product.description ? (

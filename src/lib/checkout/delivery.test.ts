@@ -21,10 +21,10 @@ describe("parseFreeDeliveryThreshold", () => {
 });
 
 describe("quoteDelivery", () => {
-  it("charges the base fee when no threshold is configured", () => {
+  it("shows the base fee when no threshold is configured", () => {
     expect(quoteDelivery({ baseFee: 3, subtotal: 100, freeDeliveryThreshold: null })).toEqual({
       fee: 3,
-      isFree: false,
+      display: "fee",
       amountToFree: null,
     });
   });
@@ -32,15 +32,35 @@ describe("quoteDelivery", () => {
   it("charges the fee and reports the gap below the threshold", () => {
     expect(quoteDelivery({ baseFee: 3, subtotal: 18.5, freeDeliveryThreshold: 25 })).toEqual({
       fee: 3,
-      isFree: false,
+      display: "fee",
       amountToFree: 6.5,
     });
   });
 
-  it("makes delivery free exactly at the threshold", () => {
+  it("shows Free exactly at the threshold", () => {
     expect(quoteDelivery({ baseFee: 3, subtotal: 25, freeDeliveryThreshold: "25.00" })).toEqual({
       fee: 0,
-      isFree: true,
+      display: "free",
+      amountToFree: null,
+    });
+  });
+
+  it("shows Free above the threshold even when the base fee is zero", () => {
+    expect(quoteDelivery({ baseFee: 0, subtotal: 30, freeDeliveryThreshold: 25 }).display).toBe("free");
+  });
+
+  it("hides a zero fee below the threshold but keeps the nudge", () => {
+    expect(quoteDelivery({ baseFee: 0, subtotal: 19, freeDeliveryThreshold: 25 })).toEqual({
+      fee: 0,
+      display: "hidden",
+      amountToFree: 6,
+    });
+  });
+
+  it("hides a zero fee when no threshold is configured", () => {
+    expect(quoteDelivery({ baseFee: 0, subtotal: 19, freeDeliveryThreshold: null })).toEqual({
+      fee: 0,
+      display: "hidden",
       amountToFree: null,
     });
   });
@@ -48,7 +68,7 @@ describe("quoteDelivery", () => {
   it("is not fooled by floating point subtotals", () => {
     // 0.1 + 0.2 + 24.7 is 25.000000000000004 or 24.999999999999996 depending on order.
     const subtotal = 24.7 + 0.2 + 0.1;
-    expect(quoteDelivery({ baseFee: 3, subtotal, freeDeliveryThreshold: 25 }).isFree).toBe(true);
+    expect(quoteDelivery({ baseFee: 3, subtotal, freeDeliveryThreshold: 25 }).display).toBe("free");
   });
 
   it("rounds the remaining amount to cents", () => {
@@ -57,15 +77,10 @@ describe("quoteDelivery", () => {
     ).toBe(0.9);
   });
 
-  it("treats a zero base fee as free without a nudge", () => {
-    expect(quoteDelivery({ baseFee: 0, subtotal: 5, freeDeliveryThreshold: 25 })).toEqual({
-      fee: 0,
-      isFree: true,
-      amountToFree: null,
-    });
-  });
-
   it("makes every order free with a zero threshold", () => {
-    expect(quoteDelivery({ baseFee: 3, subtotal: 1, freeDeliveryThreshold: 0 }).fee).toBe(0);
+    expect(quoteDelivery({ baseFee: 3, subtotal: 1, freeDeliveryThreshold: 0 })).toMatchObject({
+      fee: 0,
+      display: "free",
+    });
   });
 });

@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { submitOrderToWakilni } from "@/lib/wakilni/orders";
 
 export type CheckoutState =
-  | { ok: true; orderNumber: string; trackingToken?: string }
+  | { ok: true; orderNumber: string; trackingToken?: string; total: number }
   | { ok: false; error: string; fieldErrors?: Record<string, string[]> }
   | null;
 
@@ -85,6 +85,11 @@ export async function submitCheckout(
     return { ok: false, error: "A product quantity cannot exceed 10." };
   }
 
+  // The discounted subtotal the shopper confirmed. place_order_v2 refuses the
+  // order (PRICE_CHANGED) if prices moved since; a missing or malformed value
+  // skips that check rather than blocking checkout.
+  const expectedSubtotal = readExpectedSubtotal(formData.get("expected_subtotal"));
+
   const requestHeaders = await headers();
   const source = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     requestHeaders.get("cf-connecting-ip") || "unknown";
@@ -92,12 +97,19 @@ export async function submitCheckout(
   const fingerprint = createHash("sha256").update(`${secret}:${source}`).digest("hex");
   const supabase = createAdminClient();
   const rpcClient = supabase as unknown as {
-    rpc: (name: "place_order", args: Record<string, unknown>) => Promise<{
-      data: Array<{ order_id: string; order_number: string; subtotal: number; shipping_fee: number; total: number }> | null;
+    rpc: (name: "place_order_v2", args: Record<string, unknown>) => Promise<{
+      data: Array<{
+        order_id: string;
+        order_number: string;
+        subtotal: number;
+        shipping_fee: number;
+        total: number;
+        discount_total: number;
+      }> | null;
       error: { code?: string; details?: string; message: string } | null;
     }>;
   };
-  const { data, error } = await rpcClient.rpc("place_order", {
+  const { data, error } = await rpcClient.rpc("place_order_v2", {
     p_country_id: parsed.data.countryId,
     p_items: items,
     p_shipping_zone_id: parsed.data.shippingZoneId,
@@ -112,17 +124,22 @@ export async function submitCheckout(
     p_notes: parsed.data.notes,
     p_idempotency_key: parsed.data.idempotencyKey,
     p_rate_limit_fingerprint: fingerprint,
+    p_expected_subtotal: expectedSubtotal,
   });
 
   const result = data?.[0];
   if (error || !result) {
     console.error(
-      `place_order RPC failed: ${JSON.stringify({
+      `place_order_v2 RPC failed: ${JSON.stringify({
         code: error?.code ?? "NO_RESULT",
         details: error?.details ?? null,
         message: error?.message ?? "The RPC returned no order.",
       })}`,
     );
+    if (error?.message?.includes("PRICE_CHANGED")) {
+      // Re-render /checkout with fresh prices so the cart re-prices itself.
+      revalidatePath("/checkout");
+    }
     return { ok: false, error: checkoutErrorMessage(error?.message) };
   }
 
@@ -155,16 +172,26 @@ export async function submitCheckout(
     trackingToken: (
       order as { public_tracking_token?: string | null } | null
     )?.public_tracking_token ?? undefined,
+    total: Number(result.total),
   };
 }
 
+function readExpectedSubtotal(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
+}
+
 function checkoutErrorMessage(message?: string) {
+  if (message?.includes("PRICE_CHANGED")) {
+    return "Some prices changed while you were checking out. Please review your cart and place the order again.";
+  }
   if (message?.includes("RATE_LIMITED")) return "Too many checkout attempts. Please wait a minute and try again.";
   if (message?.includes("INSUFFICIENT_STOCK")) return "One of your items no longer has enough stock. Please update your cart.";
   if (message?.includes("ITEM_UNAVAILABLE")) return "One or more cart items are no longer available.";
   if (message?.includes("INVALID_SHIPPING_ZONE")) return "The selected delivery area is not available for this country.";
   if (message?.includes("COUNTRY_UNAVAILABLE")) return "The selected country is not currently available.";
-  if (message?.includes("subtotal") || message?.includes("orders")) {
+  if (message?.includes("subtotal") || message?.includes("orders") || message?.includes("place_order_v2")) {
     return "Checkout database setup is out of date. Please run the latest checkout migration and try again.";
   }
   return "We could not place your order. Please review your cart and try again.";

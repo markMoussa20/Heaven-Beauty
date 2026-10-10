@@ -8,6 +8,12 @@ import {
   useMemo,
   useState,
 } from "react";
+import {
+  isValidStoredCartLine,
+  repriceCartItems,
+  summarizeCart,
+  type CartPrice,
+} from "@/lib/cart/pricing";
 
 const CART_STORAGE_KEY = "heaven-beauty-cart";
 
@@ -17,6 +23,8 @@ export type CartItem = {
   name: string;
   imageUrl?: string | null;
   unitPrice: number;
+  /** Price before discounts; missing on carts saved before discounts existed. */
+  originalUnitPrice?: number;
   currencyCode: string;
   currencySymbol: string;
   countryCode: string;
@@ -29,6 +37,11 @@ type CartContextValue = {
   hydrated: boolean;
   isCartOpen: boolean;
   subtotal: number;
+  /** Subtotal at original prices. */
+  originalSubtotal: number;
+  discountTotal: number;
+  /** Applies current server prices; returns true when a paid price changed. */
+  repriceItems: (prices: Record<string, CartPrice>) => boolean;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   closeCart: () => void;
   openCart: () => void;
@@ -45,6 +58,9 @@ const serverCartFallback: CartContextValue = {
   hydrated: false,
   isCartOpen: false,
   subtotal: 0,
+  originalSubtotal: 0,
+  discountTotal: 0,
+  repriceItems: () => false,
   addItem: () => undefined,
   closeCart: () => undefined,
   openCart: () => undefined,
@@ -93,6 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                   ...currentItem,
                   quantity: currentItem.quantity + quantity,
                   unitPrice: item.unitPrice,
+                  originalUnitPrice: item.originalUnitPrice,
                 }
               : currentItem,
           );
@@ -139,11 +156,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsCartOpen(false);
   }, []);
 
+  const repriceItems = useCallback(
+    (prices: Record<string, CartPrice>) => {
+      // The return value reports against the last rendered cart; the write
+      // re-prices whatever the cart holds when React applies it, so a quantity
+      // change in the same tick is never overwritten.
+      const { changed, items: repriced } = repriceCartItems(items, prices);
+      if (repriced !== items) {
+        setItems((current) => repriceCartItems(current, prices).items);
+        setCartVersion((version) => version + 1);
+      }
+      return changed;
+    },
+    [items],
+  );
+
   const value = useMemo<CartContextValue>(() => {
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.unitPrice * item.quantity,
-      0,
-    );
+    const { subtotal, originalSubtotal, discountTotal } = summarizeCart(items);
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
@@ -152,11 +181,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       isCartOpen,
       subtotal,
+      originalSubtotal,
+      discountTotal,
       addItem,
       closeCart,
       openCart,
       updateQuantity,
       removeItem,
+      repriceItems,
       clearCart,
     };
   }, [
@@ -168,6 +200,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     items,
     openCart,
     removeItem,
+    repriceItems,
     updateQuantity,
   ]);
 
@@ -185,15 +218,8 @@ function readStoredCart() {
   }
 
   try {
-    const parsed = JSON.parse(storedCart) as CartItem[];
-    return parsed.filter(
-      (item) =>
-        item.countryItemId &&
-        item.productId &&
-        item.quantity > 0 &&
-        Number.isFinite(Number(item.unitPrice)) &&
-        Number(item.unitPrice) > 0,
-    );
+    const parsed = JSON.parse(storedCart) as unknown[];
+    return parsed.filter(isValidStoredCartLine) as CartItem[];
   } catch {
     window.localStorage.removeItem(CART_STORAGE_KEY);
     return [];

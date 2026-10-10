@@ -5,6 +5,7 @@ import Link from "@/components/ui/IntentPrefetchLink";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 
 import { useCart } from "@/components/cart/CartProvider";
+import { lineOriginalUnitPrice } from "@/lib/cart/pricing";
 
 export function CartDrawer() {
   const {
@@ -109,7 +110,15 @@ export function CartDrawer() {
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
-                    <p className="text-sm font-medium">
+                    <p className="text-right text-sm font-medium">
+                      {lineOriginalUnitPrice(item) > item.unitPrice ? (
+                        <>
+                          <span className="sr-only">Original price</span>
+                          <s className="block text-xs font-normal line-through opacity-60">
+                            {money(lineOriginalUnitPrice(item) * item.quantity)}
+                          </s>
+                        </>
+                      ) : null}
                       {money(item.unitPrice * item.quantity)}
                     </p>
                   </div>

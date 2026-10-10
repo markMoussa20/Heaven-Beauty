@@ -1,10 +1,16 @@
+import { cache } from "react";
+
+import { withPricing } from "@/lib/discounts/storefront";
 import { createClient } from "@/lib/supabase/server";
 import { getDisplayPrice } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
 
 export { getDisplayPrice };
 
-export async function getFeaturedCountryItems(
+// Wrapped in React's cache so callers in the same request (e.g. a product
+// page's generateMetadata and the page itself) share one query and one
+// country_item_prices RPC.
+export const getFeaturedCountryItems = cache(async function getFeaturedCountryItems(
   countryCode: string,
 ): Promise<CountryItemWithProduct[]> {
   const supabase = await createClient();
@@ -31,10 +37,10 @@ export async function getFeaturedCountryItems(
     return [];
   }
 
-  return (data ?? []) as CountryItemWithProduct[];
-}
+  return withPricing((data ?? []) as CountryItemWithProduct[]);
+});
 
-export async function getVisibleCountryItems(
+export const getVisibleCountryItems = cache(async function getVisibleCountryItems(
   countryCode: string,
 ): Promise<CountryItemWithProduct[]> {
   const supabase = await createClient();
@@ -59,5 +65,5 @@ export async function getVisibleCountryItems(
     return [];
   }
 
-  return (data ?? []) as CountryItemWithProduct[];
-}
+  return withPricing((data ?? []) as CountryItemWithProduct[]);
+});

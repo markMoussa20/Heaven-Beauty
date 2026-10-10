@@ -134,6 +134,21 @@ export type Database = {
         Insert: PromoBannerCountry;
         Update: Partial<PromoBannerCountry>;
       };
+      discounts: {
+        Row: Discount;
+        Insert: Partial<Discount>;
+        Update: Partial<Discount>;
+      };
+      discount_categories: {
+        Row: DiscountCategory;
+        Insert: DiscountCategory;
+        Update: Partial<DiscountCategory>;
+      };
+      discount_items: {
+        Row: DiscountItem;
+        Insert: DiscountItem;
+        Update: Partial<DiscountItem>;
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -219,6 +234,44 @@ export type PromoBanner = {
 export type PromoBannerCountry = {
   banner_id: string;
   country_id: string;
+};
+
+export type DiscountScope = "country" | "category" | "items";
+export type DiscountValueType = "percent" | "amount";
+
+export type Discount = {
+  id: string;
+  name: string;
+  country_id: string;
+  scope: DiscountScope;
+  value_type: DiscountValueType;
+  value: number | string;
+  /** Wall-clock time, evaluated in the discount country's timezone. */
+  starts_at: string | null;
+  ends_at: string | null;
+  is_enabled: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type DiscountCategory = {
+  discount_id: string;
+  category_id: string;
+};
+
+export type DiscountItem = {
+  discount_id: string;
+  country_item_id: string;
+};
+
+/** A country item's current price as computed by public.country_item_prices. */
+export type ItemPricing = {
+  originalPrice: number;
+  finalPrice: number;
+  discountType: DiscountValueType | null;
+  discountValue: number | null;
+  /** Per-unit saving. */
+  discountAmount: number;
 };
 
 export type Category = {
@@ -329,6 +382,8 @@ export type Order = {
   shipping_fee?: number | string | null;
   subtotal?: number | string | null;
   total?: number | string | null;
+  /** Total saved by discounts on this order (subtotal is already after discounts). */
+  discount_total?: number | string | null;
   status?: string | null;
   notes?: string | null;
   created_at?: string | null;
@@ -403,6 +458,12 @@ export type OrderItem = {
   quantity: number;
   unit_price: number | string;
   total?: number | string | null;
+  /** Price before discounts; null on orders placed before discounts existed. */
+  original_unit_price?: number | string | null;
+  discount_id?: string | null;
+  discount_name?: string | null;
+  /** Per-unit saving. */
+  discount_amount?: number | string | null;
 };
 
 export type AdminUser = {
@@ -548,4 +609,6 @@ export type ExchangeRate = {
 export type CountryItemWithProduct = CountryItem & {
   products: ProductWithImages;
   countries: Country;
+  /** Attached by withPricing(); absent when prices could not be loaded. */
+  pricing?: ItemPricing;
 };
