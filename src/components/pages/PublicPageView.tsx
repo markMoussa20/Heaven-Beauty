@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/ui/IntentPrefetchLink";
 import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
 
 import { ScrollTranslateY } from "@/components/home/ScrollTranslateY";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/IntentPrefetchLink";
 
 import { getFooterContent } from "@/lib/site-content";
 

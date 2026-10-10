@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/IntentPrefetchLink";
 
 import type { Order, OrderItem } from "@/types/database";
 

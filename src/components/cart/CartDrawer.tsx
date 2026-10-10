@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/ui/IntentPrefetchLink";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 
 import { useCart } from "@/components/cart/CartProvider";

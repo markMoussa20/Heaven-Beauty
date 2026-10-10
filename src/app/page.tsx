@@ -15,7 +15,7 @@ import type { CountryItemWithProduct } from "@/types/database";
 import type { Metadata } from "next";
 import { Feather, Heart, Leaf, Rabbit } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/ui/IntentPrefetchLink";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
