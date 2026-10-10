@@ -158,12 +158,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const repriceItems = useCallback(
     (prices: Record<string, CartPrice>) => {
-      const result = repriceCartItems(items, prices);
-      if (result.items !== items) {
-        setItems(result.items);
+      // The return value reports against the last rendered cart; the write
+      // re-prices whatever the cart holds when React applies it, so a quantity
+      // change in the same tick is never overwritten.
+      const { changed, items: repriced } = repriceCartItems(items, prices);
+      if (repriced !== items) {
+        setItems((current) => repriceCartItems(current, prices).items);
         setCartVersion((version) => version + 1);
       }
-      return result.changed;
+      return changed;
     },
     [items],
   );

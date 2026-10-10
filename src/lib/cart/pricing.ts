@@ -39,6 +39,13 @@ export function summarizeCart(lines: PricedLine[]) {
   };
 }
 
+/** A server price is only applied when both amounts are finite and non-negative. */
+const isUsableCartPrice = (price: CartPrice) =>
+  Number.isFinite(price.unitPrice) &&
+  price.unitPrice >= 0 &&
+  Number.isFinite(price.originalUnitPrice) &&
+  price.originalUnitPrice >= 0;
+
 /**
  * Brings stored cart lines up to the server's current prices. `changed` is true
  * only when what the customer pays for a line changed.
@@ -52,7 +59,7 @@ export function repriceCartItems<T extends PricedLine>(
 
   const next = items.map((item) => {
     const current = prices[item.countryItemId];
-    if (!current) return item;
+    if (!current || !isUsableCartPrice(current)) return item;
 
     const paidChanged = toCents(current.unitPrice) !== toCents(item.unitPrice);
     const originalChanged =

@@ -79,6 +79,26 @@ describe("repriceCartItems", () => {
     const items = [line()];
     expect(repriceCartItems(items, {}).items).toBe(items);
   });
+
+  it("ignores unusable server prices", () => {
+    const items = [line()];
+    for (const price of [
+      { unitPrice: Number.NaN, originalUnitPrice: 100 },
+      { unitPrice: -1, originalUnitPrice: 100 },
+    ]) {
+      const result = repriceCartItems(items, { a: price });
+      expect(result.items).toBe(items);
+      expect(result.changed).toBe(false);
+    }
+  });
+
+  it("re-prices a line to 0 when a 100% discount starts", () => {
+    const result = repriceCartItems([line({ unitPrice: 20, originalUnitPrice: undefined })], {
+      a: { unitPrice: 0, originalUnitPrice: 20 },
+    });
+    expect(result.changed).toBe(true);
+    expect(result.items[0]).toMatchObject({ unitPrice: 0, originalUnitPrice: 20 });
+  });
 });
 
 describe("isValidStoredCartLine", () => {
