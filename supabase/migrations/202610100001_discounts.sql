@@ -213,7 +213,11 @@ create or replace function public.place_order_v2(
   p_country_id uuid, p_items jsonb, p_shipping_zone_id uuid,
   p_phone text, p_email text, p_first_name text, p_last_name text,
   p_address text, p_apartment text, p_city text, p_postal_code text,
-  p_notes text, p_idempotency_key uuid, p_rate_limit_fingerprint text
+  p_notes text, p_idempotency_key uuid, p_rate_limit_fingerprint text,
+  -- The discounted subtotal the shopper saw. When given and it differs from
+  -- what the order would cost now, the order is refused with PRICE_CHANGED
+  -- so nobody confirms one total and is charged another.
+  p_expected_subtotal numeric default null
 ) returns table(order_id uuid, order_number text, subtotal numeric, shipping_fee numeric, total numeric, discount_total numeric)
 language plpgsql security definer set search_path = pg_catalog, public as $$
 declare
@@ -382,6 +386,11 @@ begin
     ));
   end loop;
 
+  -- Raising rolls back the stock updates and the rate-limit attempt above.
+  if p_expected_subtotal is not null and round(p_expected_subtotal, 2) <> v_calculated_subtotal then
+    raise exception using errcode='P0001', message='PRICE_CHANGED';
+  end if;
+
   select c.id into v_customer_id
   from public.customers c
   where (c.country_id = p_country_id and c.phone = p_phone)
@@ -477,7 +486,7 @@ exception when unique_violation then
   end if;
 end $$;
 
-revoke all on function public.place_order_v2(uuid,jsonb,uuid,text,text,text,text,text,text,text,text,text,uuid,text) from public, anon, authenticated;
-grant execute on function public.place_order_v2(uuid,jsonb,uuid,text,text,text,text,text,text,text,text,text,uuid,text) to service_role;
+revoke all on function public.place_order_v2(uuid,jsonb,uuid,text,text,text,text,text,text,text,text,text,uuid,text,numeric) from public, anon, authenticated;
+grant execute on function public.place_order_v2(uuid,jsonb,uuid,text,text,text,text,text,text,text,text,text,uuid,text,numeric) to service_role;
 
 notify pgrst, 'reload schema';

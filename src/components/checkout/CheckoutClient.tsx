@@ -115,14 +115,15 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
           contents: toMetaContents(items),
           currency: country.currency_code,
           num_items: count,
-          value: total,
+          // What place_order_v2 actually charged, not the client's estimate.
+          value: state.total,
         },
         { eventID: state.orderNumber },
       );
     }
 
     clearCart();
-  }, [clearCart, count, country.currency_code, items, state, total]);
+  }, [clearCart, count, country.currency_code, items, state]);
 
   const money = (value: number) =>
     `${country.currency_symbol}${value.toLocaleString(undefined, {
@@ -166,6 +167,9 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
           Your order {state.orderNumber} has been created. We will contact you
           to confirm the details.
         </p>
+        <p className="mx-auto mt-2 max-w-md text-base font-light leading-8">
+          Total charged: {money(state.total)}
+        </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             className="inline-flex bg-[#9eb9d9] px-7 py-4 text-sm font-medium text-white transition hover:bg-[#6c93c4]"
@@ -200,6 +204,8 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
           <input name="country_id" type="hidden" value={country.id} />
           <input name="cart_items" type="hidden" value={cartItemsPayload} />
           <input name="idempotency_key" type="hidden" value={idempotencyKey} />
+          {/* The discounted subtotal shown here; place_order_v2 refuses the order if it no longer matches. */}
+          <input name="expected_subtotal" type="hidden" value={subtotal.toFixed(2)} />
           {!country.use_shipping_zones ? (
             <input name="shipping_zone_id" type="hidden" value="" />
           ) : null}

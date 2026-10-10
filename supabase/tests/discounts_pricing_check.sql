@@ -4,7 +4,7 @@
 -- Everything happens inside ONE DO block that ALWAYS ends by raising an
 -- exception, so every row it creates is rolled back automatically:
 --   "PASS: ..."  -> all checks passed, nothing was saved
---                   (expected: "PASS: all 20 discount checks passed. ...")
+--                   (expected: "PASS: all 22 discount checks passed. ...")
 --   "FAIL: ..."  -> a check failed (the message says which), nothing was saved
 -- No app code runs, so no emails, Wakilni submissions or Meta events happen.
 do $$
@@ -195,6 +195,32 @@ begin
   if v_order.subtotal is distinct from 0::numeric or v_order.total is distinct from 3::numeric
      or v_order.discount_total is distinct from 4::numeric then
     raise exception 'FAIL: free item D order wrong';
+  end if;
+  v_checks := v_checks + 1;
+
+  -- The shopper's confirmed subtotal must match: C x1 costs 25 now, so an
+  -- expected subtotal of 30 (C's original price) is refused ...
+  begin
+    perform * from public.place_order_v2(
+      v_country, jsonb_build_array(jsonb_build_object('countryItemId', v_ci->>'C', 'quantity', 1)),
+      null, '000-TEST-0001', '', 'Test', 'Discount', 'Test street 1', '', 'Test city', '', '',
+      gen_random_uuid(), v_fingerprint, 30
+    );
+    raise exception 'FAIL: a stale expected subtotal was accepted';
+  exception when others then
+    if sqlerrm not like '%PRICE_CHANGED%' then raise; end if;
+  end;
+  v_checks := v_checks + 1;
+
+  -- ... and the matching one (25; 25 < 45 so delivery 3 is charged) is accepted.
+  select * into v_order from public.place_order_v2(
+    v_country, jsonb_build_array(jsonb_build_object('countryItemId', v_ci->>'C', 'quantity', 1)),
+    null, '000-TEST-0001', '', 'Test', 'Discount', 'Test street 1', '', 'Test city', '', '',
+    gen_random_uuid(), v_fingerprint, 25
+  );
+  if v_order.subtotal is distinct from 25::numeric or v_order.shipping_fee is distinct from 3::numeric
+     or v_order.total is distinct from 28::numeric or v_order.discount_total is distinct from 5::numeric then
+    raise exception 'FAIL: matching expected subtotal order wrong: subtotal %, total %', v_order.subtotal, v_order.total;
   end if;
   v_checks := v_checks + 1;
 
