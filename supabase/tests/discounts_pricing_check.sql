@@ -36,9 +36,9 @@ begin
   insert into public.categories(name, slug) values ('[TEST] Parent', 'test-parent-' || v_suffix) returning id into v_parent;
   insert into public.categories(name, slug, parent_id) values ('[TEST] Child', 'test-child-' || v_suffix, v_parent) returning id into v_child;
 
-  -- A..G visible, H hidden. A is in the CHILD category, B in the PARENT.
+  -- A..G and I visible, H hidden. A and I are in the CHILD category, B in the PARENT.
   for v_name, v_price in
-    select * from (values ('A', 100::numeric), ('B', 50), ('C', 30), ('D', 4), ('E', 20), ('F', 60), ('G', 10), ('H', 25)) as t(n, p)
+    select * from (values ('A', 100::numeric), ('B', 50), ('C', 30), ('D', 4), ('E', 20), ('F', 60), ('G', 10), ('H', 25), ('I', 10)) as t(n, p)
   loop
     insert into public.products(name, slug)
     values ('[TEST] Product ' || v_name, 'test-' || lower(v_name) || '-' || v_suffix)
@@ -48,6 +48,7 @@ begin
     returning id into v_id;
     v_ci := v_ci || jsonb_build_object(v_name, v_id);
     if v_name = 'A' then insert into public.product_categories(product_id, category_id) values (v_product, v_child); end if;
+    if v_name = 'I' then insert into public.product_categories(product_id, category_id) values (v_product, v_child); end if;
     if v_name = 'B' then insert into public.product_categories(product_id, category_id) values (v_product, v_parent); end if;
   end loop;
 
@@ -57,7 +58,7 @@ begin
   insert into public.discounts(name, country_id, scope, value_type, value) values ('[TEST] country 10%', v_country, 'country', 'percent', 10);
   insert into public.discounts(name, country_id, scope, value_type, value) values ('[TEST] country $5', v_country, 'country', 'amount', 5);
 
-  -- Category rule on the PARENT covers B directly and A through the child.
+  -- Category rule on the PARENT covers B directly and I through the child (A is overridden by its item rule).
   insert into public.discounts(name, country_id, scope, value_type, value)
   values ('[TEST] parent 20%', v_country, 'category', 'percent', 20) returning id into v_rule;
   insert into public.discount_categories(discount_id, category_id) values (v_rule, v_parent);
@@ -91,9 +92,11 @@ begin
   values ('[TEST] item G window', v_country, 'items', 'percent', 30, v_local_now - interval '1 minute', v_local_now + interval '1 hour') returning id into v_rule;
   insert into public.discount_items(discount_id, country_item_id) values (v_rule, (v_ci->>'G')::uuid);
 
-  -- Expected final prices.
+  -- Expected final prices. I (child category, no item rule): the parent
+  -- category 20% saves 2 and must beat the country $5 rule, proving the rule
+  -- reaches subcategories and that category outranks country.
   for v_name, v_price in
-    select * from (values ('A', 95::numeric), ('B', 40), ('C', 25), ('D', 0), ('E', 15), ('F', 54), ('G', 7)) as t(n, p)
+    select * from (values ('A', 95::numeric), ('B', 40), ('C', 25), ('D', 0), ('E', 15), ('F', 54), ('G', 7), ('I', 8)) as t(n, p)
   loop
     v_got := null;
     select p.final_price into v_got
@@ -210,7 +213,7 @@ begin
   -- An invalid timezone falls back to UTC instead of erroring.
   update public.countries set timezone = 'Not/AZone' where id = v_country;
   select count(*) into v_count from public.country_item_prices(v_country);
-  if v_count <> 7 then raise exception 'FAIL: bad timezone returned % rows, expected 7', v_count; end if;
+  if v_count <> 8 then raise exception 'FAIL: bad timezone returned % rows, expected 8', v_count; end if;
   v_checks := v_checks + 1;
 
   raise exception 'PASS: all % discount checks passed. Nothing was saved (this message is how the script rolls itself back).', v_checks;
