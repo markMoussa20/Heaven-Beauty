@@ -91,6 +91,14 @@ export default async function AdminOrderDetailPage({
             </div>
             <div>
               <p className="text-xs text-zinc-500">Totals</p>
+              {Number(typedOrder.discount_total ?? 0) > 0 ? (
+                <>
+                  <p className="font-medium">
+                    Before discounts: {(Number(typedOrder.subtotal ?? 0) + Number(typedOrder.discount_total)).toFixed(2)}
+                  </p>
+                  <p className="font-medium text-emerald-700">Discount: -{typedOrder.discount_total}</p>
+                </>
+              ) : null}
               <p className="font-medium">Subtotal: {typedOrder.subtotal ?? "-"}</p>
               <p className="font-medium">Shipping: {typedOrder.shipping_fee ?? "-"}</p>
               <p className="font-semibold">Total: {typedOrder.total ?? "-"}</p>
@@ -157,13 +165,19 @@ export default async function AdminOrderDetailPage({
             <div className="mt-3 overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead className="text-left text-xs uppercase text-zinc-500">
-                  <tr><th className="py-2">Product</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+                  <tr><th className="py-2">Product</th><th>Qty</th><th>Original</th><th>Discount</th><th>Unit</th><th>Total</th></tr>
                 </thead>
                 <tbody>
                   {orderItems.map((item) => (
                     <tr className="border-t border-zinc-100" key={item.id}>
                       <td className="py-2">{item.product_name ?? String(item.products?.name ?? item.country_items?.products ?? "-")}</td>
                       <td>{item.quantity}</td>
+                      <td>{item.original_unit_price ?? item.unit_price}</td>
+                      <td>
+                        {Number(item.discount_amount ?? 0) > 0
+                          ? `-${item.discount_amount} each${item.discount_name ? ` (${item.discount_name})` : ""}`
+                          : "-"}
+                      </td>
                       <td>{item.unit_price}</td>
                       <td>{item.total ?? Number(item.quantity) * Number(item.unit_price)}</td>
                     </tr>

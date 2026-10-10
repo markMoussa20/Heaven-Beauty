@@ -34,6 +34,7 @@ export type OrderExportRow = {
   address: string;
   status: string;
   currency: string;
+  discount: number;
   subtotal: number;
   shippingFee: number;
   total: number;
@@ -48,8 +49,11 @@ export type OrderItemExportRow = {
   createdAt: Date | null;
   product: string;
   quantity: number;
+  originalUnitPrice: number;
   unitPrice: number;
   lineTotal: number;
+  discount: number;
+  discountName: string;
   currency: string;
 };
 
@@ -158,6 +162,7 @@ export async function getOrdersForExport(filters: OrderExportFilters) {
         .join(", "),
       status: orderStatusLabel(text(order.status)),
       currency,
+      discount: toNumber(order.discount_total),
       subtotal: toNumber(order.subtotal),
       shippingFee: toNumber(order.shipping_fee),
       total: toNumber(order.total),
@@ -183,8 +188,11 @@ export async function getOrdersForExport(filters: OrderExportFilters) {
         createdAt: parent?.createdAt ?? null,
         product: text(item.product_name) || text(products?.name),
         quantity,
+        originalUnitPrice: item.original_unit_price == null ? unitPrice : toNumber(item.original_unit_price),
         unitPrice,
         lineTotal: item.total == null ? quantity * unitPrice : toNumber(item.total),
+        discount: toNumber(item.discount_amount) * quantity,
+        discountName: text(item.discount_name),
         currency: parent?.currency ?? "",
       };
     })

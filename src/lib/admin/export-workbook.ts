@@ -169,6 +169,7 @@ export async function buildOrdersWorkbook(options: {
       { header: "Status", key: "status", width: 14, value: (r) => r.status },
       { header: "Items", key: "itemCount", width: 8, format: "integer", total: true, value: (r) => r.itemCount },
       { header: "Currency", key: "currency", width: 10, value: (r) => r.currency },
+      { header: "Discount", key: "discount", width: 12, format: "money", total: true, value: (r) => r.discount },
       { header: "Subtotal", key: "subtotal", width: 13, format: "money", total: true, value: (r) => r.subtotal },
       { header: "Shipping", key: "shippingFee", width: 12, format: "money", total: true, value: (r) => r.shippingFee },
       { header: "Total", key: "total", width: 14, format: "money", total: true, value: (r) => r.total },
@@ -189,8 +190,11 @@ export async function buildOrdersWorkbook(options: {
       { header: "Product", key: "product", width: 38, value: (r) => r.product },
       { header: "Qty", key: "quantity", width: 8, format: "integer", total: true, value: (r) => r.quantity },
       { header: "Currency", key: "currency", width: 10, value: (r) => r.currency },
+      { header: "Original unit price", key: "originalUnitPrice", width: 16, format: "money", value: (r) => r.originalUnitPrice },
       { header: "Unit price", key: "unitPrice", width: 14, format: "money", value: (r) => r.unitPrice },
       { header: "Line total", key: "lineTotal", width: 14, format: "money", total: true, value: (r) => r.lineTotal },
+      { header: "Discount", key: "discount", width: 12, format: "money", total: true, value: (r) => r.discount },
+      { header: "Discount name", key: "discountName", width: 26, value: (r) => r.discountName },
     ],
   });
 
