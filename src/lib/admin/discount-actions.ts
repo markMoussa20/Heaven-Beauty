@@ -113,6 +113,17 @@ export async function saveDiscount(
 
   let discountId = id;
   if (id) {
+    const { data: existing, error: lookupError } = await supabase
+      .from("discounts")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+    if (lookupError) {
+      console.error("Failed to load discount", { code: lookupError.code, message: lookupError.message });
+      return failed();
+    }
+    if (!existing) return failed("That discount no longer exists.");
+
     const { error } = await writes.from("discounts").update(payload).eq("id", id);
     if (error) {
       console.error("Failed to update discount", { code: error.code, message: error.message });
@@ -130,6 +141,14 @@ export async function saveDiscount(
   const linkError = await replaceLinks(discountId!, categoryIds, countryItemIds);
   if (linkError) {
     console.error("Failed to save discount targets", { message: linkError });
+    if (!id) {
+      // A half-created discount would be duplicated by a retry (the form still has no id), so undo it.
+      const { error: undoError } = await supabase.from("discounts").delete().eq("id", discountId!);
+      if (undoError) {
+        console.error("Failed to remove half-created discount", { code: undoError.code, message: undoError.message });
+      }
+      return failed();
+    }
     return failed("The discount was saved, but its categories or items could not be updated. Please save it again.");
   }
 

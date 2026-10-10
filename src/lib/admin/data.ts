@@ -37,6 +37,34 @@ export type DiscountCategoryOption = { id: string; name: string; parent_id: stri
 
 const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205"]);
 
+type CountryItemOptionRow = {
+  id: string;
+  country_id: string;
+  country_sku: string | null;
+  products: { name: string; base_sku: string | null } | null;
+};
+
+const COUNTRY_ITEM_PAGE_SIZE = 1000;
+
+// PostgREST caps a response at 1000 rows, so page through every country item.
+async function loadAllCountryItemOptions(
+  supabase: ReturnType<typeof createAdminClient>,
+): Promise<{ rows: CountryItemOptionRow[]; error: string | null }> {
+  const rows: CountryItemOptionRow[] = [];
+  for (let from = 0; ; from += COUNTRY_ITEM_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("country_items")
+      .select("id,country_id,country_sku,products!inner(name,base_sku)")
+      .order("sort_order")
+      .order("id")
+      .range(from, from + COUNTRY_ITEM_PAGE_SIZE - 1);
+    if (error) return { rows, error: error.message };
+    const page = (data ?? []) as unknown as CountryItemOptionRow[];
+    rows.push(...page);
+    if (page.length < COUNTRY_ITEM_PAGE_SIZE) return { rows, error: null };
+  }
+}
+
 export async function listDiscounts() {
   const supabase = createAdminClient();
   const [discounts, countries, categories, countryItems] = await Promise.all([
@@ -47,22 +75,14 @@ export async function listDiscounts() {
       .limit(500),
     supabase.from("countries").select("*").order("name"),
     supabase.from("categories").select("id,name,parent_id").order("sort_order").order("name"),
-    supabase
-      .from("country_items")
-      .select("id,country_id,country_sku,products!inner(name,base_sku)")
-      .order("sort_order"),
+    loadAllCountryItemOptions(supabase),
   ]);
 
   const rows = (discounts.data ?? []) as unknown as (Discount & {
     discount_categories: { category_id: string }[] | null;
     discount_items: { country_item_id: string }[] | null;
   })[];
-  const itemRows = (countryItems.data ?? []) as unknown as {
-    id: string;
-    country_id: string;
-    country_sku: string | null;
-    products: { name: string; base_sku: string | null } | null;
-  }[];
+  const itemRows = countryItems.rows;
 
   return {
     discounts: rows.map(({ discount_categories: categoryLinks, discount_items: itemLinks, ...discount }) => ({
@@ -81,7 +101,7 @@ export async function listDiscounts() {
       };
     }) as DiscountItemOption[],
     error:
-      discounts.error?.message ?? countries.error?.message ?? categories.error?.message ?? countryItems.error?.message ?? null,
+      discounts.error?.message ?? countries.error?.message ?? categories.error?.message ?? countryItems.error ?? null,
     missingMigration: Boolean(discounts.error?.code && MISSING_TABLE_CODES.has(discounts.error.code)),
   };
 }
