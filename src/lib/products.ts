@@ -1,3 +1,4 @@
+import { withPricing } from "@/lib/discounts/storefront";
 import { createClient } from "@/lib/supabase/server";
 import { getDisplayPrice } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
@@ -31,7 +32,7 @@ export async function getFeaturedCountryItems(
     return [];
   }
 
-  return (data ?? []) as CountryItemWithProduct[];
+  return withPricing((data ?? []) as CountryItemWithProduct[]);
 }
 
 export async function getVisibleCountryItems(
@@ -59,5 +60,5 @@ export async function getVisibleCountryItems(
     return [];
   }
 
-  return (data ?? []) as CountryItemWithProduct[];
+  return withPricing((data ?? []) as CountryItemWithProduct[]);
 }
