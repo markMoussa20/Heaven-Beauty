@@ -106,11 +106,7 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
       minimumFractionDigits: value % 1 === 0 ? 0 : 2,
     })}`;
 
-  // With no zone available there is no real fee yet, so don't advertise "Free".
-  const deliveryLabel =
-    delivery.isFree && !(country.use_shipping_zones && !selectedZone)
-      ? "Free"
-      : money(deliveryFee);
+  const deliveryLabel = delivery.display === "free" ? "Free" : money(deliveryFee);
 
   const submitDisabled =
     pending ||
@@ -402,10 +398,12 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
               <span>Subtotal</span>
               <span>{money(subtotal)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Delivery</span>
-              <span>{deliveryLabel}</span>
-            </div>
+            {delivery.display !== "hidden" ? (
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>{deliveryLabel}</span>
+              </div>
+            ) : null}
             {delivery.amountToFree !== null && items.length > 0 ? (
               <p className="bg-[#e6ecf4] px-3 py-2 text-xs text-[#6c93c4]">
                 Add {money(delivery.amountToFree)} more for free delivery
@@ -432,10 +430,12 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
             <span>Items</span>
             <span>{count}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Delivery</span>
-            <span>{deliveryLabel}</span>
-          </div>
+          {delivery.display !== "hidden" ? (
+            <div className="flex justify-between">
+              <span>Delivery</span>
+              <span>{deliveryLabel}</span>
+            </div>
+          ) : null}
           <div className="flex justify-between border-t border-[#6c93c4]/15 pt-3 text-base font-semibold">
             <span>Total</span>
             <span>{money(total)}</span>

@@ -5,7 +5,11 @@
  */
 export type DeliveryQuote = {
   fee: number;
-  isFree: boolean;
+  /**
+   * "free" only when the free-delivery offer applies; "hidden" when there is
+   * no fee to show (countries whose delivery is not charged on the site).
+   */
+  display: "fee" | "free" | "hidden";
   /** How much more the customer must add for free delivery, when that applies. */
   amountToFree: number | null;
 };
@@ -28,13 +32,15 @@ export function quoteDelivery({
   freeDeliveryThreshold: number | string | null | undefined;
 }): DeliveryQuote {
   const threshold = parseFreeDeliveryThreshold(freeDeliveryThreshold);
-  const qualifies = threshold !== null && toCents(subtotal) >= toCents(threshold);
-  const fee = qualifies ? 0 : Math.max(0, baseFee);
 
+  if (threshold !== null && toCents(subtotal) >= toCents(threshold)) {
+    return { fee: 0, display: "free", amountToFree: null };
+  }
+
+  const fee = Math.max(0, baseFee);
   return {
     fee,
-    isFree: fee === 0,
-    amountToFree:
-      threshold !== null && fee > 0 ? (toCents(threshold) - toCents(subtotal)) / 100 : null,
+    display: fee > 0 ? "fee" : "hidden",
+    amountToFree: threshold !== null ? (toCents(threshold) - toCents(subtotal)) / 100 : null,
   };
 }
