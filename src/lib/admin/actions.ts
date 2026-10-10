@@ -446,12 +446,16 @@ function payloadFrom(formData: FormData, fields: string[]) {
         return [field, asBoolean(formData.get(field))];
       }
 
+      // sort_order is NOT NULL (default 0) on every table; a blank field means 0.
+      if (field === "sort_order") {
+        return [field, asNumber(formData.get(field)) ?? 0];
+      }
+
       if (
         field.includes("fee") ||
         field.includes("price") ||
         field.includes("rate") ||
-        field.includes("quantity") ||
-        field.includes("sort_order")
+        field.includes("quantity")
       ) {
         return [field, asNumber(formData.get(field))];
       }

@@ -56,13 +56,21 @@ export default async function AdminCountriesPage() {
             key: "action",
             header: "Action",
             render: (row) => (
+              // Quick activate/deactivate. saveCountry writes every listed field, so all
+              // current values are sent along and only is_active changes.
               <form action={async (formData) => { "use server"; await saveCountry(row.id, null, formData); }}>
                 <input name="name" type="hidden" value={row.name} />
                 <input name="code" type="hidden" value={row.code} />
                 <input name="currency_code" type="hidden" value={row.currency_code} />
                 <input name="currency_symbol" type="hidden" value={row.currency_symbol} />
+                <input name="phone" type="hidden" value={row.phone ?? ""} />
+                <input name="whatsapp" type="hidden" value={row.whatsapp ?? ""} />
+                <input name="domain" type="hidden" value={row.domain ?? ""} />
                 <input name="global_delivery_fee" type="hidden" value={String(row.global_delivery_fee ?? "")} />
                 <input name="delivery_label" type="hidden" value={row.delivery_label ?? ""} />
+                <input name="price_conversion_base_currency" type="hidden" value={row.price_conversion_base_currency ?? ""} />
+                <input name="timezone" type="hidden" value={row.timezone ?? ""} />
+                {row.price_conversion_enabled ? <input name="price_conversion_enabled" type="hidden" value="on" /> : null}
                 <ConfirmSubmitButton
                   className="text-sm font-medium text-zinc-950 underline"
                   message="Toggle this country active status?"
