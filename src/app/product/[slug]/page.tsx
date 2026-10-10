@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cache } from "react";
 
 import { ProductDetail } from "@/components/products/ProductDetail";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -10,6 +11,10 @@ import { getProductImageUrl } from "@/lib/storage/product-images";
 
 export const dynamic = "force-dynamic";
 
+// generateMetadata and the page both need the country's catalogue. Without this
+// request-scoped cache every product view queried and parsed it twice.
+const getItems = cache(getVisibleCountryItems);
+
 export async function generateMetadata({
   params,
 }: {
@@ -17,7 +22,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const countryCode = await getSelectedCountryCode();
-  const items = await getVisibleCountryItems(countryCode);
+  const items = await getItems(countryCode);
   const item = items.find((candidate) => candidate.products.slug === slug);
 
   return {
@@ -33,7 +38,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   const countryCode = await getSelectedCountryCode();
-  const items = await getVisibleCountryItems(countryCode);
+  const items = await getItems(countryCode);
   const item = items.find((candidate) => candidate.products.slug === slug);
 
   if (!item) {
