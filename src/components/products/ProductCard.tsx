@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
-import { getDisplayPrice } from "@/lib/pricing";
+import { getItemPricing } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/browser";
 import {
   getPrimaryProductImagePath,
@@ -23,10 +23,10 @@ export function ProductCard({
   item,
   variant = "catalog",
 }: ProductCardProps) {
-  const price = getDisplayPrice(item);
-  const unitPrice = Number(price);
   const product = item.products;
   const country = item.countries;
+  const pricing = getItemPricing(item, country.currency_symbol);
+  const unitPrice = pricing.final;
   const showCurrencyCode =
     country.currency_symbol.trim().toUpperCase() !==
     country.currency_code.trim().toUpperCase();
@@ -47,6 +47,7 @@ export function ProductCard({
       name: product.name,
       imageUrl,
       unitPrice,
+      originalUnitPrice: pricing.original,
       currencyCode: country.currency_code,
       currencySymbol: country.currency_symbol,
       countryCode: country.code,
@@ -128,15 +129,28 @@ export function ProductCard({
           </div>
           <div className="mt-2">
             <p
-              className={`font-normal text-[#6c93c4] ${
+              className={`flex flex-wrap items-center gap-x-2 gap-y-1 font-normal text-[#6c93c4] ${
                 isDialog ? "text-sm" : "text-xs sm:text-sm"
               }`}
             >
-              {country.currency_symbol}
-              {price}
-              {showCurrencyCode ? (
-                <span className={`ml-1 uppercase ${isDialog ? "text-xs" : "text-[10px] sm:text-xs"}`}>
-                  {country.currency_code}
+              {pricing.isDiscounted ? (
+                <span className="text-[#6c93c4]/60 line-through">
+                  {country.currency_symbol}
+                  {pricing.original}
+                </span>
+              ) : null}
+              <span>
+                {country.currency_symbol}
+                {pricing.final}
+                {showCurrencyCode ? (
+                  <span className={`ml-1 uppercase ${isDialog ? "text-xs" : "text-[10px] sm:text-xs"}`}>
+                    {country.currency_code}
+                  </span>
+                ) : null}
+              </span>
+              {pricing.badge ? (
+                <span className="rounded-[3px] bg-[#d48a8a] px-1.5 py-0.5 text-[10px] font-medium text-white sm:text-xs">
+                  {pricing.badge}
                 </span>
               ) : null}
             </p>
