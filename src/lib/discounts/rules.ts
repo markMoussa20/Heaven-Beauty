@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import {
+  isValidTimeZone,
   isWithinSchedule,
   normalizeWallClock,
-  resolveCountryTimeZone,
   wallClockIn,
   type ScheduleCountry,
 } from "@/lib/promo-banners/schedule";
@@ -94,7 +94,9 @@ export function getDiscountStatus(
 ): DiscountStatus {
   if (!discount.is_enabled) return "disabled";
 
-  const timeZone = resolveCountryTimeZone(country);
+  // Same fallback as public.discount_safe_timezone: an invalid zone means UTC
+  // (not the country-code default promo banners use), so the badge matches pricing.
+  const timeZone = isValidTimeZone(country.timezone) ? country.timezone : "UTC";
   if (isWithinSchedule(discount, now, timeZone)) return "live";
 
   const start = normalizeWallClock(discount.starts_at);

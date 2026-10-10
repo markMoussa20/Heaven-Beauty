@@ -109,6 +109,18 @@ describe("getDiscountStatus", () => {
     expect(getDiscountStatus(window, { ...beirut, timezone: "UTC" }, now)).toBe("scheduled");
   });
 
+  it("matches timezone names case-insensitively, like the pricing function", () => {
+    const window = { is_enabled: true, starts_at: "2026-10-10T11:30:00", ends_at: "2026-10-10T13:00:00" };
+    expect(getDiscountStatus(window, { ...beirut, timezone: "asia/beirut" }, now)).toBe("live");
+  });
+
+  it("evaluates an invalid timezone in UTC, not the country-code default", () => {
+    const window = { is_enabled: true, starts_at: "2026-10-10T11:30:00", ends_at: "2026-10-10T13:00:00" };
+    // LB would default to Beirut (live) for promo banners; pricing falls back to UTC.
+    expect(getDiscountStatus(window, { ...beirut, timezone: "Not/AZone" }, now)).toBe("scheduled");
+    expect(getDiscountStatus(window, { ...beirut, timezone: null }, now)).toBe("scheduled");
+  });
+
   it("is expired after the end", () => {
     expect(
       getDiscountStatus({ is_enabled: true, starts_at: null, ends_at: "2026-10-10T11:00:00" }, beirut, now),

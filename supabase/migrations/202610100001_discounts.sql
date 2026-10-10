@@ -78,6 +78,29 @@ alter table public.order_items
 comment on column public.order_items.discount_amount is 'Per-unit saving applied when the order was placed.';
 comment on column public.order_items.discount_name is 'Snapshot of the discount name; survives edits and deletion of the rule.';
 
+-- Returns p_tz when Postgres accepts it as a timezone (case-insensitively, like
+-- the admin's Intl check), else 'UTC', so a bad timezone can never break
+-- pricing. Cheap: no scan of pg_timezone_names on the storefront's hot path.
+-- Stable, not immutable: the answer depends on the server's timezone data.
+create or replace function public.discount_safe_timezone(p_tz text)
+returns text
+language plpgsql
+stable
+set search_path = pg_catalog, public
+as $$
+begin
+  if p_tz is null or btrim(p_tz) = '' then
+    return 'UTC';
+  end if;
+  perform now() at time zone p_tz;
+  return p_tz;
+exception when others then
+  return 'UTC';
+end $$;
+
+revoke all on function public.discount_safe_timezone(text) from public;
+grant execute on function public.discount_safe_timezone(text) to anon, authenticated, service_role;
+
 -- Current price of every visible item in an active country. Returns only the
 -- effect of rules that are live right now; never names or future rules.
 create or replace function public.country_item_prices(p_country_id uuid)
@@ -100,10 +123,7 @@ as $$
     select
       c.id,
       -- An invalid timezone must not break pricing for the whole country.
-      (now() at time zone case
-        when exists (select 1 from pg_timezone_names tz where tz.name = c.timezone) then c.timezone
-        else 'UTC'
-      end)::timestamp as local_now
+      (now() at time zone public.discount_safe_timezone(c.timezone))::timestamp as local_now
     from public.countries c
     where c.id = p_country_id
       and c.is_active

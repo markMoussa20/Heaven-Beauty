@@ -4,6 +4,7 @@
 -- Everything happens inside ONE DO block that ALWAYS ends by raising an
 -- exception, so every row it creates is rolled back automatically:
 --   "PASS: ..."  -> all checks passed, nothing was saved
+--                   (expected: "PASS: all 20 discount checks passed. ...")
 --   "FAIL: ..."  -> a check failed (the message says which), nothing was saved
 -- No app code runs, so no emails, Wakilni submissions or Meta events happen.
 do $$
@@ -208,6 +209,20 @@ begin
   exception when others then
     if sqlerrm not like '%ITEM_UNAVAILABLE%' then raise; end if;
   end;
+  v_checks := v_checks + 1;
+
+  -- Timezone names match case-insensitively (like the admin's Intl check):
+  -- 'asia/beirut' still evaluates G's window in Beirut time, so G stays 7
+  -- (in UTC the window would not have started yet and G would fall back to
+  -- the country $5 rule and cost 5).
+  update public.countries set timezone = 'asia/beirut' where id = v_country;
+  v_got := null;
+  select p.final_price into v_got
+  from public.country_item_prices(v_country) p
+  where p.country_item_id = (v_ci->>'G')::uuid;
+  if v_got is distinct from 7::numeric then
+    raise exception 'FAIL: lowercase timezone: item G expected final price 7, got %', v_got;
+  end if;
   v_checks := v_checks + 1;
 
   -- An invalid timezone falls back to UTC instead of erroring.
