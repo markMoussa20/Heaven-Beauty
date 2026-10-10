@@ -58,14 +58,16 @@ export function getItemPricing(item: PricedSource, currencySymbol: string) {
   const final = getDisplayPrice(item);
   const original = item.pricing?.originalPrice ?? final;
   const isDiscounted = Math.round(original * 100) > Math.round(final * 100);
+  const type = item.pricing?.discountType ?? null;
+  // An amount rule's saving is capped at the price ($10 off a $4 item saves $4),
+  // so show the actual saving rather than the rule's value.
+  const badgeValue = type === "amount" ? (item.pricing?.discountAmount ?? null) : (item.pricing?.discountValue ?? null);
 
   return {
     original,
     final,
     isDiscounted,
-    badge: isDiscounted
-      ? formatDiscountBadge(item.pricing?.discountType ?? null, item.pricing?.discountValue ?? null, currencySymbol)
-      : null,
+    badge: isDiscounted ? formatDiscountBadge(type, badgeValue, currencySymbol) : null,
   };
 }
 

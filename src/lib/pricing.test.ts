@@ -93,6 +93,21 @@ describe("getItemPricing", () => {
     });
   });
 
+  it("shows an amount rule's capped saving, not the rule value", () => {
+    const capped: ItemPricing = {
+      originalPrice: 4,
+      finalPrice: 0,
+      discountType: "amount",
+      discountValue: 10,
+      discountAmount: 4,
+    };
+    expect(getItemPricing({ price: 4, pricing: capped }, "$").badge).toBe("-$4");
+    expect(
+      getItemPricing({ price: 30, pricing: { ...capped, originalPrice: 30, finalPrice: 20, discountAmount: 10 } }, "$")
+        .badge,
+    ).toBe("-$10");
+  });
+
   it("reports an undiscounted item without a badge", () => {
     expect(getItemPricing({ price: 40 }, "$")).toEqual({
       original: 40,

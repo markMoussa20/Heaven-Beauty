@@ -390,9 +390,12 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
                     <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
                     <p className="mt-1 text-sm text-[#6c93c4]">
                       {lineOriginalUnitPrice(item) > item.unitPrice ? (
-                        <span className="mr-2 line-through opacity-60">
-                          {money(lineOriginalUnitPrice(item))}
-                        </span>
+                        <>
+                          <span className="sr-only">Original price</span>
+                          <s className="mr-2 line-through opacity-60">
+                            {money(lineOriginalUnitPrice(item))}
+                          </s>
+                        </>
                       ) : null}
                       {money(item.unitPrice)} each
                     </p>
@@ -455,7 +458,9 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
             ) : null}
             {delivery.amountToFree !== null && items.length > 0 ? (
               <p className="bg-[#e6ecf4] px-3 py-2 text-xs text-[#6c93c4]">
-                Add {money(delivery.amountToFree)} more for free delivery
+                {discountTotal > 0
+                  ? `Add ${money(delivery.amountToFree)} more (after discounts) for free delivery`
+                  : `Add ${money(delivery.amountToFree)} more for free delivery`}
               </p>
             ) : null}
             <div className="flex justify-between pt-2 text-lg font-medium">

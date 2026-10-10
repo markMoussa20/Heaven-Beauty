@@ -112,9 +112,12 @@ export function CartDrawer() {
                     </button>
                     <p className="text-right text-sm font-medium">
                       {lineOriginalUnitPrice(item) > item.unitPrice ? (
-                        <span className="block text-xs font-normal line-through opacity-60">
-                          {money(lineOriginalUnitPrice(item) * item.quantity)}
-                        </span>
+                        <>
+                          <span className="sr-only">Original price</span>
+                          <s className="block text-xs font-normal line-through opacity-60">
+                            {money(lineOriginalUnitPrice(item) * item.quantity)}
+                          </s>
+                        </>
                       ) : null}
                       {money(item.unitPrice * item.quantity)}
                     </p>

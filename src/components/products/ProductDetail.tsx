@@ -132,10 +132,13 @@ export function ProductDetail({
         </h1>
         <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-lg font-normal text-[#6c93c4]">
           {pricing.isDiscounted ? (
-            <span className="text-base text-[#6c93c4]/60 line-through">
-              {country.currency_symbol}
-              {pricing.original.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </span>
+            <>
+              <span className="sr-only">Original price</span>
+              <s className="text-base text-[#6c93c4]/60 line-through">
+                {country.currency_symbol}
+                {pricing.original.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </s>
+            </>
           ) : null}
           <span>
             {country.currency_symbol}

@@ -134,10 +134,13 @@ export function ProductCard({
               }`}
             >
               {pricing.isDiscounted ? (
-                <span className="text-[#6c93c4]/60 line-through">
-                  {country.currency_symbol}
-                  {pricing.original}
-                </span>
+                <>
+                  <span className="sr-only">Original price</span>
+                  <s className="text-[#6c93c4]/60 line-through">
+                    {country.currency_symbol}
+                    {pricing.original}
+                  </s>
+                </>
               ) : null}
               <span>
                 {country.currency_symbol}

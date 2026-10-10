@@ -117,7 +117,7 @@ export function DiscountForm({
           country-wide one. Within the same level the biggest saving wins.
         </p>
 
-        <div className={`grid max-h-72 gap-2 overflow-y-auto rounded-md border border-zinc-200 p-3${scope === "category" ? "" : " hidden"}`}>
+        <div className={scope === "category" ? "grid max-h-72 gap-2 overflow-y-auto rounded-md border border-zinc-200 p-3" : "hidden"}>
           {orderedCategories.map(({ category, depth }) => (
             <label
               className="flex items-center gap-2 text-sm text-zinc-700"
@@ -138,7 +138,7 @@ export function DiscountForm({
           <span className="text-xs text-zinc-500">Subcategories are included automatically.</span>
         </div>
 
-        <div className={`grid gap-2 rounded-md border border-zinc-200 p-3${scope === "items" ? "" : " hidden"}`}>
+        <div className={scope === "items" ? "grid gap-2 rounded-md border border-zinc-200 p-3" : "hidden"}>
           <input
             aria-label="Search items"
             className={inputClassName}

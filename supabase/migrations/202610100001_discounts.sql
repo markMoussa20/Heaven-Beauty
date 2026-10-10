@@ -310,18 +310,22 @@ begin
     v_area_name := p_city;
   end if;
 
-  -- Price every line from one snapshot so both loops agree.
+  -- Price every line from one snapshot so both loops agree. The discount name
+  -- is captured here too, so the order keeps it even if the rule is renamed
+  -- or deleted before the lines are inserted.
   select coalesce(jsonb_object_agg(
       p.country_item_id::text,
       jsonb_build_object(
         'original', p.original_price,
         'final', p.final_price,
         'discount_id', p.discount_id,
+        'discount_name', d.name,
         'discount_amount', p.discount_amount
       )
     ), '{}'::jsonb)
     into v_prices
-  from public.country_item_prices(p_country_id) p;
+  from public.country_item_prices(p_country_id) p
+  left join public.discounts d on d.id = p.discount_id;
 
   for v_item in select value from jsonb_array_elements(p_items) loop
     v_country_item_id := nullif(coalesce(v_item->>'countryItemId', v_item->>'country_item_id', v_item->>'country_itemId'), '')::uuid;
@@ -382,6 +386,7 @@ begin
       'unit_price', v_unit_price,
       'original_price', v_original_price,
       'discount_id', v_price->'discount_id',
+      'discount_name', v_price->'discount_name',
       'discount_amount', v_discount_amount
     ));
   end loop;
@@ -468,8 +473,10 @@ begin
       (v_line->>'unit_price')::numeric,
       (v_line->>'unit_price')::numeric * (v_line->>'quantity')::integer,
       (v_line->>'original_price')::numeric,
-      (v_line->>'discount_id')::uuid,
-      (select d.name from public.discounts d where d.id = (v_line->>'discount_id')::uuid),
+      -- Only link a rule that still exists (a rule deleted mid-order must not
+      -- fail the FK); key-share locks it so it can't vanish before the insert.
+      (select d.id from public.discounts d where d.id = (v_line->>'discount_id')::uuid for key share),
+      v_line->>'discount_name',
       (v_line->>'discount_amount')::numeric
     );
   end loop;

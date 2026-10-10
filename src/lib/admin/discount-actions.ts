@@ -91,16 +91,23 @@ export async function saveDiscount(
   const writes = supabase as unknown as LooseWriteClient;
 
   if (countryItemIds.length > 0) {
-    const { data, error } = await supabase
-      .from("country_items")
-      .select("id")
-      .eq("country_id", fields.country_id)
-      .in("id", countryItemIds);
-    if (error) {
-      console.error("Failed to check discount items", { code: error.code, message: error.message });
-      return failed();
+    // Chunked so a large selection doesn't overflow the request URL (ids are
+    // already unique, so the counts must add up to the selection).
+    let found = 0;
+    for (let index = 0; index < countryItemIds.length; index += 200) {
+      const slice = countryItemIds.slice(index, index + 200);
+      const { count, error } = await supabase
+        .from("country_items")
+        .select("id", { count: "exact", head: true })
+        .eq("country_id", fields.country_id)
+        .in("id", slice);
+      if (error) {
+        console.error("Failed to check discount items", { code: error.code, message: error.message });
+        return failed();
+      }
+      found += count ?? 0;
     }
-    if ((data ?? []).length !== countryItemIds.length) {
+    if (found !== countryItemIds.length) {
       return failed("Some selected items don't belong to that country. Re-select the items and save again.");
     }
   }
