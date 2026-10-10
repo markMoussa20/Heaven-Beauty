@@ -6,7 +6,7 @@ import Link from "@/components/ui/IntentPrefetchLink";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
-import { getItemPricing } from "@/lib/pricing";
+import { formatPrice, getItemPricing } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/browser";
 import {
   getPrimaryProductImagePath,
@@ -138,13 +138,13 @@ export function ProductCard({
                   <span className="sr-only">Original price</span>
                   <s className="text-[#6c93c4]/60 line-through">
                     {country.currency_symbol}
-                    {pricing.original}
+                    {formatPrice(pricing.original)}
                   </s>
                 </>
               ) : null}
               <span>
                 {country.currency_symbol}
-                {pricing.final}
+                {formatPrice(pricing.final)}
                 {showCurrencyCode ? (
                   <span className={`ml-1 uppercase ${isDialog ? "text-xs" : "text-[10px] sm:text-xs"}`}>
                     {country.currency_code}

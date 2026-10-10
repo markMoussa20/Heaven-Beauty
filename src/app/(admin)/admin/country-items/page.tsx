@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { deleteRow } from "@/lib/admin/actions";
 import { getOptions, listRows, type AdminRow } from "@/lib/admin/data";
 import { getCountryItemPrices } from "@/lib/discounts/storefront";
-import { getItemPricing, resolveItemPrice } from "@/lib/pricing";
+import { formatPrice, getItemPricing, resolveItemPrice } from "@/lib/pricing";
 import type { CountryItem, ItemPricing } from "@/types/database";
 
 export const metadata = { title: "Country Items" };
@@ -228,13 +228,13 @@ function CountryItemCard({
   const currencyCode = asText(item.countries?.currency_code);
   const baseSku = asText(item.products?.base_sku);
   const countrySku = item.country_sku ?? item.sku ?? "";
-  const price = `${currencySymbol}${resolveItemPrice(item)}`;
+  const price = `${currencySymbol}${formatPrice(resolveItemPrice(item))}`;
   const current = pricing ? getItemPricing({ price: item.price, pricing }, currencySymbol) : null;
   const priceNow = !current
     ? "—"
     : current.isDiscounted
-      ? `${currencySymbol}${current.final} (${current.badge ?? "discounted"})`
-      : `${currencySymbol}${current.final}`;
+      ? `${currencySymbol}${formatPrice(current.final)} (${current.badge ?? "discounted"})`
+      : `${currencySymbol}${formatPrice(current.final)}`;
 
   return (
     <details className="rounded-lg border border-zinc-200 bg-white shadow-sm">

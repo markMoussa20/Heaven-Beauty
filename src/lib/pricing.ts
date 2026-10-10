@@ -43,6 +43,19 @@ export function toItemPricing(row: CountryItemPriceRow): ItemPricing {
   };
 }
 
+/**
+ * Money amount for display: whole amounts stay whole ("18", "1,500"), anything
+ * with cents always shows two decimals ("17.10", not "17.1").
+ */
+export function formatPrice(value: number | string | null | undefined) {
+  const amount = toFiniteNumber(value) ?? 0;
+  const hasCents = Math.round(amount * 100) % 100 !== 0;
+  return amount.toLocaleString("en-US", {
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 /** "-10%" or "-$5"; null when there is nothing to show. */
 export function formatDiscountBadge(
   type: DiscountValueType | null,
@@ -50,8 +63,10 @@ export function formatDiscountBadge(
   currencySymbol: string,
 ) {
   if (!type || value === null || !(value > 0)) return null;
-  const amount = value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  return type === "percent" ? `-${amount}%` : `-${currencySymbol}${amount}`;
+  if (type === "percent") {
+    return `-${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}%`;
+  }
+  return `-${currencySymbol}${formatPrice(value)}`;
 }
 
 export function getItemPricing(item: PricedSource, currencySymbol: string) {

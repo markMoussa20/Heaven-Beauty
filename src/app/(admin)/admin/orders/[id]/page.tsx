@@ -4,6 +4,7 @@ import { LocalDateTime } from "@/components/admin/LocalDateTime";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { retryWakilniOrder, updateOrderStatus } from "@/lib/admin/actions";
 import { getRow, listRows, type AdminRow } from "@/lib/admin/data";
+import { formatPrice } from "@/lib/pricing";
 import {
   ORDER_STATUSES,
   orderStatusLabel,
@@ -94,14 +95,14 @@ export default async function AdminOrderDetailPage({
               {Number(typedOrder.discount_total ?? 0) > 0 ? (
                 <>
                   <p className="font-medium">
-                    Before discounts: {(Number(typedOrder.subtotal ?? 0) + Number(typedOrder.discount_total)).toFixed(2)}
+                    Before discounts: {formatPrice(Number(typedOrder.subtotal ?? 0) + Number(typedOrder.discount_total))}
                   </p>
-                  <p className="font-medium text-emerald-700">Discount: -{typedOrder.discount_total}</p>
+                  <p className="font-medium text-emerald-700">Discount: -{formatPrice(typedOrder.discount_total)}</p>
                 </>
               ) : null}
-              <p className="font-medium">Subtotal: {typedOrder.subtotal ?? "-"}</p>
-              <p className="font-medium">Shipping: {typedOrder.shipping_fee ?? "-"}</p>
-              <p className="font-semibold">Total: {typedOrder.total ?? "-"}</p>
+              <p className="font-medium">Subtotal: {typedOrder.subtotal == null ? "-" : formatPrice(typedOrder.subtotal)}</p>
+              <p className="font-medium">Shipping: {typedOrder.shipping_fee == null ? "-" : formatPrice(typedOrder.shipping_fee)}</p>
+              <p className="font-semibold">Total: {typedOrder.total == null ? "-" : formatPrice(typedOrder.total)}</p>
             </div>
           </section>
           <section className="rounded-lg border border-zinc-200 bg-white p-4">
@@ -172,14 +173,14 @@ export default async function AdminOrderDetailPage({
                     <tr className="border-t border-zinc-100" key={item.id}>
                       <td className="py-2">{item.product_name ?? String(item.products?.name ?? item.country_items?.products ?? "-")}</td>
                       <td>{item.quantity}</td>
-                      <td>{item.original_unit_price ?? item.unit_price}</td>
+                      <td>{formatPrice(item.original_unit_price ?? item.unit_price)}</td>
                       <td>
                         {Number(item.discount_amount ?? 0) > 0
-                          ? `-${item.discount_amount} each${item.discount_name ? ` (${item.discount_name})` : ""}`
+                          ? `-${formatPrice(item.discount_amount)} each${item.discount_name ? ` (${item.discount_name})` : ""}`
                           : "-"}
                       </td>
-                      <td>{item.unit_price}</td>
-                      <td>{item.total ?? Number(item.quantity) * Number(item.unit_price)}</td>
+                      <td>{formatPrice(item.unit_price)}</td>
+                      <td>{formatPrice(item.total ?? Number(item.quantity) * Number(item.unit_price))}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatDiscountBadge,
+  formatPrice,
   getDisplayPrice,
   getItemPricing,
   resolveItemPrice,
@@ -68,11 +69,35 @@ describe("toItemPricing", () => {
   });
 });
 
+describe("formatPrice", () => {
+  it("keeps whole amounts whole", () => {
+    expect(formatPrice(18)).toBe("18");
+    expect(formatPrice(0)).toBe("0");
+    expect(formatPrice(1500)).toBe("1,500");
+  });
+
+  it("always shows two decimals when there are cents", () => {
+    expect(formatPrice(17.1)).toBe("17.10");
+    expect(formatPrice(14.4)).toBe("14.40");
+    expect(formatPrice(0.9)).toBe("0.90");
+    expect(formatPrice(1234.5)).toBe("1,234.50");
+    expect(formatPrice(17.125)).toBe("17.13");
+  });
+
+  it("accepts numeric strings from PostgREST and falls back to 0", () => {
+    expect(formatPrice("45.90")).toBe("45.90");
+    expect(formatPrice("45.00")).toBe("45");
+    expect(formatPrice(null)).toBe("0");
+    expect(formatPrice("abc")).toBe("0");
+  });
+});
+
 describe("formatDiscountBadge", () => {
   it("formats percent and amount discounts", () => {
     expect(formatDiscountBadge("percent", 10, "$")).toBe("-10%");
     expect(formatDiscountBadge("percent", 12.5, "$")).toBe("-12.5%");
     expect(formatDiscountBadge("amount", 5, "$")).toBe("-$5");
+    expect(formatDiscountBadge("amount", 5.5, "$")).toBe("-$5.50");
     expect(formatDiscountBadge("amount", 1500, "E£")).toBe("-E£1,500");
   });
 

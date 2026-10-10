@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
-import { getItemPricing } from "@/lib/pricing";
+import { formatPrice, getItemPricing } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
 
 export function ProductDetail({
@@ -136,13 +136,13 @@ export function ProductDetail({
               <span className="sr-only">Original price</span>
               <s className="text-base text-[#6c93c4]/60 line-through">
                 {country.currency_symbol}
-                {pricing.original.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                {formatPrice(pricing.original)}
               </s>
             </>
           ) : null}
           <span>
             {country.currency_symbol}
-            {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            {formatPrice(price)}
             {showCurrencyCode ? (
               <span className="ml-2 text-sm uppercase">{country.currency_code}</span>
             ) : null}
