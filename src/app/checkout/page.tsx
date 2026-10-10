@@ -6,6 +6,8 @@ import {
   getSelectedCountryCode,
 } from "@/lib/country";
 import { getDefaultCountryCode } from "@/lib/country/constants";
+import { getCountryItemPrices } from "@/lib/discounts/storefront";
+import type { CartPrice } from "@/lib/cart/pricing";
 import { createClient } from "@/lib/supabase/server";
 import type { ShippingZone } from "@/types/database";
 import type { Metadata } from "next";
@@ -36,11 +38,25 @@ export default async function CheckoutPage() {
     );
   }
 
-  const shippingZones = country.use_shipping_zones
-    ? await getShippingZones(country.id)
-    : [];
+  const [shippingZones, itemPrices] = await Promise.all([
+    country.use_shipping_zones ? getShippingZones(country.id) : Promise.resolve([] as ShippingZone[]),
+    getCountryItemPrices(country.id),
+  ]);
+  const prices: Record<string, CartPrice> = Object.fromEntries(
+    [...itemPrices].map(([countryItemId, pricing]) => [
+      countryItemId,
+      { unitPrice: pricing.finalPrice, originalUnitPrice: pricing.originalPrice },
+    ]),
+  );
 
-  return <CheckoutClient country={country} idempotencyKey={randomUUID()} shippingZones={shippingZones} />;
+  return (
+    <CheckoutClient
+      country={country}
+      idempotencyKey={randomUUID()}
+      prices={prices}
+      shippingZones={shippingZones}
+    />
+  );
 }
 
 async function getShippingZones(countryId: string): Promise<ShippingZone[]> {

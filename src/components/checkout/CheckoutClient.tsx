@@ -10,18 +10,31 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
 import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
+import { lineOriginalUnitPrice, type CartPrice } from "@/lib/cart/pricing";
 import { quoteDelivery } from "@/lib/checkout/delivery";
 import type { Country, ShippingZone } from "@/types/database";
 
 type CheckoutClientProps = {
   country: Country;
   idempotencyKey: string;
+  /** Current server prices for the checkout country, keyed by country item id. */
+  prices: Record<string, CartPrice>;
   shippingZones: ShippingZone[];
 };
 
-export function CheckoutClient({ country, idempotencyKey, shippingZones }: CheckoutClientProps) {
-  const { count, hydrated, items, subtotal, updateQuantity, removeItem, clearCart } =
-    useCart();
+export function CheckoutClient({ country, idempotencyKey, prices, shippingZones }: CheckoutClientProps) {
+  const {
+    count,
+    hydrated,
+    items,
+    subtotal,
+    originalSubtotal,
+    discountTotal,
+    repriceItems,
+    updateQuantity,
+    removeItem,
+    clearCart,
+  } = useCart();
   const formRef = useRef<HTMLFormElement>(null);
   const confirmedSubmitRef = useRef(false);
   const initiateCheckoutSentRef = useRef(false);
@@ -31,6 +44,7 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
     null,
   );
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pricesUpdated, setPricesUpdated] = useState(false);
   const [selectedZoneId, setSelectedZoneId] = useState(
     shippingZones[0]?.id ?? "",
   );
@@ -57,6 +71,16 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
       ),
     [items],
   );
+
+  // The cart keeps the price from when an item was added; a discount may have
+  // started or ended since. Bring it in line with what place_order_v2 charges.
+  useEffect(() => {
+    if (!hydrated) return;
+    const timeoutId = window.setTimeout(() => {
+      if (repriceItems(prices)) setPricesUpdated(true);
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [hydrated, prices, repriceItems]);
 
   useEffect(() => {
     if (!hydrated || items.length === 0 || initiateCheckoutSentRef.current) {
@@ -189,6 +213,14 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
               >
                 <p className="font-semibold">Order could not be placed</p>
                 <p className="mt-1">{state.error}</p>
+              </div>
+            ) : null}
+            {pricesUpdated ? (
+              <div
+                className="border border-[#6c93c4]/20 bg-white px-4 py-3 text-sm leading-6"
+                role="status"
+              >
+                Some prices in your cart were updated.
               </div>
             ) : null}
             {!cartMatchesCountry ? (
@@ -351,6 +383,11 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
                     <p className="mt-1 text-sm text-[#6c93c4]">
+                      {lineOriginalUnitPrice(item) > item.unitPrice ? (
+                        <span className="mr-2 line-through opacity-60">
+                          {money(lineOriginalUnitPrice(item))}
+                        </span>
+                      ) : null}
                       {money(item.unitPrice)} each
                     </p>
                     <div className="mt-3 flex items-center gap-2">
@@ -396,8 +433,14 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
           <div className="space-y-3 border-t border-[#6c93c4]/15 pt-4 text-sm">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>{money(subtotal)}</span>
+              <span>{money(originalSubtotal)}</span>
             </div>
+            {discountTotal > 0 ? (
+              <div className="flex justify-between text-[#d48a8a]">
+                <span>Discount</span>
+                <span>-{money(discountTotal)}</span>
+              </div>
+            ) : null}
             {delivery.display !== "hidden" ? (
               <div className="flex justify-between">
                 <span>Delivery</span>
@@ -430,6 +473,12 @@ export function CheckoutClient({ country, idempotencyKey, shippingZones }: Check
             <span>Items</span>
             <span>{count}</span>
           </div>
+          {discountTotal > 0 ? (
+            <div className="flex justify-between text-[#d48a8a]">
+              <span>Discount</span>
+              <span>-{money(discountTotal)}</span>
+            </div>
+          ) : null}
           {delivery.display !== "hidden" ? (
             <div className="flex justify-between">
               <span>Delivery</span>

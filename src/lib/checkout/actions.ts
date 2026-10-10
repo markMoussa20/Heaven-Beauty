@@ -92,12 +92,19 @@ export async function submitCheckout(
   const fingerprint = createHash("sha256").update(`${secret}:${source}`).digest("hex");
   const supabase = createAdminClient();
   const rpcClient = supabase as unknown as {
-    rpc: (name: "place_order", args: Record<string, unknown>) => Promise<{
-      data: Array<{ order_id: string; order_number: string; subtotal: number; shipping_fee: number; total: number }> | null;
+    rpc: (name: "place_order_v2", args: Record<string, unknown>) => Promise<{
+      data: Array<{
+        order_id: string;
+        order_number: string;
+        subtotal: number;
+        shipping_fee: number;
+        total: number;
+        discount_total: number;
+      }> | null;
       error: { code?: string; details?: string; message: string } | null;
     }>;
   };
-  const { data, error } = await rpcClient.rpc("place_order", {
+  const { data, error } = await rpcClient.rpc("place_order_v2", {
     p_country_id: parsed.data.countryId,
     p_items: items,
     p_shipping_zone_id: parsed.data.shippingZoneId,
@@ -117,7 +124,7 @@ export async function submitCheckout(
   const result = data?.[0];
   if (error || !result) {
     console.error(
-      `place_order RPC failed: ${JSON.stringify({
+      `place_order_v2 RPC failed: ${JSON.stringify({
         code: error?.code ?? "NO_RESULT",
         details: error?.details ?? null,
         message: error?.message ?? "The RPC returned no order.",
@@ -164,7 +171,7 @@ function checkoutErrorMessage(message?: string) {
   if (message?.includes("ITEM_UNAVAILABLE")) return "One or more cart items are no longer available.";
   if (message?.includes("INVALID_SHIPPING_ZONE")) return "The selected delivery area is not available for this country.";
   if (message?.includes("COUNTRY_UNAVAILABLE")) return "The selected country is not currently available.";
-  if (message?.includes("subtotal") || message?.includes("orders")) {
+  if (message?.includes("subtotal") || message?.includes("orders") || message?.includes("place_order_v2")) {
     return "Checkout database setup is out of date. Please run the latest checkout migration and try again.";
   }
   return "We could not place your order. Please review your cart and try again.";
