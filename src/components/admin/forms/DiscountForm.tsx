@@ -117,66 +117,66 @@ export function DiscountForm({
           country-wide one. Within the same level the biggest saving wins.
         </p>
 
-        {scope === "category" ? (
-          <div className="grid max-h-72 gap-2 overflow-y-auto rounded-md border border-zinc-200 p-3">
-            {orderedCategories.map(({ category, depth }) => (
+        <div className={`grid max-h-72 gap-2 overflow-y-auto rounded-md border border-zinc-200 p-3${scope === "category" ? "" : " hidden"}`}>
+          {orderedCategories.map(({ category, depth }) => (
+            <label
+              className="flex items-center gap-2 text-sm text-zinc-700"
+              htmlFor={`${fieldPrefix}-category-${category.id}`}
+              key={category.id}
+              style={{ paddingLeft: `${depth * 1.25}rem` }}
+            >
+              <input
+                defaultChecked={discount?.category_ids.includes(category.id) ?? false}
+                id={`${fieldPrefix}-category-${category.id}`}
+                name="category_ids"
+                type="checkbox"
+                value={category.id}
+              />
+              {category.name}
+            </label>
+          ))}
+          <span className="text-xs text-zinc-500">Subcategories are included automatically.</span>
+        </div>
+
+        <div className={`grid gap-2 rounded-md border border-zinc-200 p-3${scope === "items" ? "" : " hidden"}`}>
+          <input
+            aria-label="Search items"
+            className={inputClassName}
+            onChange={(event) => setItemSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
+            }}
+            placeholder="Search items"
+            type="search"
+            value={itemSearch}
+          />
+          <div className="grid max-h-72 gap-2 overflow-y-auto">
+            {itemsForCountry.length === 0 ? (
+              <p className="text-sm text-zinc-500">This country has no items yet.</p>
+            ) : null}
+            {itemsForCountry.map((item) => (
+              // Filtered-out items stay rendered (hidden) so their checkbox is still submitted.
               <label
-                className="flex items-center gap-2 text-sm text-zinc-700"
-                htmlFor={`${fieldPrefix}-category-${category.id}`}
-                key={category.id}
-                style={{ paddingLeft: `${depth * 1.25}rem` }}
+                className={
+                  search && !item.label.toLowerCase().includes(search)
+                    ? "hidden"
+                    : "flex items-center gap-2 text-sm text-zinc-700"
+                }
+                htmlFor={`${fieldPrefix}-item-${item.id}`}
+                key={item.id}
               >
                 <input
-                  defaultChecked={discount?.category_ids.includes(category.id) ?? false}
-                  id={`${fieldPrefix}-category-${category.id}`}
-                  name="category_ids"
+                  defaultChecked={discount?.country_item_ids.includes(item.id) ?? false}
+                  id={`${fieldPrefix}-item-${item.id}`}
+                  name="country_item_ids"
                   type="checkbox"
-                  value={category.id}
+                  value={item.id}
                 />
-                {category.name}
+                {item.label}
               </label>
             ))}
-            <span className="text-xs text-zinc-500">Subcategories are included automatically.</span>
           </div>
-        ) : null}
-
-        {scope === "items" ? (
-          <div className="grid gap-2 rounded-md border border-zinc-200 p-3">
-            <input
-              className={inputClassName}
-              onChange={(event) => setItemSearch(event.target.value)}
-              placeholder="Search items"
-              type="search"
-              value={itemSearch}
-            />
-            <div className="grid max-h-72 gap-2 overflow-y-auto">
-              {itemsForCountry.length === 0 ? (
-                <p className="text-sm text-zinc-500">This country has no items yet.</p>
-              ) : null}
-              {itemsForCountry.map((item) => (
-                // Filtered-out items stay rendered (hidden) so their checkbox is still submitted.
-                <label
-                  className={
-                    search && !item.label.toLowerCase().includes(search)
-                      ? "hidden"
-                      : "flex items-center gap-2 text-sm text-zinc-700"
-                  }
-                  htmlFor={`${fieldPrefix}-item-${item.id}`}
-                  key={item.id}
-                >
-                  <input
-                    defaultChecked={discount?.country_item_ids.includes(item.id) ?? false}
-                    id={`${fieldPrefix}-item-${item.id}`}
-                    name="country_item_ids"
-                    type="checkbox"
-                    value={item.id}
-                  />
-                  {item.label}
-                </label>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        </div>
       </fieldset>
 
       <AdminFormField
