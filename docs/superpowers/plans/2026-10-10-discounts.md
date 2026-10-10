@@ -805,7 +805,7 @@ Tell the user: "Please run `supabase/migrations/202610100001_discounts.sql` in t
 
 Ask: "OK to run the SQL check script? It creates test rows inside one statement and always rolls them back." On yes, paste `supabase/tests/discounts_pricing_check.sql` into a new SQL editor query and Run.
 
-Expected: an error banner reading `PASS: all 19 discount checks passed. Nothing was saved ...`.
+Expected: an error banner reading `PASS: all 22 discount checks passed. Nothing was saved ...`.
 If it says `FAIL: ...`, fix the function in `202610100001_discounts.sql` (its statements are `create or replace` / `if not exists`, so it is safe to re-run), ask the user to re-run the migration, re-run the checks, and commit the fix as a new commit.
 
 - [ ] **Step 5: Verify nothing persisted (read-only)**

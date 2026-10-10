@@ -105,7 +105,7 @@ Items with no matching rule return `final_price = original_price`, null discount
 
 ### `public.place_order_v2(...)`
 
-Same parameters and return columns as `place_order`, plus `discount_total numeric` in the return table. Body is the current `place_order` (from `202609140001_free_delivery_threshold.sql`) with these changes:
+Same parameters as `place_order` plus an optional final `p_expected_subtotal numeric default null` (the subtotal the shopper confirmed; a mismatch raises `PRICE_CHANGED` so nobody is charged more than they saw), and the same return columns plus `discount_total numeric`. Body is the current `place_order` (from `202609140001_free_delivery_threshold.sql`) with these changes:
 
 - Unit price comes from `country_item_prices(p_country_id)` for that item instead of `sale_price`. The item still must exist, be visible and in-country (`ITEM_UNAVAILABLE` otherwise); the `for update` lock on `country_items` and stock handling are unchanged.
 - Accumulates `v_discount_total += discount_amount * quantity`.
