@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
+import { MAX_LINE_QUANTITY } from "@/lib/checkout/schema";
 import { formatPrice, getItemPricing } from "@/lib/pricing";
 import type { CountryItemWithProduct } from "@/types/database";
 
@@ -174,8 +175,9 @@ export function ProductDetail({
             </span>
             <button
               aria-label="Increase quantity"
-              className="grid h-full w-11 place-items-center text-[#6c93c4]"
-              onClick={() => setQuantity((value) => value + 1)}
+              className="grid h-full w-11 place-items-center text-[#6c93c4] disabled:opacity-35"
+              disabled={quantity >= MAX_LINE_QUANTITY}
+              onClick={() => setQuantity((value) => Math.min(MAX_LINE_QUANTITY, value + 1))}
               type="button"
             >
               <Plus className="h-4 w-4" />
