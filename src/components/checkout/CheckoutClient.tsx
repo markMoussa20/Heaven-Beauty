@@ -9,7 +9,11 @@ import { useCart } from "@/components/cart/CartProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
-import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
+import {
+  reportCheckoutProblem,
+  submitCheckout,
+  type CheckoutState,
+} from "@/lib/checkout/actions";
 import {
   checkoutValidationMessage,
   CUSTOMER_FIELDS,
@@ -46,6 +50,7 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
   const formRef = useRef<HTMLFormElement>(null);
   const initiateCheckoutSentRef = useRef(false);
   const purchaseSentRef = useRef(false);
+  const lastReportedRef = useRef<string | null>(null);
   const [state, action, pending] = useActionState<CheckoutState, FormData>(
     submitCheckout,
     null,
@@ -193,8 +198,16 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const validation = validateCheckout(new FormData(event.currentTarget));
+    const formData = new FormData(event.currentTarget);
+    const validation = validateCheckout(formData);
     if (!validation.ok) {
+      // Staff get an email for each failed try; pressing the button again
+      // with nothing changed is the same try, so it is not reported twice.
+      const signature = JSON.stringify([...formData.entries()]);
+      if (signature !== lastReportedRef.current) {
+        lastReportedRef.current = signature;
+        void reportCheckoutProblem(formData).catch(() => undefined);
+      }
       setClientCheck({
         fieldErrors: validation.fieldErrors,
         message: checkoutValidationMessage(validation.fieldErrors),
