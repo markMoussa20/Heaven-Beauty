@@ -1,9 +1,10 @@
 "use server";
 
 import "server-only";
-import { createHash } from "node:crypto";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import type { CheckoutProblem } from "@/lib/checkout/problem-email";
+import { emailCheckoutProblem, getRequestFingerprint } from "@/lib/checkout/problem-report";
 import {
   checkoutValidationMessage,
   MAX_LINE_QUANTITY,
@@ -24,15 +25,12 @@ export async function submitCheckout(
   formData: FormData,
 ): Promise<CheckoutState> {
   const parsed = validateCheckout(formData);
+  const fingerprint = await getRequestFingerprint();
 
   if (!parsed.ok) {
-    // Field paths and issue codes only: the values are customer data.
-    console.warn(`Checkout validation failed: ${JSON.stringify({ issues: parsed.issues })}`);
-    return {
-      ok: false,
-      error: checkoutValidationMessage(parsed.fieldErrors),
-      fieldErrors: parsed.fieldErrors,
-    };
+    const message = checkoutValidationMessage(parsed.fieldErrors);
+    queueProblemEmail(formData, fingerprint, message, validationProblems(parsed.issues));
+    return { ok: false, error: message, fieldErrors: parsed.fieldErrors };
   }
 
   const uniqueItems = new Map<string, number>();
@@ -46,7 +44,9 @@ export async function submitCheckout(
     qty: quantity,
   }));
   if (items.some((item) => item.quantity > MAX_LINE_QUANTITY)) {
-    return { ok: false, error: `A product quantity cannot exceed ${MAX_LINE_QUANTITY}.` };
+    const message = `A product quantity cannot exceed ${MAX_LINE_QUANTITY}.`;
+    queueProblemEmail(formData, fingerprint, message, [{ field: "items", code: "too_big" }]);
+    return { ok: false, error: message };
   }
 
   // The discounted subtotal the shopper confirmed. place_order_v2 refuses the
@@ -54,11 +54,6 @@ export async function submitCheckout(
   // skips that check rather than blocking checkout.
   const expectedSubtotal = readExpectedSubtotal(formData.get("expected_subtotal"));
 
-  const requestHeaders = await headers();
-  const source = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    requestHeaders.get("cf-connecting-ip") || "unknown";
-  const secret = process.env.CHECKOUT_RATE_LIMIT_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "checkout";
-  const fingerprint = createHash("sha256").update(`${secret}:${source}`).digest("hex");
   const supabase = createAdminClient();
   const rpcClient = supabase as unknown as {
     rpc: (name: "place_order_v2", args: Record<string, unknown>) => Promise<{
@@ -104,7 +99,11 @@ export async function submitCheckout(
       // Re-render /checkout with fresh prices so the cart re-prices itself.
       revalidatePath("/checkout");
     }
-    return { ok: false, error: checkoutErrorMessage(error?.message) };
+    const message = checkoutErrorMessage(error?.message);
+    queueProblemEmail(formData, fingerprint, message, [
+      { field: "order", code: orderErrorCode(error?.message) },
+    ]);
+    return { ok: false, error: message };
   }
 
   const [{ data: order }, { data: orderItems }] = await Promise.all([
@@ -138,6 +137,49 @@ export async function submitCheckout(
     )?.public_tracking_token ?? undefined,
     total: Number(result.total),
   };
+}
+
+/**
+ * Called by the checkout page when its own check stops an order before it is
+ * sent, so staff hear about those attempts too. The form is re-checked here
+ * rather than trusting the browser's verdict, and a valid form sends nothing.
+ */
+export async function reportCheckoutProblem(formData: FormData) {
+  const parsed = validateCheckout(formData);
+  if (parsed.ok) return;
+  queueProblemEmail(
+    formData,
+    await getRequestFingerprint(),
+    checkoutValidationMessage(parsed.fieldErrors),
+    validationProblems(parsed.issues),
+  );
+}
+
+/** Sends the staff email after the response, so the shopper never waits on SMTP. */
+function queueProblemEmail(
+  formData: FormData,
+  fingerprint: string,
+  customerMessage: string,
+  problems: CheckoutProblem[],
+) {
+  after(() => emailCheckoutProblem({ customerMessage, fingerprint, formData, problems }));
+}
+
+function validationProblems(issues: { path: string; code: string }[]): CheckoutProblem[] {
+  return issues.map((issue) => ({ field: issue.path.split(".")[0], code: issue.code }));
+}
+
+const ORDER_ERROR_CODES = [
+  "PRICE_CHANGED",
+  "RATE_LIMITED",
+  "INSUFFICIENT_STOCK",
+  "ITEM_UNAVAILABLE",
+  "INVALID_SHIPPING_ZONE",
+  "COUNTRY_UNAVAILABLE",
+];
+
+function orderErrorCode(message?: string) {
+  return ORDER_ERROR_CODES.find((code) => message?.includes(code)) ?? "UNKNOWN";
 }
 
 function readExpectedSubtotal(value: FormDataEntryValue | null) {

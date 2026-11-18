@@ -229,6 +229,55 @@ export async function notifyWakilniTrackingAvailable({
   });
 }
 
+/**
+ * Emails the staff who receive new-order alerts (admin notification settings).
+ * Unlike order emails it writes nothing to order_notification_logs: these
+ * alerts have no order to attach to and must not grow the database.
+ * Returns how many recipients the email reached.
+ */
+export async function sendStaffAlertEmail({
+  html,
+  subject,
+  text,
+}: {
+  html: string;
+  subject: string;
+  text: string;
+}) {
+  const supabase = createAdminClient() as unknown as LooseSupabase;
+  const [settings, recipients] = await Promise.all([
+    getSettings(supabase),
+    getRecipients(supabase),
+  ]);
+
+  if (!settings.is_active || !settings.internal_email_enabled) {
+    return 0;
+  }
+
+  const emails = recipients
+    .filter(
+      (recipient) =>
+        recipient.email && recipient.is_active !== false && recipient.receive_order_email !== false,
+    )
+    .map((recipient) => recipient.email as string);
+
+  const results = await Promise.allSettled(
+    emails.map((recipient) => sendSmtpEmail({ html, recipient, settings, subject, text })),
+  );
+  const failed = results.filter((result) => result.status === "rejected");
+  if (failed.length) {
+    // Vercel's runtime log only (not the database), so a broken mail setup is visible.
+    console.error(
+      `Staff alert email failed for ${failed.length} of ${emails.length} recipients: ${
+        (failed[0] as PromiseRejectedResult).reason instanceof Error
+          ? (failed[0] as PromiseRejectedResult).reason.message
+          : "unknown error"
+      }`,
+    );
+  }
+  return results.length - failed.length;
+}
+
 async function getSettings(supabase: LooseSupabase) {
   const { data } = await supabase
     .from("order_notification_settings")
