@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
 import Link from "@/components/ui/IntentPrefetchLink";
@@ -10,6 +10,14 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
 import { submitCheckout, type CheckoutState } from "@/lib/checkout/actions";
+import {
+  checkoutValidationMessage,
+  CUSTOMER_FIELDS,
+  MAX_LINE_QUANTITY,
+  validateCheckout,
+  type CheckoutFieldErrors,
+  type CustomerField,
+} from "@/lib/checkout/schema";
 import { lineOriginalUnitPrice, type CartPrice } from "@/lib/cart/pricing";
 import { quoteDelivery } from "@/lib/checkout/delivery";
 import type { Country, ShippingZone } from "@/types/database";
@@ -36,7 +44,6 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
     clearCart,
   } = useCart();
   const formRef = useRef<HTMLFormElement>(null);
-  const confirmedSubmitRef = useRef(false);
   const initiateCheckoutSentRef = useRef(false);
   const purchaseSentRef = useRef(false);
   const [state, action, pending] = useActionState<CheckoutState, FormData>(
@@ -44,6 +51,14 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
     null,
   );
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // The browser runs the same check as the server before the confirm dialog,
+  // so most mistakes are shown without a round trip.
+  const [clientCheck, setClientCheck] = useState<{
+    fieldErrors: CheckoutFieldErrors;
+    message: string;
+  } | null>(null);
+  // Fields edited since the last server error, whose server message is stale.
+  const [editedFields, setEditedFields] = useState<ReadonlySet<string>>(() => new Set());
   const [pricesUpdated, setPricesUpdated] = useState(false);
   const [selectedZoneId, setSelectedZoneId] = useState(
     shippingZones[0]?.id ?? "",
@@ -140,20 +155,69 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
     !cartMatchesCountry ||
     (country.use_shipping_zones && shippingZones.length === 0);
 
+  const failedState = state && !state.ok ? state : null;
+  const serverFieldErrors = failedState?.fieldErrors;
+
+  const fieldError = (field: CustomerField) => {
+    if (clientCheck) return clientCheck.fieldErrors[field]?.[0];
+    if (editedFields.has(field)) return undefined;
+    return serverFieldErrors?.[field]?.[0];
+  };
+
+  const fieldProps = (field: CustomerField) => {
+    const error = fieldError(field);
+    return {
+      "aria-describedby": error ? `${CUSTOMER_FIELDS[field]}-error` : undefined,
+      "aria-invalid": error ? true : undefined,
+      name: CUSTOMER_FIELDS[field],
+    };
+  };
+
+  useEffect(() => {
+    focusFirstInvalid(formRef.current, serverFieldErrors);
+  }, [serverFieldErrors]);
+
+  const handleFieldChange = (event: FormEvent<HTMLFormElement>) => {
+    const inputName = (event.target as HTMLInputElement).name;
+    const field = (Object.keys(CUSTOMER_FIELDS) as CustomerField[]).find(
+      (key) => CUSTOMER_FIELDS[key] === inputName,
+    );
+    if (!field) return;
+    if (clientCheck?.fieldErrors[field]) {
+      const remaining = { ...clientCheck.fieldErrors };
+      delete remaining[field];
+      setClientCheck({ ...clientCheck, fieldErrors: remaining });
+    }
+    if (!editedFields.has(field)) setEditedFields(new Set(editedFields).add(field));
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    if (confirmedSubmitRef.current) {
-      confirmedSubmitRef.current = false;
+    event.preventDefault();
+    const validation = validateCheckout(new FormData(event.currentTarget));
+    if (!validation.ok) {
+      setClientCheck({
+        fieldErrors: validation.fieldErrors,
+        message: checkoutValidationMessage(validation.fieldErrors),
+      });
+      focusFirstInvalid(event.currentTarget, validation.fieldErrors);
       return;
     }
 
-    event.preventDefault();
+    setClientCheck(null);
+    setEditedFields(new Set());
     setConfirmOpen(true);
   };
 
   const confirmOrder = () => {
-    confirmedSubmitRef.current = true;
     setConfirmOpen(false);
-    formRef.current?.requestSubmit();
+    const form = formRef.current;
+    if (!form) return;
+    // Dispatched by hand rather than through <form action>: React resets a
+    // form after its action runs, which emptied every field on a failed order
+    // and moved the governorate select away from the delivery fee shown.
+    // Submit stays disabled until hydration, so nothing relies on a no-JS post.
+    const formData = new FormData(form);
+    startTransition(() => action(formData));
   };
 
   if (state?.ok) {
@@ -196,8 +260,11 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
     <div className="bg-[#e6ecf4] pt-8 md:pt-28 text-[#6c93c4]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-8 lg:grid-cols-[1fr_420px] lg:px-8 lg:py-12">
         <form
-          action={action}
           className="space-y-8"
+          // validateCheckout replaces the browser's checks, which accept
+          // values the server rejects (such as an email with no ".com").
+          noValidate
+          onChange={handleFieldChange}
           onSubmit={handleSubmit}
           ref={formRef}
         >
@@ -212,13 +279,13 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
 
           <section className="space-y-4">
             <h1 className="text-3xl font-medium text-[#6c93c4]">Checkout</h1>
-            {state && !state.ok ? (
+            {clientCheck || failedState ? (
               <div
                 className="border border-red-300 bg-red-50 px-4 py-4 text-sm leading-6 text-red-800"
                 role="alert"
               >
                 <p className="font-semibold">Order could not be placed</p>
-                <p className="mt-1">{state.error}</p>
+                <p className="mt-1">{clientCheck?.message ?? failedState?.error}</p>
               </div>
             ) : null}
             {pricesUpdated ? (
@@ -253,19 +320,21 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
 
           <section className="space-y-4">
             <h2 className="text-2xl font-medium text-[#171412]">Contact</h2>
-            <CheckoutField label="Mobile phone number" required>
+            <CheckoutField error={fieldError("phone")} errorId="phone-error" label="Mobile phone number" required>
               <input
+                {...fieldProps("phone")}
+                autoComplete="tel"
                 className={fieldClassName}
-                name="phone"
                 placeholder="Mobile phone number"
                 required
                 type="tel"
               />
             </CheckoutField>
-            <CheckoutField label="Email address">
+            <CheckoutField error={fieldError("email")} errorId="email-error" label="Email address">
               <input
+                {...fieldProps("email")}
+                autoComplete="email"
                 className={fieldClassName}
-                name="email"
                 placeholder="Email address"
                 type="email"
               />
@@ -279,51 +348,56 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
               before checkout if needed.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <CheckoutField label="First name" required>
+              <CheckoutField error={fieldError("firstName")} errorId="first_name-error" label="First name" required>
                 <input
+                  {...fieldProps("firstName")}
+                  autoComplete="given-name"
                   className={fieldClassName}
-                  name="first_name"
                   placeholder="First name"
                   required
                 />
               </CheckoutField>
-              <CheckoutField label="Last name" required>
+              <CheckoutField error={fieldError("lastName")} errorId="last_name-error" label="Last name" required>
                 <input
+                  {...fieldProps("lastName")}
+                  autoComplete="family-name"
                   className={fieldClassName}
-                  name="last_name"
                   placeholder="Last name"
                   required
                 />
               </CheckoutField>
             </div>
-            <CheckoutField label="Address" required>
+            <CheckoutField error={fieldError("address")} errorId="address-error" label="Address" required>
               <input
+                {...fieldProps("address")}
+                autoComplete="address-line1"
                 className={fieldClassName}
-                name="address"
                 placeholder="Address"
                 required
               />
             </CheckoutField>
-            <CheckoutField label="Apartment, suite, etc.">
+            <CheckoutField error={fieldError("apartment")} errorId="apartment-error" label="Apartment, suite, etc.">
               <input
+                {...fieldProps("apartment")}
+                autoComplete="address-line2"
                 className={fieldClassName}
-                name="apartment"
                 placeholder="Apartment, suite, etc."
               />
             </CheckoutField>
-            <CheckoutField label="City" required>
+            <CheckoutField error={fieldError("city")} errorId="city-error" label="City" required>
               <input
+                {...fieldProps("city")}
+                autoComplete="address-level2"
                 className={fieldClassName}
-                name="city"
                 placeholder="City"
                 required
               />
             </CheckoutField>
             {country.use_shipping_zones ? (
-              <CheckoutField label="Governorate" required>
+              <CheckoutField error={fieldError("shippingZoneId")} errorId="shipping_zone_id-error" label="Governorate" required>
                 <select
+                  {...fieldProps("shippingZoneId")}
                   className={fieldClassName}
-                  name="shipping_zone_id"
                   onChange={(event) => setSelectedZoneId(event.target.value)}
                   required
                   value={selectedZoneId}
@@ -336,17 +410,18 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
                 </select>
               </CheckoutField>
             ) : null}
-            <CheckoutField label="Postal code">
+            <CheckoutField error={fieldError("postalCode")} errorId="postal_code-error" label="Postal code">
               <input
+                {...fieldProps("postalCode")}
+                autoComplete="postal-code"
                 className={fieldClassName}
-                name="postal_code"
                 placeholder="Postal code"
               />
             </CheckoutField>
-            <CheckoutField label="Order notes">
+            <CheckoutField error={fieldError("notes")} errorId="notes-error" label="Order notes">
               <textarea
-                className="min-h-28 w-full border border-[#6c93c4]/20 bg-white px-4 py-3 text-[#171412] outline-none transition focus:border-[#6c93c4]"
-                name="notes"
+                {...fieldProps("notes")}
+                className="min-h-28 w-full border border-[#6c93c4]/20 bg-white px-4 py-3 text-[#171412] outline-none transition focus:border-[#6c93c4] aria-invalid:border-red-500 aria-invalid:bg-red-50/40"
                 placeholder="Order notes"
               />
             </CheckoutField>
@@ -411,7 +486,9 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
                       </button>
                       <span className="w-8 text-center text-sm">{item.quantity}</span>
                       <button
-                        className="h-8 w-8 border border-[#6c93c4]/20 text-[#6c93c4]"
+                        aria-label={`Increase quantity of ${item.name}`}
+                        className="h-8 w-8 border border-[#6c93c4]/20 text-[#6c93c4] disabled:opacity-40"
+                        disabled={item.quantity >= MAX_LINE_QUANTITY}
                         onClick={() =>
                           updateQuantity(item.countryItemId, item.quantity + 1)
                         }
@@ -507,14 +584,32 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
 }
 
 const fieldClassName =
-  "h-14 w-full border border-[#6c93c4]/20 bg-white px-4 text-[#171412] outline-none transition focus:border-[#6c93c4]";
+  "h-14 w-full border border-[#6c93c4]/20 bg-white px-4 text-[#171412] outline-none transition focus:border-[#6c93c4] aria-invalid:border-red-500 aria-invalid:bg-red-50/40";
+
+/** Moves focus to the first shopper-fixable field that failed, in form order. */
+function focusFirstInvalid(
+  form: HTMLFormElement | null,
+  fieldErrors: CheckoutFieldErrors | undefined,
+) {
+  const first = (Object.keys(CUSTOMER_FIELDS) as CustomerField[]).find(
+    (field) => fieldErrors?.[field]?.length,
+  );
+  if (!form || !first) return;
+  form
+    .querySelector<HTMLElement>(`[name="${CUSTOMER_FIELDS[first]}"]:not([type="hidden"])`)
+    ?.focus();
+}
 
 function CheckoutField({
   children,
+  error,
+  errorId,
   label,
   required = false,
 }: {
   children: ReactNode;
+  error?: string;
+  errorId?: string;
   label: string;
   required?: boolean;
 }) {
@@ -525,6 +620,11 @@ function CheckoutField({
         {required ? <span className="ml-1 text-red-600">*</span> : null}
       </span>
       {children}
+      {error ? (
+        <span className="text-sm font-normal text-red-700" id={errorId}>
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }

@@ -14,6 +14,7 @@ import {
   summarizeCart,
   type CartPrice,
 } from "@/lib/cart/pricing";
+import { MAX_LINE_QUANTITY } from "@/lib/checkout/schema";
 
 const CART_STORAGE_KEY = "heaven-beauty-cart";
 
@@ -107,7 +108,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             currentItem.countryItemId === item.countryItemId
               ? {
                   ...currentItem,
-                  quantity: currentItem.quantity + quantity,
+                  quantity: capQuantity(currentItem.quantity + quantity),
                   unitPrice: item.unitPrice,
                   originalUnitPrice: item.originalUnitPrice,
                 }
@@ -115,7 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           );
         }
 
-        return [...sameCountryItems, { ...item, quantity }];
+        return [...sameCountryItems, { ...item, quantity: capQuantity(quantity) }];
       });
       setCartVersion((version) => version + 1);
     },
@@ -127,7 +128,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       currentItems
         .map((item) =>
           item.countryItemId === countryItemId
-            ? { ...item, quantity: Math.max(0, quantity) }
+            ? { ...item, quantity: Math.min(MAX_LINE_QUANTITY, Math.max(0, quantity)) }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -219,7 +220,10 @@ function readStoredCart() {
 
   try {
     const parsed = JSON.parse(storedCart) as unknown[];
-    return parsed.filter(isValidStoredCartLine) as CartItem[];
+    return (parsed.filter(isValidStoredCartLine) as CartItem[]).map((item) => ({
+      ...item,
+      quantity: capQuantity(Math.floor(Number(item.quantity))),
+    }));
   } catch {
     window.localStorage.removeItem(CART_STORAGE_KEY);
     return [];
@@ -238,4 +242,9 @@ export function useCart() {
   }
 
   return context;
+}
+
+/** Keeps a line within what checkout accepts, so the cart never holds an order it cannot place. */
+function capQuantity(quantity: number) {
+  return Math.min(MAX_LINE_QUANTITY, Math.max(1, quantity));
 }

@@ -4,70 +4,34 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
-
+import {
+  checkoutValidationMessage,
+  MAX_LINE_QUANTITY,
+  validateCheckout,
+  type CheckoutFieldErrors,
+} from "@/lib/checkout/schema";
 import { notifyOrderCreated } from "@/lib/order-notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { submitOrderToWakilni } from "@/lib/wakilni/orders";
 
 export type CheckoutState =
   | { ok: true; orderNumber: string; trackingToken?: string; total: number }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> }
+  | { ok: false; error: string; fieldErrors?: CheckoutFieldErrors }
   | null;
-
-const cartLineSchema = z.object({
-  countryItemId: z.string().uuid(),
-  quantity: z.number().int().min(1).max(10),
-});
-
-const checkoutSchema = z.object({
-  countryId: z.string().uuid(),
-  shippingZoneId: z.string().uuid().nullable(),
-  idempotencyKey: z.string().uuid(),
-  phone: z.string().trim().min(5).max(30),
-  email: z.union([z.literal(""), z.string().trim().email().max(254)]),
-  firstName: z.string().trim().min(1).max(80),
-  lastName: z.string().trim().min(1).max(80),
-  address: z.string().trim().min(3).max(250),
-  apartment: z.string().trim().max(100),
-  city: z.string().trim().min(1).max(100),
-  postalCode: z.string().trim().max(30),
-  notes: z.string().trim().max(1000),
-  items: z.array(cartLineSchema).min(1).max(50),
-});
 
 export async function submitCheckout(
   _: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
-  let rawItems: unknown;
-  try {
-    rawItems = JSON.parse(String(formData.get("cart_items") ?? "[]"));
-  } catch {
-    return { ok: false, error: "Your cart could not be read. Please refresh and try again." };
-  }
+  const parsed = validateCheckout(formData);
 
-  const parsed = checkoutSchema.safeParse({
-    countryId: formData.get("country_id"),
-    shippingZoneId: String(formData.get("shipping_zone_id") ?? "") || null,
-    idempotencyKey: formData.get("idempotency_key"),
-    phone: formData.get("phone"),
-    email: formData.get("email") ?? "",
-    firstName: formData.get("first_name"),
-    lastName: formData.get("last_name"),
-    address: formData.get("address"),
-    apartment: formData.get("apartment") ?? "",
-    city: formData.get("city"),
-    postalCode: formData.get("postal_code") ?? "",
-    notes: formData.get("notes") ?? "",
-    items: rawItems,
-  });
-
-  if (!parsed.success) {
+  if (!parsed.ok) {
+    // Field paths and issue codes only: the values are customer data.
+    console.warn(`Checkout validation failed: ${JSON.stringify({ issues: parsed.issues })}`);
     return {
       ok: false,
-      error: "Please review the highlighted order details and try again.",
-      fieldErrors: z.flattenError(parsed.error).fieldErrors,
+      error: checkoutValidationMessage(parsed.fieldErrors),
+      fieldErrors: parsed.fieldErrors,
     };
   }
 
@@ -81,8 +45,8 @@ export async function submitCheckout(
     quantity,
     qty: quantity,
   }));
-  if (items.some((item) => item.quantity > 10)) {
-    return { ok: false, error: "A product quantity cannot exceed 10." };
+  if (items.some((item) => item.quantity > MAX_LINE_QUANTITY)) {
+    return { ok: false, error: `A product quantity cannot exceed ${MAX_LINE_QUANTITY}.` };
   }
 
   // The discounted subtotal the shopper confirmed. place_order_v2 refuses the
