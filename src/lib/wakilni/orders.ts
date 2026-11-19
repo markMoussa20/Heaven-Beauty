@@ -11,6 +11,7 @@ import {
   wakilniRequest,
   WakilniError,
 } from "./client";
+import { buildWakilniPackages } from "./package";
 
 type OrderWithCountry = Order & {
   countries?: {
@@ -158,12 +159,7 @@ export async function submitOrderToWakilni(orderId: string) {
         note: order.notes || "",
         car_needed: false,
         is_express: account.express ?? false,
-        packages: items.map((item) => ({
-          quantity: item.quantity,
-          type_id: account.packageTypeId ?? 58,
-          name: item.product_name || "Beauty product",
-          sku: item.product_id || item.country_item_id,
-        })),
+        packages: buildWakilniPackages(order, items, account.packageTypeId ?? 58),
         },
       })) as DeliveryResponse;
       await updateOrder(orderId, {
