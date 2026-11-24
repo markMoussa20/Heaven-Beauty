@@ -9,6 +9,7 @@ import { useCart } from "@/components/cart/CartProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { trackMetaEvent, toMetaContents } from "@/lib/analytics/meta-pixel";
+import { toTikTokContents, trackTikTokEvent } from "@/lib/analytics/tiktok-pixel";
 import {
   reportCheckoutProblem,
   submitCheckout,
@@ -116,6 +117,11 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
       num_items: count,
       value: total,
     });
+    trackTikTokEvent("InitiateCheckout", {
+      contents: toTikTokContents(items),
+      currency: country.currency_code,
+      value: total,
+    });
   }, [count, country.currency_code, hydrated, items, total]);
 
   useEffect(() => {
@@ -139,6 +145,15 @@ export function CheckoutClient({ country, idempotencyKey, prices, shippingZones 
           value: state.total,
         },
         { eventID: state.orderNumber },
+      );
+      trackTikTokEvent(
+        "CompletePayment",
+        {
+          contents: toTikTokContents(items),
+          currency: country.currency_code,
+          value: state.total,
+        },
+        { event_id: state.orderNumber },
       );
     }
 

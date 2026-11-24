@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Kanit } from "next/font/google";
 import { MetaPixel } from "@/components/analytics/MetaPixel";
+import { TikTokPixel } from "@/components/analytics/TikTokPixel";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { CartProvider } from "@/components/cart/CartProvider";
@@ -51,6 +52,7 @@ export default async function RootLayout({
     <html lang="en" className={`${kanit.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-950">
         <MetaPixel />
+        <TikTokPixel />
         <CountryProvider
           countries={countries}
           initialCountryCode={selectedCountryCode}
