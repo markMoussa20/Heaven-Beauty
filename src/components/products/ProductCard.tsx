@@ -6,6 +6,7 @@ import Link from "@/components/ui/IntentPrefetchLink";
 
 import { useCart } from "@/components/cart/CartProvider";
 import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
+import { toTikTokContents, trackTikTokEvent } from "@/lib/analytics/tiktok-pixel";
 import { formatPrice, getItemPricing } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/browser";
 import {
@@ -57,6 +58,13 @@ export function ProductCard({
       content_name: product.name,
       content_type: "product",
       contents: [{ id: product.id, item_price: unitPrice, quantity: 1 }],
+      currency: country.currency_code,
+      value: unitPrice,
+    });
+    trackTikTokEvent("AddToCart", {
+      contents: toTikTokContents([
+        { productId: product.id, name: product.name, quantity: 1, unitPrice },
+      ]),
       currency: country.currency_code,
       value: unitPrice,
     });

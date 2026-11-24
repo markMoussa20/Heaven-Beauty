@@ -28,6 +28,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_DEFAULT_COUNTRY_CODE=AE
 CHECKOUT_RATE_LIMIT_SECRET=
 NEXT_PUBLIC_META_PIXEL_ID=
+NEXT_PUBLIC_TIKTOK_PIXEL_ID=
 ```
 
 The service-role key and rate-limit secret are server-only. Never prefix them with `NEXT_PUBLIC_`.
@@ -49,6 +50,26 @@ on load and on every client-side route change. Standard events:
 | `Purchase` | `src/components/checkout/CheckoutClient.tsx`, deduped on order number |
 
 Verify with the Meta Pixel Helper extension, or in Events Manager > Test events.
+
+## TikTok pixel
+
+`NEXT_PUBLIC_TIKTOK_PIXEL_ID` enables the TikTok pixel (the "Heaven Beauty" pixel
+in TikTok Events Manager). It follows the same rules as the Meta pixel: leave it
+unset outside production, every tracking call is a no-op without it, and it never
+loads on `/admin` routes.
+
+Base code lives in `src/components/analytics/TikTokPixel.tsx` and calls
+`ttq.page()` on load and on every client-side route change. Helpers are in
+`src/lib/analytics/tiktok-pixel.ts`. Standard events fire beside the Meta ones:
+
+| Event | Fired from |
+| --- | --- |
+| `ViewContent` | `src/components/products/ProductDetail.tsx` |
+| `AddToCart` | `src/components/products/ProductCard.tsx`, `ProductDetail.tsx` |
+| `InitiateCheckout` | `src/components/checkout/CheckoutClient.tsx` |
+| `CompletePayment` | `src/components/checkout/CheckoutClient.tsx`, `event_id` = order number |
+
+Verify with the TikTok Pixel Helper extension, or in Events Manager > Test events.
 
 ## Supabase
 
