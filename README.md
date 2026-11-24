@@ -53,10 +53,12 @@ Verify with the Meta Pixel Helper extension, or in Events Manager > Test events.
 
 ## TikTok pixel
 
-`NEXT_PUBLIC_TIKTOK_PIXEL_ID` enables the TikTok pixel (the "Heaven Beauty" pixel
-in TikTok Events Manager). It follows the same rules as the Meta pixel: leave it
-unset outside production, every tracking call is a no-op without it, and it never
-loads on `/admin` routes.
+The TikTok pixel ("Heaven Beauty" in TikTok Events Manager) is always on in
+Vercel production builds: `next.config.ts` falls back to its id there, so no
+dashboard env var is needed. Elsewhere it is off unless
+`NEXT_PUBLIC_TIKTOK_PIXEL_ID` is set, which also overrides the production id.
+Every tracking call is a no-op without an id, and it never loads on `/admin`
+routes.
 
 Base code lives in `src/components/analytics/TikTokPixel.tsx` and calls
 `ttq.page()` on load and on every client-side route change. Helpers are in

@@ -18,7 +18,19 @@ if (!supabaseImageHostname) {
   );
 }
 
+// The TikTok pixel id is public (it ships in the browser snippet). Production
+// builds fall back to the Heaven Beauty pixel so tracking does not hinge on a
+// dashboard env var; local and preview builds stay untracked unless
+// NEXT_PUBLIC_TIKTOK_PIXEL_ID is set explicitly.
+const PRODUCTION_TIKTOK_PIXEL_ID = "DC00SEBC77U1013HCI20";
+const tiktokPixelId =
+  process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID?.trim() ||
+  (process.env.VERCEL_ENV === "production" ? PRODUCTION_TIKTOK_PIXEL_ID : "");
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_TIKTOK_PIXEL_ID: tiktokPixelId,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     // Vercel fetches the Supabase original once per width/format variant, so
